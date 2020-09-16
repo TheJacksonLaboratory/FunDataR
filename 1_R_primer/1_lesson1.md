@@ -15,7 +15,7 @@
 After starting R, an R terminal window will be launched. If you bring that window into focus, you can
   start entering commands at the `>` prompt. An 'expression' is another term for a command that the
   R interpreter can process and potentially return a value. Pressing <ENTER> after a complete expression 
-  results in the execution of that expression. If the expression is clearly incomplete, pressing <ENTER> 
+  results in the execution of that expression. If the expression is clearly incomplete, pressing `<ENTER>` 
   will take you to the next line, where you can continue entering your expression. If the expression does
   not include an assignment of the resulting value to a variable (discussed later in this lesson), the 
   resulting value is typically printed out on the screen. The simplest expressions are values themselves.
@@ -23,7 +23,7 @@ After starting R, an R terminal window will be launched. If you bring that windo
   The data type determines which operators and functions can be applied to the value.
 
 A value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
-  press <ENTER>, and the value will be printed on the next line in the terminal. 
+  press `<ENTER>`, and the value will be printed on the next line in the terminal. 
 
 Comments in R are anything after a `#` symbol.
 
@@ -35,7 +35,7 @@ The first data type we will look at are data types used to represent numbers. Th
   types that are used to represent numbers. The most common is the 'numeric' type, which is
   encoded in a double-precision floating point format. The numeric type is most useful for 
   representing fractional numbers, like 1.23 as well as very large or very small magnitude numbers, 
-  like 1.3e36 (1.3 x 10<sup>36</sup>) or 3.97e-24 (3.97 x 10<sup>-24</sup>). Another data type
+  like `1.3e36` (1.3 x 10<sup>36</sup>) or `3.97e-24` (3.97 x 10<sup>-24</sup>). Another data type
   used for representing numbers is 'integer'. Integers are used to represent whole
   numbers (positive, negative and zero), like the counting numbers. In R these are primarily used
   for counting (no surprise) and indexing locations in more complex data structures. R also has 
@@ -44,12 +44,14 @@ The first data type we will look at are data types used to represent numbers. Th
   doubles can be used interchangeably, so we will gloss over the differences and conversion rules
   for now.
 
-An integer value is composed solely of an optional sign and digits. A numeric value can be composed 
+An integer value is composed solely of an optional sign and digits. It should be followed by 
+  `L` (for 'long integer') to ensure R understands an integer is intended. A numeric value can be composed 
   of digits, an optional sign, an optional single decimal place, and either `E` or `e` followed by
   an positive or negative integer exponent (see above for some examples):
 
 ```
 2                  ## a super-simple numeric value
+2L
 ```
 
 A function is a bit of computer code that can be called by name, given an argument (in parentheses
@@ -60,6 +62,7 @@ A function is a bit of computer code that can be called by name, given an argume
 
 ```
 class(2)           ## looks like an integer, but ...
+class(2L)
 ?class
 help(class)
 ```
@@ -71,6 +74,10 @@ An expression can be made by combining operators (like the `+` below) with value
 ```
 2 + 3              ## a complete expression with two values and one operator (`+`)
 class(2 + 3)       ## the class of the result of the operation
+2L + 3L            ## integer math
+class(2L + 3L)     ## result is integer too
+2L + 3             ## mixing integer and numeric: integer gets converted to numeric
+class(2L + 3)
 ?"+"
 help('+')
 ?"Syntax"          ## where to find operators and precedence
@@ -81,8 +88,9 @@ help('+')
 2 ^ 3              ## power (coefficient and exponent need not be positive nor integer)
 ```
 
-If you hate to memorize precedence orders or want to change the precedence of operations, you
-  can enclose them in parentheses per the usual mathematical conventions:
+If you hate to memorize precedence tables or want to change the order of operations, you
+  can enclose parts of the expression in parentheses (per the usual mathematical conventions)
+  to ensure execution in the order you intend:
 
 ```
 2 + 3 / 5
@@ -103,9 +111,13 @@ If you hate to memorize precedence orders or want to change the precedence of op
 
 ---
 
-
 ### Logicals:
 
+Certain operators (and functions) which take numbers as arguments, can return logical
+  values (a data type that can only represent the two values 'TRUE' and 'FALSE'). The 
+  equality operators are a good example:
+
+```
 2 < 3
 2 >= 3
 2 == 3
@@ -113,13 +125,29 @@ If you hate to memorize precedence orders or want to change the precedence of op
 2 != 3
 ?"<"
 class(2 < 3)
+```
 
-TRUET
-TR     ## oops
+Logical values are represented by the unquoted (case-sensitive) tokens `TRUE`, `T`, 
+  `FALSE`, and `F`:
+
+```
+TRUE                ## ok
+True                ## oops: case sensitive
+true                ## oops: case sensitive
+T                   ## ok
+t                   ## oops: case sensitive + the name of the matrix transposition function
+TR                  ## oops, only T or TRUE
 class(T)
-FALSE
-F
+FALSE               ## ok
+FA                  ## oops, only F or FALSE
+F                   ## ok
+```
 
+Logical values can be combined using the operators `&&` (and) as well as `||` (or).<br>
+They can also be combined with the function `xor()` (exclusive or), and negated with the
+unary (only takes one argument) operator `!`:
+
+```
 TRUE && TRUE
 TRUE && FALSE
 TRUE || TRUE
@@ -130,6 +158,9 @@ xor(TRUE, TRUE)
 xor(FALSE, FALSE)
 !T
 !F
+```
+[Return to index](#index)
+
 
 ### Characters:
 

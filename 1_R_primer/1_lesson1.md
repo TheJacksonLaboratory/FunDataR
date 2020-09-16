@@ -3,12 +3,12 @@
 
 ### Index
 
-#### [Expressions](#expressions)
-#### [Numbers](#numbers)
-#### [Logicals](#logicals)
-#### [Characters](#characters)
+1. [`Expressions`](#expressions)
+2. [Numbers](#numbers)
+3. [Logicals](#logicals)
+4. [Characters](#characters)
 
-### Expressions
+### Intro to expressions
 
 After starting R, an R terminal window will be launched. If you bring that window into focus, you can
   start entering commands at the `>` prompt. An 'expression' is another term for a command that the
@@ -20,8 +20,9 @@ After starting R, an R terminal window will be launched. If you bring that windo
   Each value has a data type associated with it, which can be determined using the `class()` function.
   The data type determines which operators and functions can be applied to the value.
 
+---
 
-### Numbers
+### Intro to numbers
 
 The first data type we will look at are data types used to represent numbers. There are several data
   types that are used to represent numbers. The most common is the 'numeric' type, which is
@@ -70,6 +71,8 @@ help('+')
 (2 + 3) / 5
 3 ^ (1 / 2)
 (3 ^ (1 / 2)) ^ 2
+
+---
 
 ## QUIZ:
 

@@ -8,7 +8,7 @@
 - [Logicals](#logicals)
 - [Characters](#characters)
 
-### Intro to expressions
+### Expressions
 
 After starting R, an R terminal window will be launched. If you bring that window into focus, you can
   start entering commands at the `>` prompt. An 'expression' is another term for a command that the
@@ -22,7 +22,7 @@ After starting R, an R terminal window will be launched. If you bring that windo
 
 ---
 
-### Intro to numbers
+### Numbers
 
 The first data type we will look at are data types used to represent numbers. There are several data
   types that are used to represent numbers. The most common is the 'numeric' type, which is
@@ -110,7 +110,7 @@ xor(FALSE, FALSE)
 !T
 !F
 
-### characters:
+### Characters:
 
 "abc de"         ## 1x and 2x equivalent; 2x 'preferred'
 class("abc de")

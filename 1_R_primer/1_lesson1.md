@@ -14,16 +14,17 @@
 
 After starting R, an R terminal window will be launched. If you bring that window into focus, you can
   start entering commands at the `>` prompt. An 'expression' is another term for a command that the
-  R interpreter can process and potentially return a value. Pressing <ENTER> after a complete expression 
-  results in the execution of that expression. If the expression is clearly incomplete, pressing `<ENTER>` 
-  will take you to the next line, where you can continue entering your expression. If the expression does
-  not include an assignment of the resulting value to a variable (discussed later in this lesson), the 
-  resulting value is typically printed out on the screen. The simplest expressions are values themselves.
-  Each value has a data type associated with it, which can be determined using the `class()` function.
-  The data type determines which operators and functions can be applied to the value.
+  R interpreter can process and potentially return a computed value. Pressing `<ENTER>` after a complete 
+  expression results in the execution of that expression. If the expression is clearly incomplete, 
+  pressing `<ENTER>` will take you to the next line, where you can continue entering your expression. 
+  If the expression does not include an assignment of the resulting value to a variable (discussed 
+  later in this lesson), the resulting value is typically printed out on the screen. The simplest 
+  expressions are values themselves. Each value has a data type associated with it, which can be 
+  determined using the `class()` function. The data type determines which operators and functions can 
+  be applied to the value.
 
 A value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
-  press `<ENTER>`, and the value will be printed on the next line in the terminal. 
+  press `<ENTER>`, and the value will be displayed on subsequent lines in the terminal. 
 
 Comments in R are anything after a `#` symbol.
 
@@ -38,11 +39,11 @@ The first data type we will look at are data types used to represent numbers. Th
   like `1.3e36` (1.3 x 10<sup>36</sup>) or `3.97e-24` (3.97 x 10<sup>-24</sup>). Another data type
   used for representing numbers is 'integer'. Integers are used to represent whole
   numbers (positive, negative and zero), like the counting numbers. In R these are primarily used
-  for counting (no surprise) and indexing locations in more complex data structures. R also has 
-  good support for representing complex numbers (numbers composed of 'real' and 'imaginary' parts), 
-  but we won't describe those further in this class. For most practical purposes, integers and 
-  doubles can be used interchangeably, so we will gloss over the differences and conversion rules
-  for now.
+  for counting (no surprise) and indexing positions of particular values in more complex data 
+  structures. R also has good support for representing complex numbers (numbers composed of 'real' 
+  and 'imaginary' parts), but we won't describe those further in this class. For most practical 
+  purposes, integers and doubles can be used interchangeably, so we will gloss over the differences 
+  and conversion rules for now.
 
 An integer value is composed solely of an optional sign and digits. It should be followed by 
   `L` (for 'long integer') to ensure R understands an integer is intended. A numeric value can be composed 
@@ -51,7 +52,7 @@ An integer value is composed solely of an optional sign and digits. It should be
 
 ```
 2                  ## a super-simple numeric value
-2L
+2L                 ## the almost equally simple integer equivalent
 ```
 
 A function is a bit of computer code that can be called by name, given an argument (in parentheses
@@ -61,7 +62,7 @@ A function is a bit of computer code that can be called by name, given an argume
   `help()` function with the function name (unquoted) as argument:
 
 ```
-class(2)           ## looks like an integer, but ...
+class(2)                ## looks like an integer, but ...
 class(2L)
 ?class
 help(class)
@@ -72,20 +73,20 @@ An expression can be made by combining operators (like the `+` below) with value
   single or double quotes and preceding it with a `?`, or by calling the `help()` function:
 
 ```
-2 + 3              ## a complete expression with two values and one operator (`+`)
-class(2 + 3)       ## the class of the result of the operation
-2L + 3L            ## integer math
-class(2L + 3L)     ## result is integer too
-2L + 3             ## mixing integer and numeric: integer gets converted to numeric
+2 + 3                   ## a complete expression with two values and one operator (`+`)
+class(2 + 3)            ## the class of the result of the operation
+2L + 3L                 ## integer math
+class(2L + 3L)          ## result is integer too
+2L + 3                  ## mixing integer and numeric: integer gets converted to numeric
 class(2L + 3)
 ?"+"
 help('+')
-?"Syntax"          ## where to find operators and precedence
-??precedence       ## in case you forget, ?? does a full-text search of help library
-2 / 3              ## divide
-2 * 3              ## multiply
-2 - 3              ## subtract
-2 ^ 3              ## power (coefficient and exponent need not be positive nor integer)
+?"Syntax"               ## where to find operators and precedence
+??precedence            ## in case you forget, ?? does a full-text search of help library
+2 / 3                   ## divide
+2 * 3                   ## multiply
+2 - 3                   ## subtract
+2 ^ 3                   ## power (coefficient and exponent need not be positive nor integer)
 ```
 
 If you hate to memorize precedence tables or want to change the order of operations, you
@@ -118,29 +119,29 @@ Certain operators (and functions) which take numbers as arguments, can return lo
   equality operators are a good example:
 
 ```
-2 < 3
-2 >= 3
-2 == 3
-2 == 2
-2 != 3
-?"<"
-class(2 < 3)
+2 < 3                   ## is 2 less than 3?
+2 >= 3                  ## is 2 greater than or equal to 3?
+2 == 3                  ## is 2 equal to 3?
+2 == 2                  ## is 2 equal to 2?
+2 != 3                  ## is 2 not equal to 3?
+?"<"                    ## what does the '<' operator do?
+class(2 < 3)            ## what data type is returned by the '<' operator?
 ```
 
 Logical values are represented by the unquoted (case-sensitive) tokens `TRUE`, `T`, 
   `FALSE`, and `F`:
 
 ```
-TRUE                ## ok
-True                ## oops: case sensitive
-true                ## oops: case sensitive
-T                   ## ok
-t                   ## oops: case sensitive + the name of the matrix transposition function
-TR                  ## oops, only T or TRUE
+TRUE                    ## ok
+True                    ## oops: case sensitive
+true                    ## oops: case sensitive
+T                       ## ok
+t                       ## oops: case sensitive + the name of the matrix transposition function
+TR                      ## oops, only T or TRUE
 class(T)
-FALSE               ## ok
-FA                  ## oops, only F or FALSE
-F                   ## ok
+FALSE                   ## ok
+FA                      ## oops, only F or FALSE
+F                       ## ok
 ```
 
 Logical values can be combined using the operators `&&` (and) as well as `||` (or).<br>
@@ -148,19 +149,20 @@ They can also be combined with the function `xor()` (exclusive or), and negated 
 unary (only takes one argument) operator `!`:
 
 ```
-TRUE && TRUE
-TRUE && FALSE
-TRUE || TRUE
-TRUE || FALSE
-FALSE || FALSE
-xor(TRUE, FALSE)
-xor(TRUE, TRUE)
-xor(FALSE, FALSE)
-!T
-!F
+TRUE && TRUE            ## what is (T and T)?
+TRUE && FALSE           ## what is (T and F)?
+TRUE || TRUE            ## what is (T or T)?  this is the one that differs from 'xor()'!!!
+TRUE || FALSE           ## what is (T or F)?
+FALSE || FALSE          ## what is (F or F)?
+xor(TRUE, FALSE)        ## what is (T xor F)?
+xor(TRUE, TRUE)         ## what is (T xor T)? this is the one that differs from '&&'!!!
+xor(FALSE, FALSE)       ## what is (F xor F)?
+!T                      ## not TRUE
+!F                      ## not FALSE
 ```
 [Return to index](#index)
 
+---
 
 ### Characters:
 

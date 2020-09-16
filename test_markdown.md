@@ -6,16 +6,12 @@
 ###### H6
 
 ### Index
-#### [H4 link to Fonts][fonts]
-#### [H4 link to Lists][lists]
-#### [H4 link to Code][code]
-#### [H4 link to URLs][urls]
+#### [H4 link to Fonts](#fonts)
+#### [H4 link to Lists](#lists)
+#### [H4 link to Code](#code)
+#### [H4 link to URLs](#urls)
 
-Regular stuff
-
-Before break
 ---
-After break
 
 Before '\n'
 After '\n'

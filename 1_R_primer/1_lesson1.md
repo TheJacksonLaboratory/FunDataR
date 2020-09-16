@@ -56,7 +56,7 @@ A function is a bit of computer code that can be called by name, given an argume
   following the function's name), and returns a value and/or performs some operations. One simple 
   function is `class()`, which tells you the data type of its argument. To find out the details of
   what a function does, you can precede the function name (unquoted) with a `?`, or call the 
-  `help()` function with the function name (unquoted) as argument:<br>
+  `help()` function with the function name (unquoted) as argument:
 
 ```
 class(2)           ## looks like an integer, but ...
@@ -66,7 +66,7 @@ help(class)
 
 An expression can be made by combining operators (like the `+` below) with values (like the numeric
   values `2` and `3` below). You can find out more about an operator by placing the operator in
-  single or double quotes and preceding it with a `?`, or by calling the `help()` function:<br>
+  single or double quotes and preceding it with a `?`, or by calling the `help()` function:
 
 ```
 2 + 3              ## a complete expression with two values and one operator (`+`)
@@ -81,23 +81,27 @@ help('+')
 2 ^ 3              ## power (coefficient and exponent need not be positive nor integer)
 ```
 
+If you hate to memorize precedence orders or want to change the precedence of operations, you
+  can enclose them in parentheses per the usual mathematical conventions:
 
-
+```
 2 + 3 / 5
 (2 + 3) / 5
 3 ^ (1 / 2)
 (3 ^ (1 / 2)) ^ 2
-[Return to index](#index)
+```
 
----
-
-## QUIZ:
+## Check your understanding:
 
 1) what is the third-root of 5
 
 2) what is the sum of 500,726 and 324,781, divided by 67?
 
 3) what is 3.14 to the 3.14 power?
+
+[Return to index](#index)
+
+---
 
 
 ### Logicals:

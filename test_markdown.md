@@ -16,6 +16,12 @@
 Before '\n'
 After '\n'
 
+Before break style 1<br/>
+After break style 1
+
+Before break style 2<br>
+After break style 2
+
 ### Fonts
 *bold stuff*
 **italic stuff**

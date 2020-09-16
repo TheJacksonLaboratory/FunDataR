@@ -23,9 +23,9 @@ Before break style 2<br>
 After break style 2
 
 ### Fonts
-*bold stuff*
-**italic stuff**
-***bold italic stuff***
+*bold stuff*<br>
+**italic stuff**<br>
+***bold italic stuff***<br>
 ### [return to index][index]
 
 ### Lists
@@ -41,12 +41,17 @@ After break style 2
 ### Code
 `line of code`
 
-```two line block
-of code```
+```
+code block line 1
+  indented code block line 2
+    2x indented code block line 3
+  indented code block line 4
+code block line 5 of 5
+```
 ### [return to index][index]
 
 ### URLs
-Link follows:
+External link follows:
 [link text here](https://www.google.com)
 ### [return to index][index]
 

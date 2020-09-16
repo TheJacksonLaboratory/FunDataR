@@ -7,6 +7,7 @@
 - [Numbers](#numbers)
 - [Logicals](#logicals)
 - [Characters](#characters)
+- [Variables](#variables)
 
 ---
 
@@ -118,7 +119,7 @@ If you hate to memorize precedence tables (I do) or want to change the order of 
 
 ---
 
-### Logicals:
+### Logicals
 
 Certain operators (and functions) which take numbers as arguments, can return logical
   values (a data type that can only represent the two values 'TRUE' and 'FALSE'). The 
@@ -167,11 +168,12 @@ xor(FALSE, FALSE)       ## what is (F xor F)?
 !T                      ## not TRUE
 !F                      ## not FALSE
 ```
+
 [Return to index](#index)
 
 ---
 
-### Characters:
+### Characters
 
 Although R is primarily a programming language for crunching numbers, we still often need
   to represent 'strings' that is a series of characters, which can include not only digits,
@@ -186,10 +188,10 @@ Although R is primarily a programming language for crunching numbers, we still o
   in single quotes.
 
 ```
-"abc de"                        ## 1x and 2x equivalent; 2x 'preferred'
+"abc de"                        ## 1x and 2x quotes equivalent; 2x 'preferred'
 class("abc de")
 ''                              ## use 2x to embed 1x and vice-versa
-class('')                       ## an empty string in quotes is still of type character
+class('"')                      ## an empty string in quotes is still of type character
 
 nchar('')                       ## how many characters long (\0 not counted)
 nchar('abc de')
@@ -205,9 +207,37 @@ grepl('bc', 'abcba')            ## does second argument contain first as substri
 grepl('yx', 'abcba')            ## does second argument contain first as substring? regex-friendly
 ```
 
-## variables:
+[Return to index](#index)
 
-x <- 3          ## avoid c, q, t
+---
+
+### Variables
+
+Variables in R (and other programming languages) are reminiscent of the variables (e.g. `x` and `y`) 
+  encountered in elementary algebra. In R, they are names used to refer to an object (a spot in computer
+  memory) that holds one or more values which can be changed by the program. All the value types we 
+  discussed can be assigned to a variable. The variable name is used to assign values to the underlying
+  object or read values from the object.
+
+Variable names can be composed only of letters, digits, periods, and underscores. They cannot contain 
+  dashes, spaces, other punctuation, etc. Variable names must begin with a letter or a period (not 
+  a number or an underscore). The `ls()` command is used to retrieve a list of the currently defined 
+  variables. If you start a variable name with a period, the variable will be 'hidden' from the default 
+  form of the `ls()` command. Variable names are distinguished from 'character' values because all
+  character values are enclosed in quotes, while variable names are not.
+
+In general, you should try to use descriptive variable names so that your code can be more easily 
+  understood. However, for short self-contained pieces of code, quick prototyping, or where readability 
+  is not otherwise impaired, it is common to see single letter variable names employed. When doing so, 
+  it is important to remember that there are base functions called `c()`, `q()` and `t()`. Defining a 
+  variable named `c` would result in the `c()` command not being found unless the full module path is 
+  specified (which is not usually done for functions in the base package. Therefore, it is best 
+  practice to avoid using `c`, `q`, or `t` for user-defined variable names.
+
+Numeric operators and functions work on variables:
+
+```
+x <- 3                    ## avoid c, q, t
 x
 x <- 2 + 3
 x
@@ -216,25 +246,51 @@ y <- 3
 x + y
 z <- x + y
 z
+.a <- 97
+ls()                      ## list all the defined variables (except those starting with '.')
+ls(all.names=T)           ## incantation discovered by reading the scrolls returned by '?ls'
+rm(x)                     ## get rid of the variable x
+ls(all.names=T)
+rm(list=ls())             ## delete all defined variables (except those starting with '.')
+.a
+rm(list=ls(all.names=T))  ## really delete everything; could also 'rm(.a)' to just get rid of .a
+ls(all.names=T)
+```
 
+Same with character operators and functions:
+
+```
 x <- 'abc'
 x
 grepl('y', x)
 grepl('bc', x)
+```
 
-cat("x is:", x)
-cat("x is:", x, "\n")   ## \t
+And logical operators/functions:
 
-x <- 2 
-y <- 3
-z <- 2 + 3
-cat(x, "+", y, "=", x, "\n")
+```
+x <- T
+y <- F
+x && y
+x && x
+y && y
+x || y
+x || x
+y || y
+xor(x, y)
+xor(x, x)
+xor(y, y)
+```
 
-ls()
-rm(x, y, z)      ## 'rm(list=ls())' gets rid of everything
-ls()
+[Return to index](#index)
 
-## basic data type is vector-like:
+---
+
+### Vectors
+
+In R, the basic data type is vector-like (like a series or linear array of values), which is 
+  different from most other programming languages. It is best to think a 'scalar' (that is,
+  a single value, or variable holding a single value) as 
 
 x <- 3       
 x

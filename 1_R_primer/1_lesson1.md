@@ -414,6 +414,9 @@ x
 y
 x + y                                  ## longer not multiple of shorter: recycles shorter w/ warning
 ```
+[Return to index](#index)
+
+---
 
 ### Some vectorized numeric operations
 
@@ -435,6 +438,9 @@ round(x, digits=2)                                     ## decimal places
 signif(x, digits=2)                                    ## digits
 round(seq(from=-3, to=10, length.out=10))
 ```
+[Return to index](#index)
+
+---
 
 ### Some vectorized logical operations
 
@@ -452,6 +458,9 @@ x > 8 | x < 5                                          ## vectorized 'or'; yield
 sum(x > 8 | x < 5)                                     ## how many TRUE values resulted from vectorized 'or'?
 !(x > 8 | x < 5)                                       ## '!' vectorized: reverses all logical values
 ```
+[Return to index](#index)
+
+---
 
 ### Some vectorized character operations
 
@@ -467,9 +476,13 @@ gsub('e', 'z', x)
 x
 grepl('e', x)
 ```
+[Return to index](#index)
+
+---
 
 ### Vector integer indexing:
 
+```
 x <- (1 : 10) ^ 2
 x
 x[1]
@@ -481,9 +494,14 @@ x[c(1, 10, 2, 9, 3, 8)]
 x[-1]
 x[-(1 : 5)]
 x[seq(from=2, to=10, by=2)]
+```
+[Return to index](#index)
+
+---
 
 ### Vector logical indexing:
 
+```
 x <- (1 : 10) ^ 2
 x
 x[x > 30]
@@ -496,10 +514,15 @@ x[! grepl('abc', x)]
 
 x[c(T, F)]        ## recycle
 x[c(T, F, T)]     ## no warning!!!
+```
+[Return to index](#index)
+
+---
 
 
 ### More vector indexing:
 
+```
 x <- 1:10
 length(x)
 
@@ -508,10 +531,13 @@ length(x)
 x
 x[1000]             ## NA is 'missing value'
 x[length(x) + 1] <- length(x) + 1
+```
+[Return to index](#index)
 
 
 ### More concatenation:
 
+```
 x <- 1:10
 x <- c(x, 11)
 x
@@ -522,6 +548,10 @@ x <- 1:10
 y <- 21:30
 z <- c(x, y, rev(x), rev(y))
 z
+```
+[Return to index](#index)
+
+---
 
 ### More vector operators:
 
@@ -546,7 +576,9 @@ x <- 1 : 100
 i <- x > 35
 table(i)
 
-## QUIZ:
+---
+
+### Check your understanding:
 
 1) how many positive integers, when squared, yield
      a value of more than 200 and less than 3000?
@@ -562,8 +594,13 @@ table(i)
 
 6) reverse the order of the vector
 
+[Return to index](#index)
+
+---
+
 ### Simple plotting:
 
+```
 tm <- 1:100
 dst <- t0 ^ 2
 
@@ -573,4 +610,5 @@ plot(x=tm, y=dst, main="My default plot", xlab="time (s)", ylab="distance (m)")
 plot(x=tm, y=dst, main="My dot plot", type="p", xlab="time (s)", ylab="distance (m)")
 plot(x=tm, y=dst, main="My line plot", type="l", xlab="time (s)", ylab="distance (m)")
 points(x=tm, y=dst)
-
+```
+[Return to index](#index)

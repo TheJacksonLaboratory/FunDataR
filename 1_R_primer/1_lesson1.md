@@ -95,7 +95,7 @@ help('+')
 2 ^ 3                   ## power (coefficient and exponent need not be positive nor integer)
 ```
 
-If you hate to memorize precedence tables or want to change the order of operations, you
+If you hate to memorize precedence tables (I do) or want to change the order of operations, you
   can enclose parts of the expression in parentheses (per the usual mathematical conventions)
   to ensure execution in the order you intend:
 
@@ -106,7 +106,7 @@ If you hate to memorize precedence tables or want to change the order of operati
 (3 ^ (1 / 2)) ^ 2
 ```
 
-## Check your understanding:
+### Check your understanding:
 
 1) what is the third-root of 5
 
@@ -150,7 +150,8 @@ FA                      ## oops, only F or FALSE
 F                       ## ok
 ```
 
-Logical values can be combined using the operators `&&` (and) as well as `||` (or).<br>
+Logical values can be combined using the operators `&&` (and) as well as `||` (or).
+
 They can also be combined with the function `xor()` (exclusive or), and negated with the
 unary (only takes one argument) operator `!`:
 
@@ -172,26 +173,37 @@ xor(FALSE, FALSE)       ## what is (F xor F)?
 
 ### Characters:
 
-"abc de"         ## 1x and 2x equivalent; 2x 'preferred'
+Although R is primarily a programming language for crunching numbers, we still often need
+  to represent 'strings' that is a series of characters, which can include not only digits,
+  signs, and decimal places, but any letters, numbers, punctuation, etc. This job is 
+  handled by the 'character' data type in R. Character values are used as labels for
+  group membership (e.g. treated vs. untreated; allele status; gender; etc) when 
+  analyzing categorical data. The 'character' type is also used to specify information
+  such as file paths, software package information, usage hints, error messages, etc.
+  Character values are set apart by being enclosed in single or double quotes. In R,
+  single and double quotes are equivalent. The norm is to use double quotes, unless you 
+  need to embed a double quote in a string, in which case enclose the entire string
+  in single quotes.
+
+```
+"abc de"                        ## 1x and 2x equivalent; 2x 'preferred'
 class("abc de")
-''               ## use 2x to embed 1x and vice-versa
-class('')
+''                              ## use 2x to embed 1x and vice-versa
+class('')                       ## an empty string in quotes is still of type character
 
-nchar('')
+nchar('')                       ## how many characters long (\0 not counted)
 nchar('abc de')
-substr('abc de', 2, 4)
-substr('abc de', 2, 4) <- 'yz'
+substr('abc de', 2, 4)          ## substring: 2d to 4th character, inclusive
 
-tolower('AbCdE')
-toupper('AbCdE')
+tolower('AbCdE123_')            ## convert to lower-case
+toupper('AbCdE123_')            ## convert to upper-case
 
-sub('c', 'D', 'abcba')
-sub('c', 'D', 'abcba')
-sub('b', 'd', 'abcba')
-gsub('b', 'd', 'abcba')
-
-grepl('bc', 'abcba')
-grepl('yx', 'abcba')
+sub('b', 'd', 'ab cba')         ## substitute first instance of 'b' w/ 'd'; regex-friendly
+gsub('b', 'd', 'ab cba')        ## substitute all instances of 'b' w/ 'd'; regex-friendly
+ 
+grepl('bc', 'abcba')            ## does second argument contain first as substring? regex-friendly
+grepl('yx', 'abcba')            ## does second argument contain first as substring? regex-friendly
+```
 
 ## variables:
 

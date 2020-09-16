@@ -1,12 +1,15 @@
-# Heading 1
-## Heading 2
-### Heading 3
+# H1
+## H2
+### H3
+#### H4
+##### H5
+###### H6
 
-[Index]{#index1}
-### Head3 link to Fonts {#font1}
-### Head3 link to Lists {#list1}
-### Head3 link to Code {#code1}
-### Head3 link to URLs {#url1}
+### Index
+#### [H4 link to Fonts][fonts]
+#### [H4 link to Lists][lists]
+#### [H4 link to Code][code]
+#### [H4 link to URLs][urls]
 
 Regular stuff
 
@@ -17,13 +20,13 @@ After break
 Before '\n'
 After '\n'
 
-[Fonts]{#font1}
+### Fonts
 *bold stuff*
 **italic stuff**
 ***bold italic stuff***
-### Head3 return to index {#index1}
+### [return to index][index]
 
-[Lists]{#list1}
+### Lists
 1. ordered one
 2. ordered two
 3. ordered three
@@ -31,18 +34,18 @@ After '\n'
 - unordered one
 - unordered two
 - unordered three
-### Head3 return to index {#index1}
+### [return to index][index]
 
-[Code]{#code1}
+### Code
 `line of code`
 
 ```two line block
 of code```
-### Head3 return to index {#index1}
+### [return to index][index]
 
-[URLs]{#url1}
+### URLs
 Link follows:
 [link text here](https://www.google.com)
-### Head3 return to index {#index1}
+### [return to index][index]
 
 

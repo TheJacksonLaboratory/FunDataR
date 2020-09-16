@@ -3,10 +3,10 @@
 
 ### Index
 
-1. [`Expressions`](#expressions)
-2. [Numbers](#numbers)
-3. [Logicals](#logicals)
-4. [Characters](#characters)
+- [Expressions](#expressions)
+- [Numbers](#numbers)
+- [Logicals](#logicals)
+- [Characters](#characters)
 
 ### Intro to expressions
 

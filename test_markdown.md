@@ -26,7 +26,7 @@ After break style 2
 *bold stuff*<br>
 **italic stuff**<br>
 ***bold italic stuff***<br>
-### [return to index][#index]
+### [return to index](#index)
 
 ### Lists
 1. ordered one
@@ -36,7 +36,7 @@ After break style 2
 - unordered one
 - unordered two
 - unordered three
-### [return to index][#index]
+### [return to index](#index)
 
 ### Code
 `line of code`
@@ -48,11 +48,11 @@ code block line 1
   indented code block line 4
 code block line 5 of 5
 ```
-### [return to index][#index]
+### [return to index](#index)
 
 ### URLs
 External link follows:
 [link text here](https://www.google.com)
-### [return to index][#index]
+### [return to index](#index)
 
 

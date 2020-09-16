@@ -8,6 +8,8 @@
 - [Logicals](#logicals)
 - [Characters](#characters)
 
+---
+
 ### Expressions
 
 After starting R, an R terminal window will be launched. If you bring that window into focus, you can
@@ -19,6 +21,11 @@ After starting R, an R terminal window will be launched. If you bring that windo
   resulting value is typically printed out on the screen. The simplest expressions are values themselves.
   Each value has a data type associated with it, which can be determined using the `class()` function.
   The data type determines which operators and functions can be applied to the value.
+
+A value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
+  press <ENTER>, and the value will be printed on the next line in the terminal. 
+
+Comments in R are anything after a `#` symbol.
 
 ---
 
@@ -35,42 +42,52 @@ The first data type we will look at are data types used to represent numbers. Th
   good support for representing complex numbers (numbers composed of 'real' and 'imaginary' parts), 
   but we won't describe those further in this class. For most practical purposes, integers and 
   doubles can be used interchangeably, so we will gloss over the differences and conversion rules
-  for now:<br>
+  for now.
 
-A value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
-  press <ENTER>, and the value will be printed on the next line in the terminal. A number is composed
+An integer value is composed solely of an optional sign and digits. A numeric value can be composed 
   of digits, an optional sign, an optional single decimal place, and either `E` or `e` followed by
   an positive or negative integer exponent (see above for some examples):
 
 ```
-2
+2                  ## a super-simple numeric value
 ```
 
 A function is a bit of computer code that can be called by name, given an argument (in parentheses
   following the function's name), and returns a value and/or performs some operations. One simple 
-  function is `class()`, which tells you the data type of its argument:<br>
+  function is `class()`, which tells you the data type of its argument. To find out the details of
+  what a function does, you can precede the function name (unquoted) with a `?`, or call the 
+  `help()` function with the function name (unquoted) as argument:<br>
 
 ```
-class(2)
+class(2)           ## looks like an integer, but ...
+?class
+help(class)
 ```
 
 An expression can be made by combining operators (like the `+` below) with values (like the numeric
-  values `2` and `3` 
-2 + 3
-class(2 + 3)
+  values `2` and `3` below). You can find out more about an operator by placing the operator in
+  single or double quotes and preceding it with a `?`, or by calling the `help()` function:<br>
+
+```
+2 + 3              ## a complete expression with two values and one operator (`+`)
+class(2 + 3)       ## the class of the result of the operation
 ?"+"
-?"Syntax"
-??precedence
 help('+')
-2 / 3
-2 * 3
-2 - 3
-2 ^ 3
+?"Syntax"          ## where to find operators and precedence
+??precedence       ## in case you forget, ?? does a full-text search of help library
+2 / 3              ## divide
+2 * 3              ## multiply
+2 - 3              ## subtract
+2 ^ 3              ## power (coefficient and exponent need not be positive nor integer)
+```
+
+
 
 2 + 3 / 5
 (2 + 3) / 5
 3 ^ (1 / 2)
 (3 ^ (1 / 2)) ^ 2
+[Return to index](#index)
 
 ---
 

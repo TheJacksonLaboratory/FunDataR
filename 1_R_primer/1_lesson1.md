@@ -8,6 +8,12 @@
 - [Logicals](#logicals)
 - [Characters](#characters)
 - [Variables](#variables)
+- [Vectors](#vectors)
+- [Vector generation](#vector-generation)
+- [Vector recycling](#vector-recycling)
+- [Some vectorized numeric operations](#some-vectorized-numeric-operations)
+- [Some vectorized character operations](#some-vectorized-character-operations)
+- [Some vectorized logical operations](#some-vectorized-logical-operations)
 
 ---
 
@@ -30,6 +36,8 @@ A value by itself is a complete expression. So you can enter any acceptable valu
 Comments in R are designated by the `#` symbol. That is, anything you type after a `#` symbol will
   be ignored by the R command parser. The `#` can appear anywhere on a line. That is, it does not need 
   to be in the first column, though that is allowed as well.
+
+[Return to index](#index)
 
 ---
 
@@ -217,7 +225,10 @@ Variables in R (and other programming languages) are reminiscent of the variable
   encountered in elementary algebra. In R, they are names used to refer to an object (a spot in computer
   memory) that holds one or more values which can be changed by the program. All the value types we 
   discussed can be assigned to a variable. The variable name is used to assign values to the underlying
-  object or read values from the object.
+  object or read values from the object. The `<-` operator is normally used for assignment. Although
+  the `=` operator will often work, it will fail if used e.g. for assignment within a function call, 
+  since it can be confused with parameter assignment. It is therefore best to use `->` for assignment
+  to variables and `=` only for assignment to named parameters. 
 
 Variable names can be composed only of letters, digits, periods, and underscores. They cannot contain 
   dashes, spaces, other punctuation, etc. Variable names must begin with a letter or a period (not 
@@ -230,9 +241,9 @@ In general, you should try to use descriptive variable names so that your code c
   understood. However, for short self-contained pieces of code, quick prototyping, or where readability 
   is not otherwise impaired, it is common to see single letter variable names employed. When doing so, 
   it is important to remember that there are base functions called `c()`, `q()` and `t()`. Defining a 
-  variable named `c` would result in the `c()` command not being found unless the full module path is 
-  specified (which is not usually done for functions in the base package. Therefore, it is best 
-  practice to avoid using `c`, `q`, or `t` for user-defined variable names.
+  variable named `c` would result in the `c()` command being 'masked' for some purposes, unless the
+  full package path is specified (which usually is not done). Therefore, it is a best to avoid using 
+  `c`, `q`, or `t` for user-defined variable names.
 
 Numeric operators and functions work on variables:
 
@@ -254,7 +265,10 @@ ls(all.names=T)
 rm(list=ls())             ## delete all defined variables (except those starting with '.')
 .a
 rm(list=ls(all.names=T))  ## really delete everything; could also 'rm(.a)' to just get rid of .a
+.a                        ## really is gone
 ls(all.names=T)
+system.time(x <- 3)       ## how much time does it take to perform an assingment?
+system.time(x = 3)        ## oops! is 'x' a variable or a parameter to be passed to system.time()?
 ```
 
 Same with character operators and functions:
@@ -290,109 +304,158 @@ xor(y, y)
 
 In R, the basic data type is vector-like (like a series or linear array of values), which is 
   different from most other programming languages. It is best to think a 'scalar' (that is,
-  a single value, or variable holding a single value) as 
+  a single value, or variable holding a single value) in R as simply being a vector of 
+  length 1.
 
-x <- 3       
+```
+x <- 30       
+x
+class(x)
+length(x)                    ## how many values are stored in the variable 'x'?
+
+x <- c(1, -10, 100)          ## concatenation function; store 3 successive values in 'x'
 x
 class(x)
 length(x)
 
-x <- c(1, -10, 100)      ## concatenation operator
+x <- c(T, F, T)              ## works for logical types too
 x
 class(x)
 length(x)
 
-x <- c(T, F, T)
+x <- c('abc', '', 'de')      ## and character types
 x
 class(x)
 length(x)
+```
 
-x <- c('abc', '', 'de')
-x
-class(x)
-length(x)
+[Return to index](#index)
 
-### sequence generators:
 
-1 : 10
-x <- 5 : -5
+### Vector generators
 
-x <- 1:10
+Sometimes you need to generate a series of values following a fairly simple pattern. 
+  There are several operators and functions available to to help:
+
+```
+1 : 10                             ## from 1 to 10, by 1, inclusive
+x <- 5 : -5                        ## from 5 to -5, by 1 (or rather by -1), inclusive
 x
-seq(from=1, to=10, by=2)
-x <- seq(from=10, to=1, by=-2.5)
+class(x)                           ## ':' produces integers!
+
+
+seq(from=1, to=10, by=2)           ## allows a different 'stride'
+x <- seq(from=10, to=1, by=-2.5)   ## stride need not be integer, but needs correct sign
 x
 
-seq(from=1, to=10, length.out=19)
+seq(from=1, to=10, length.out=19)  ## or just specify output vector length; let R figure stride
 
-x <- rep(5, 10)
+x <- rep(5, 10)                    ## repeat the same value a specified number of times
 x
-x <- rep('abc', 5)
+x <- rep('abc', 5)                 ## works for character
 x
-x <- rep(c(T, F), 5)
+x <- rep(c(T, F), 5)               ## works for logical
 x
-x <- rep(1:3, 5)
+x <- rep(1:3, 5)                   ## you can repeat a series
 x
 x <- rep(seq(from=-1, to=-2, by=-0.25), 3)
 x
+```
 
-## QUIZ:
+### Check your understanding:
 
-1) generate the series from 1 to 100 counting by 3.5
+1) Generate the series from 1 to 100 counting by 3.5
 
-2) how many numbers did you generate in #1?
+2) How many numbers did you generate in #1? Please don't manually count!!!
 
-3) generate the series from 10 to 1 counting by 2s
+3) Generate the series from 10 to 1 counting by 2s
 
-4) generate a 25 element vector repeating the series: 'a', 'b', 'c', 'd', 'e'
+4) Generate a 25 element vector by repeating the series: 'a', 'b', 'c', 'd', 'e'
 
-5) generate a 25 element vector with sequential values evenly spaced between 0 and 1
+5) Generate a 25 element vector with unique sequential values evenly spaced between 0 and 1
+
+[Return to index](#index)
 
 
-### vector numeric operators:
+### Vector recycling
 
+Vectors of different lengths can be combined. This often results in the shorter vector being 'recycled',
+  that is, the shorter vector (say 'y') is concatenated to itself until it is at least as long as the 
+  longer vector (say 'x'), then the tail is trimmed until it is the same length as x. Then the resulting 
+  concatenated/trimmed vector is combined with 'x' as if both vectors always had the same length. If the
+  length of 'x' is not an integer multiple of the length of 'y', then a warning is issued. However, if
+  the length of 'x' is an integer multiple of the length of 'y', no warning is given. Utilizing this 
+  'feature' can lead to more confusion of code maintainers (like yourself a few months later) that can
+  outweigh any advantages. It is best to only combine vectors of equal length unless one of the vectors
+  has a length of 1 (since the intent there is usually pretty clear).
+
+```
 x <- 1 : 10
-x + 3
-x * 3
-x ^ 2
+x
+x + 3                                  ## vector of length 1 (3) 'recycled'
+x * 3                                  ## vector of length 1 (3) 'recycled'
+x ^ 2                                  ## vector of length 1 (2) 'recycled'
 
 x <- 1 : 10
 y <- 21 : 30
 x
 y
-x + y
+x + y                                  ## vectors of equal length: no recycling
 
 x <- 1 : 4
 y <- 1 : 2
 x
 y
-x + y
+x + y                                  ## longer length multiple of shorter: shorter recycles w/o warning
 
 x <- 1 : 4
 y <- 1 : 3
 x
 y
-x + y
+x + y                                  ## longer not multiple of shorter: recycles shorter w/ warning
+```
 
-### vector logical operators:
+### Some vectorized numeric operations
 
+```
 x <- 1 : 10
-sum(x)
-x < 8
-sum(x < 8)        ## T==1; F==0
-table(x < 8)
+sum(x)                                                 ## sum up the whole series; yields single number
+prod(x)                                                ## product of series; yields single number
+cumsum(x)                                              ## cumulative sum; yields vector w/ length == length(x)
+mean(x)                                                ## average
+sd(x)                                                  ## standard deviation (sample, not population)
+summary(x)                                             ## check it out
+quantile(x, probs=c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1))  ## you can set the probabilities to whatever
 
+
+x <- c(0.02345, 0.50000, 0.98765)
+round(x)
+?round
+round(x, digits=2)                                     ## decimal places
+signif(x, digits=2)                                    ## digits
+round(seq(from=-3, to=10, length.out=10))
+```
+
+### Some vectorized logical operations
+
+```
+x <- 1 : 10
+x < 8                                                  ## yields logical vector of equal length to 'x'
+sum(x < 8)                                             ## when logical treated as numbers, T==1; F==0
+table(x < 8)                                           ## group counts (here, TRUE and FALSE are groups)
 x >= 5
-sum(x >= 5)
-x < 8 && x >= 5   ## oops!
-x < 8 & x >= 5
-x > 8 || x < 5    ## oops!
-x > 8 | x < 5
-sum(x > 8 | x < 5)
-!(x > 8 | x < 5)
+sum(x >= 5)                                            ## how many values in x are greater than or equal to 5?
+x < 8 && x >= 5   ## oops!                             ## '&&' not a vector operator!!! Only right if length(x) == 1.
+x < 8 & x >= 5                                         ## vectorized 'and'; yields logical of same length as 'x'
+x > 8 || x < 5    ## oops!                             ## '||' not a vector operator!!! Only right if length(x) == 1.
+x > 8 | x < 5                                          ## vectorized 'or'; yields logical of same length as 'x'
+sum(x > 8 | x < 5)                                     ## how many TRUE values resulted from vectorized 'or'?
+!(x > 8 | x < 5)                                       ## '!' vectorized: reverses all logical values
+```
 
-### vector character operators:
+### Some vectorized character operations
 
+```
 x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
 nchar(x)
 substr(x, 2, 4)
@@ -403,8 +466,9 @@ x
 gsub('e', 'z', x)
 x
 grepl('e', x)
+```
 
-### vector integer indexing:
+### Vector integer indexing:
 
 x <- (1 : 10) ^ 2
 x
@@ -418,7 +482,7 @@ x[-1]
 x[-(1 : 5)]
 x[seq(from=2, to=10, by=2)]
 
-### vector logical indexing:
+### Vector logical indexing:
 
 x <- (1 : 10) ^ 2
 x
@@ -433,40 +497,6 @@ x[! grepl('abc', x)]
 x[c(T, F)]        ## recycle
 x[c(T, F, T)]     ## no warning!!!
 
-### vector logical indexing:
-
-x <- (1 : 10) ^ 2
-x
-x[x > 30]
-x[x <= 30]
-x[x > 30 & x < 70]
-
-x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
-x[grepl('abc', x)]
-x[! grepl('abc', x)]
-
-x[c(T, F)]        ## recycle
-x[c(T, F, T)]     ## no warning!!!
-
-### Some handy numeric functions:
-
-x <- c(0.02345, 0.50000, 0.98765)
-round(x)
-?round
-round(x, digits=2)      ## decimal places
-signif(x, digits=2)     ## digits
-round(seq(from=-3, to=10, length.out=10))
-
-x <- 3:10
-x
-
-sum(x)
-prod(x)
-cumsum(x)
-mean(x)
-sd(x)
-summary(x)
-quantile(x, probs=c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1))
 
 ### More vector indexing:
 

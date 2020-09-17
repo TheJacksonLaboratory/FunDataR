@@ -17,6 +17,9 @@
 - [Some general vector utility functions](#some-general-vector-utility-functions)
 - [Vector integer indexing](#vector-integer-indexing)
 - [Vector logical indexing](#vector-logical-indexing)
+- [More concatenation](#more-concatenation)
+- [Some general vector utilities](#some-general-vector-utilities)
+- [Simple plotting](#simple-plotting)
 
 
 ### Check your understanding
@@ -612,21 +615,20 @@ x[c(T, F, T)]                        ## no warning!!!
 
 ---
 
-
 ### More concatenation:
 
 Vectors can be combined using the `c()` function. 
 
 ```
 x <- 1:10
-x <- c(x, 11)
+x <- c(x, 11)                        ## add a value to end
 x
-x <- c(x, c(12, 13, 14))
+x <- c(x, c(12, 13, 14))             ## add three more values to end
 x
 
 x <- 1:10
 y <- 21:30
-z <- c(x, y, rev(x), rev(y))
+z <- c(x, y, rev(x), rev(y))         ## go nuts!
 z
 ```
 
@@ -634,7 +636,7 @@ z
 
 ---
 
-### Some general vector utility functions
+### Some general vector utilities
 
 ```
 x <- 1:10

@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## A primer on programming using R
+## A primer on programming using R: lesson 1
 
 ### Index
 

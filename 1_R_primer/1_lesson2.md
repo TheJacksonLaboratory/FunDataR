@@ -11,7 +11,7 @@
 - [Lists](#lists)
 - [List indexing](#list-indexing)
 - [Some useful list operations](#some-useful-list-operations)
-- [Data frames](#data frames)
+- [Data frames](#data-frames)
 - [Data frame indexing](#data-frame-indexing)
 - [Formulas for plotting and fitting](#formulas-for-plotting-and-fitting)
 
@@ -243,7 +243,9 @@ tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
 
 ---
 
-### Lists: hold vectors of potentially different lengths and types; like structures, dictionaries, and maps.
+### Lists
+
+Lists hold vectors of potentially different lengths and types; like structures, dictionaries, and maps.
 
 ```
 x <- list(

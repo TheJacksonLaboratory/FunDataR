@@ -14,13 +14,11 @@
 - [Some vectorized numeric operations](#some-vectorized-numeric-operations)
 - [Some vectorized logical operations](#some-vectorized-logical-operations)
 - [Some vectorized character operations](#some-vectorized-character-operations)
-- [Some general vector utility functions](#some-general-vector-utility-functions)
 - [Vector integer indexing](#vector-integer-indexing)
 - [Vector logical indexing](#vector-logical-indexing)
 - [More concatenation](#more-concatenation)
 - [Some general vector utilities](#some-general-vector-utilities)
 - [Simple plotting](#simple-plotting)
-
 
 ### Check your understanding
 
@@ -374,11 +372,12 @@ length(x)
 
 [Return to index](#index)
 
+---
 
-### Vector generators
+### Vector generation
 
 Sometimes you need to generate a series of values following a fairly simple pattern. 
-  There are several operators and functions available to to help:
+  There are several operators and functions available to help:
 
 ```
 1 : 10                             ## from 1 to 10, by 1, inclusive

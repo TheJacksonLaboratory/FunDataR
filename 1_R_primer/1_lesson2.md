@@ -97,6 +97,11 @@ x
 dim(x)
 attributes(x)
 
+x <- matrix(1, nrow=3, ncol=4)   ## make a matrix with 3 rows and 4 columns, filled with 1s
+x <- matrix(0, nrow=4, ncol=3)   ## make a matrix with 4 rows and 3 columns, filled with 0s
+
+x <- matrix(1:12, ncol=4)        ## number of rows inferred
+x
 x <- c(x)                        ## 'c()' strips attributes ...
 x                                ## ... revealing the vector beneath
 class(x)
@@ -109,6 +114,13 @@ dim(x)                           ## NULL is 'nothing' (different from NA)
 attr(x, "dim") <- c(3, 4)        ## what if we add the 'dim' attribute manually to a vector?
 x
 class(x)                         ## works! all it takes is the 'dim' attribute
+dim(x)
+attributes(x)
+
+x <- 1 : 12                      ## just a vector
+dim(x) <- c(3, 4)                ## easy way to convert vector to matrix
+x
+class(x)
 dim(x)
 attributes(x)
 
@@ -165,8 +177,7 @@ Also like vectors, matrices and arrays can be indexed using logical vectors, exc
   dimension size to avoid confusion.
 
 ```
-x <- matrix(1:12, nrow=4)
-x
+(x <- matrix(1:12, nrow=4))       ## enclosing assignment in quotes prints result of the assignment
 dim(x)
 
 x[c(T, F, T, F), c(F, T, T)]      ## match index lengths to dimension sizes
@@ -180,8 +191,7 @@ Character indices can also be used with matrices and arrays. Instead of using th
   using the `rownames()` and `colnames()` functions.
 
 ```
-x <- matrix(1:12, nrow=4)
-x
+(x <- matrix(1:12, nrow=4))
 dim(x)
 
 rownames(x) <- c('a', 'b', 'c', 'd')
@@ -206,12 +216,35 @@ x[, '3rd', drop=F]               ## a 1-D array, not a vector
 
 ### Matrix operations
 
-```
-(x <- matrix(c(1, 2, 3, 1, 2, 1, 2, 3, 1), ncol=3))
-x %*% x
-solve(x)                 ## invert matrix
-(y <- x %*% solve(x))    ## note rounding issue (should be identity)
+When matrices are mentioned in the context of mathematics, linear algebra may come to
+  mind. In order to make this course more approachable, we are steering away from linear 
+  algebra. However, you should be aware that R was originally developed specifically with
+  linear algebra in mind, and the base package has many functions for linear algebra. 
+  R is handy for statistics and machine learning in large part because R is good at 
+  performing the linear algebra calculations that underly many statistical and machine
+  learning procedures. Fortunately, this is about all we'll say about linear algebra in 
+  this lesson.
 
+```
+(x <- c(1, 2, 3, 1, 2, 1, 2, 3, 1))    ## vector
+dim(x) <- c(3, 3)                      ## convert to square matrix
+x
+
+(y <- x %*% x)                         ## dot-product
+
+crossprod(x, y)                        ## cross-product
+
+solve(x)                               ## inversion of square non-singular matrix
+
+(y <- x %*% solve(x))                  ## note rounding issue (should be identity)
+
+```
+
+More typically, the average user will use operators and functions that operate on single
+  matrices or multiple matrices in ways that are similar to the way vector operators and
+  functions operate on vectors.
+
+```
 (x <- matrix(1 : 12, ncol=3))
 (y <- matrix(2 * (12 : 1), ncol=3))
 x + y
@@ -220,22 +253,23 @@ x / y
 x - y
 
 (x <- matrix(1 : 12, ncol=3))
-sum(x)
-apply(x, 1, sum)
-apply(x, 2, sum)
+sum(x)                                 ## treats it like a vector (yields one number)
+apply(x, 1, sum)                       ## sum rows (yields vector with one element per row)
+apply(x, 2, sum)                       ## sum columns (yields one element per column)
 
-(x <- cbind(1:10, 101:110))
+(x <- cbind(1:10, 101:110))            ## bind vectors together as columns of a matrix
 dim(x)
 
-(x <- rbind(1:10, 101:110, 201:210))
+(x <- rbind(1:10, 101:110, 201:210))   ## bind vectors together as rows of a matrix
 dim(x)
 
-(x <- t(x))
+(x <- t(x))                            ## transpose: rows to columns; columns to rows
 dim(x)
 
 (x <- cbind(x, 301:310))
 (x <- rbind(x, seq(from=11, to=311, by=100)))
 dim(x)
+
 ```
 
 [Return to index](#index)
@@ -248,17 +282,18 @@ dim(x)
      the second column the first 10 even integers, and
      the third column the first 10 odd integers.
 
-2) generate a vector with the product of each row
+2) generate a vector with one value per row in the matrix from (1), where 
+    the value is the product of the all the values in the corresponding row.
 
-3) generate a vector with the sum of each column
+3) generate a vector with the sum of each column of the matrix from (1)
 
-4) return the second and third columns as a matrix
+4) return the second and third columns of the matrix from (1) as a matrix
 
-5) return the second and third rows as a matrix
+5) return the second and third rows of the matrix from (1) as a matrix
 
-6) return the second row as a vector
+6) return the second row of the matrix from (1) as a vector
 
-7) return the second row as a (one row) matrix
+7) return the second row of the matrix from (1) as a (one row) matrix
 
 [Return to index](#index)
 
@@ -266,29 +301,50 @@ dim(x)
 
 ### Factors
 
-```
-(x1 <- c(rep('control', 30)))
-(y1 <- rnorm(30, mean=10, sd=3))
-(x2 <- c(rep('treated', 30)))
-(y2 <- rnorm(30, mean=15, sd=5))
+Another data type that is derived from an integer vector by adding a couple attributes
+  ('levels' and 'class') is the factor type. Factors are easily mistaken for the character
+  data type, and they can both be used to represent categorical variables. However, 
+  using an internal integer representation is often more efficient than using character 
+  representations of the same information. Factors are usually created from a vector
+  of character group labels. By default, the mapping of character labels to integer
+  values is based on alphabetic ordering of the labels, with the first label being 
+  assigned to the integer 1, the second to 2, etc. This mapping can be changed by 
+  explicitly passing a `levels` parameter to the `factor()` command, or by using the
+  `levels()` function.
 
-(x <- c(x1, x2))
-(x <- factor(x))       ## default level mapping: alphabetical order
+Below we simulate a dataset with two groups ('control' and 'treated'), each with 
+  30 observations. For the 'control' group, we simulate values by (pseudo-)random
+  draws from a normal (a.k.a guassian) distribution with a mean of 10 and a 
+  standard deviation of 3. For the 'treated' group, we simulate values by drawing
+  from a normal distribution with a mean of 15 and a standard deviation of 5.
+  Normal distributions can be fully specified using just the two parameters, 
+  `mean` and `sd`.
+
+```
+seed(5)                           ## 'seed' pseudo-random number generator to make reproducible
+(x1 <- c(rep('control', 30)))     ## make up one group of 30
+(y1 <- rnorm(30, mean=10, sd=3))  ## simulate values for each member of the first group
+(x2 <- c(rep('treated', 30)))     ## make up a second group of 30
+(y2 <- rnorm(30, mean=15, sd=5))  ## simulate values for the second group
+
+(x <- c(x1, x2))                  ## group 1, followed by group 2
+(x <- factor(x))                  ## default level mapping: alphabetical order
 class(x)
-attributes(x)          ## levels and class
-levels(x)
-unclass(x)             ## drops $class attribute; result an integer vector!
+attributes(x)                     ## levels and class
+levels(x)                         ## first maps to 1, second to 2, etc.
+unclass(x)                        ## drops $class attribute; result is an integer vector!
 
 x <- c(x1, x2)
 (x <- factor(x, levels=c('treated', 'control')))
-attributes(x)          ## levels and class
-levels(x)
-unclass(x)             ## drops $class attribute; result an integer vector!
+attributes(x)                     ## levels and class
+levels(x)                         ## first maps to 1, second to 2, etc; user prescribed order
+unclass(x)                        ## drops $class attribute; result is an integer vector!
 
 (y <- c(y1, y2))
 tapply(y, x, mean)
 tapply(y, x, summary)  ## what are those '$' thingies?
 tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
+
 ```
 
 [Return to index](#index)
@@ -297,13 +353,16 @@ tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
 
 ### Lists
 
-Lists hold vectors of potentially different lengths and types; like structures, dictionaries, and maps.
+Lists are the most flexible basic structure provided by R. Lists are similar to
+  dictionaries, maps, or structures used in other languages. Lists are collections of 
+  vectors, each with a potentially different length and type from other list member
+  vectors.
 
 ```
 x <- list(
   fname='mitch', 
   lname='kostich', 
-  major='body building,
+  major='undecided',
   year.grad=2023, 
   year.birth=1906,
   classes=c('basket weaving', 'chiromancy', 'chainsaw juggling', 'cat psychology'),
@@ -320,6 +379,7 @@ str(1)
 str('a')
 str(1 : 10)
 str(1 : 10000)
+
 ```
 
 [Return to index](#index)
@@ -328,23 +388,37 @@ str(1 : 10000)
 
 ### List indexing
 
+Like the other data types we've discussed, lists can be indexed using integers,
+  character values, or logical vectors.
+
 ```
+x <- list(
+  fname='mitch', 
+  lname='kostich', 
+  major='undecided',
+  year.grad=2023, 
+  year.birth=1906,
+  classes=c('basket weaving', 'chiromancy', 'chainsaw juggling', 'cat psychology'),
+  grades=c('C+', 'C-', 'B-', 'D'),
+  favorite.foods=c('mango pickle', 'century egg', 'camembert')
+)
+
 str(x)
 x['lname']
 
-x['grades']
-class(x['grades'])
-x['grades'][2]
+x['grades']                       ## what is that '$' thingy? indicates a list!
+class(x['grades'])                ## got a list back with single bracket
+x['grades'][2]                    ## cannot use a single bracket index on result
 
-x[['grades']]
-class(x[['grades']])
-x[['grades']][2]
+x[['grades']]                     ## no '$' thingy
+class(x[['grades']])              ## just a vector!
+x[['grades']][2]                  ## can index the result with single bracket
 
-x[7]
+x[7]                              ## integer indexing with 1x bracket: same issue
 class(x[7])
 x[7][2]
 
-x[[7]]
+x[[7]]                            ## double bracket saves the day again
 class(x[[7]])
 x[[7]][2]
 
@@ -352,9 +426,14 @@ x[c('fname', 'grades')]
 class(x[c('fname', 'grades')])
 x[c('fname', 'grades')][[2]]
 
-x$grades
-class(x$grades)
-x$grades[2]
+x[[c('fname', 'grades')]]         ## oops! can only use one name with 2x bracket
+
+x$grades                          ## only 1 value at a time, but easy typing!
+class(x$grades)                   ## vector
+x$grades[2]                       ## normal vector indexing of result works
+
+x[c(T, T, F, F, T, T, F, F)]      ## logical indexing of lists works too
+
 ```
 
 [Return to index](#index)
@@ -363,17 +442,28 @@ x$grades[2]
 
 ### Some useful list operations
 
+The most useful operations specifically intended for lists are the commands
+  `lapply()` and `sapply()`. They both apply a user-specified function to each 
+  element of the list. They differ in that `lapply(x)` always returns a list with 
+  one element per element in the list `x`, while `sapply()` tries to return
+  a vector, if possible. For functions which predictably return values of the 
+  same length for any valid input, `sapply()` will usually succeed in returning
+  a vector, while functions with more complicated return values may result in 
+  a list to be returned by `sapply()`, identical to that which would be returned
+  by `lapply()`.
+
 ```
 str(x)
-length(x)
-lapply(x, length)
-class(lapply(x, length))
+length(x)                         ## length of list (how many elements at outer level)
+lapply(x, length)                 ## length of each element of list
+class(lapply(x, length))          ## a list!
 
-sapply(x, length)
-class(sapply(x, length))
+sapply(x, length)                 ## try to make the result a vector instead
+class(sapply(x, length))          ## yields vector for length()
+sapply(x, length)[3]              ## so can index result like vector
 
-sapply(x, length)[3]
 sapply(x[c('classes', 'favorite.foods')], length)
+
 ```
 
 [Return to index](#index)
@@ -382,13 +472,74 @@ sapply(x[c('classes', 'favorite.foods')], length)
 
 ### Check your understanding 2
 
+1) make a list with at least five member elements, incorporating at least two
+     data types. Make sure at least two of the member elements are
+     of different lengths than the rest of the elements.
+
+2) Retrieve the second element from your list as a list.
+
+3) Retrieve the third element from your list as a vector.
+
+4) Generate a vector with the class of each element of your list.
+
+5) Generate a list with the lengths of the 3d and 5th elements of your list.
+
 [Return to index](#index)
 
 ---
 
 ### Data frames
 
-Like a list where all elements have same length
+A data.frames are a very important type for data analysis. This type is similar to a list in 
+  that each element can be of a different type. However, it differs in that each element of
+  a data.frame is required to be of the same length as every other element. This means that 
+  the data.frame can be conveniently displayed as a two-dimensional table with a value in
+  every cell. Each column (data.frame element) of this table can be of a different type, 
+  but all the values within any one column must be of the same type. This is very similar 
+  to how you might lay out a data table in Excel: you can have each column represent a 
+  variable of interest (e.g. group, treatment intensity, outcome measurent), and each row 
+  represent an individual observation of these variables (e.g. a subject in an experiment).
+
+```
+dat <- data.frame(
+  treatment=factor(c(rep('ctl', 10), rep('trt', 10))),
+  weight=c(rnorm(10, mean=10, sd=3), rnorm(10, mean=20, sd=5)),
+  operator=factor(rep(c('weichun', 'mitch'), 10))
+)
+
+dat                               ## rows are observations, columns are variables
+class(dat)                        ## names, row.names, class (implies equal lengths)
+attributes(dat)
+unclass(dat)                      ## drop $class attribute
+class(unclass(dat))               ## show your true self, list!
+
+str(dat)
+rownames(dat) <- letters[1 : nrow(dat)]
+rownames(dat)
+colnames(dat)
+dat
+
+dim(dat)                         ## just like matrix (figured out from names and row.names)
+nrow(dat)                        ## just like matrix
+ncol(dat)                        ## just like matrix
+length(dat)                      ## just like list
+apply(dat, 1, length)            ## just like matrix
+apply(dat, 2, length)            ## just like matrix
+sapply(dat, length)              ## just like list
+
+```
+
+[Return to index](#index)
+
+---
+
+### Data frame indexing
+
+Data frames can be indexed using either the methods used for lists or the methods 
+  used for matrices. Character indexing of rows depends on assignment of 
+  `row.names` attribute (e.g. using the `rownames()` function). Rownames are 
+  not required to be unique, but the operation of your code will be clearer if 
+  you are always sure to make `names` and `row.names` attributes unique.
 
 ```
 dat <- data.frame(
@@ -398,40 +549,15 @@ dat <- data.frame(
 )
 
 dat
-class(dat)                ## names, row.names, class (implies equal lengths)
-attributes(dat)
-unclass(dat)              ## drop $class attribute
-class(unclass(dat))       ## show your true self, list!
 
-str(dat)
-rownames(dat) <- letters[1 : nrow(dat)]
-rownames(dat)
-colnames(dat)
-dat
+dat[2, 3]                         ## like a matrix (integers)
+dat[2, 'operator']                ## like a matrix (integer + character)
+dat['b', 'operator']              ## like a matrix
+dat['b', 3]                       ## like a matrix
+dat[c('a', 'c'), 2:3]             ## like a matrix
 
-dim(dat)
-nrow(dat)
-ncol(dat)
-length(dat)
-apply(dat, 1, length)
-apply(dat, 2, length)
-sapply(dat, length)
-```
+dat$weight                        ## like a list
 
-[Return to index](#index)
-
----
-
-### Data frame indexing
-
-```
-dat
-dat[2, 3]
-dat[2, 'operator']
-dat['b', 'operator']
-dat['b', 3]
-dat[c('a', 'c'), 2:3]
-dat$weight
 ```
 
 [Return to index](#index)
@@ -446,22 +572,36 @@ dat$weight
 
 ### Formulas for plotting and fitting
 
-Plot:
+Here we give an example of a common notation used to express functional
+  relationships between variables. This notation is widely used when 
+  specifying statistical models in R. A basic example would be 
+  `weight ~ operator`, which means that `weight` is conidered to be 
+  a function of `operator`. For plotting purposes, this means that 
+  `weight` ends up plotted on the 'y' (vertical) axis and `operator` 
+  ends up plotted on the 'x' (horizontal) axis. This notation is often
+  used along with a `data` parameter that specifies a data.frame in 
+  which the variables can be found. Simply plotting a data.frame 
+  (without a formula) results in a grid of plots in which each 
+  variable is plotted against every other variable. This can be 
+  useful for exploring a new dataset for potential relationships 
+  between variables:
 
 ```
-plot(dat)      ## what do you see?
-plot(rock)
+plot(dat)                            ## what do you see?
+plot(rock)                           ## 'rock' is a data set included with R
 
-par(mfrow=c(1, 2))
-plot(weight ~ operator, data=dat)
-plot(weight ~ treatment, data=dat)
+par(mfrow=c(1, 2))                   ## make a plot layout with 1 row and 2 columns
+plot(weight ~ operator, data=dat)    ## plot this in first slot (row 1, column 1)
+plot(weight ~ treatment, data=dat)   ## plot this in second slot (row 1, column 2)
+
 ```
 
-Fit a statistical model to a data.frame:
+The same type of notation is commonly used to fit a statistical model to a data.frame:
 
 ```
 fit1 <- lm(weight ~ treatment, data=dat)
 summary(fit1)
+
 ```
 
 [Return to index](#index)

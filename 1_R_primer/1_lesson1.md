@@ -14,6 +14,16 @@
 - [Some vectorized numeric operations](#some-vectorized-numeric-operations)
 - [Some vectorized character operations](#some-vectorized-character-operations)
 - [Some vectorized logical operations](#some-vectorized-logical-operations)
+- [Some general vector utility functions](#some-general-vector-utility-functions)
+- [Vector integer indexing](#vector-integer-indexing)
+- [Vector logical indexing](#vector-logical-indexing)
+
+
+### Check your understanding
+
+- [Check 1](#check-your-understanding-1)
+- [Check 2](#check-your-understanding-2)
+- [Check 3](#check-your-understanding-3)
 
 ---
 
@@ -23,15 +33,32 @@ After starting R, an R terminal window will be launched. If you bring that windo
   start entering commands at the `>` prompt. An 'expression' is another term for a command that the
   R interpreter can process and potentially return a computed value. Pressing `<ENTER>` after a complete 
   expression results in the execution of that expression. If the expression is clearly incomplete, 
-  pressing `<ENTER>` will take you to the next line, where you can continue entering your expression. 
-  If the expression does not include an assignment of the resulting value to a variable (discussed 
-  later in this lesson), the resulting value is typically printed out on the screen. The simplest 
-  expressions are values themselves. Each value has a data type associated with it, which can be 
-  determined using the `class()` function. The data type determines which operators and functions can 
-  be applied to the value.
+  pressing `<ENTER>` will take you to the next line, where you can continue entering your expression.
+
+```
+4 + 3        ## a complete expression: the R program knows how to interpret this and return 7
+
+4 +          ## an imcomplete expression
+3            ## the next line is interpreted as a continuation; now can be interpreted/is complete
+```
+ 
+If the expression does not include an assignment of the resulting value to a variable (like the 
+  example above), the resulting value is typically printed out on the screen. 
+
+The simplest expressions are values themselves. Each value has a data type associated with it, which 
+  can be determined using the `class()` function. The data type determines which operators and functions 
+  can be applied to the value.
 
 A value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
   press `<ENTER>`, and the value will be displayed on subsequent lines in the terminal. 
+
+```
+## Here is an example:
+3.14159                 ## numeric value
+4L                      ## integer value
+"quick brown fox"       ## character value
+TRUE                    ## logical value
+```
 
 Comments in R are designated by the `#` symbol. That is, anything you type after a `#` symbol will
   be ignored by the R command parser. The `#` can appear anywhere on a line. That is, it does not need 
@@ -115,7 +142,11 @@ If you hate to memorize precedence tables (I do) or want to change the order of 
 (3 ^ (1 / 2)) ^ 2
 ```
 
-### Check your understanding:
+[Return to index](#index)
+
+---
+
+### Check your understanding 1:
 
 1) what is the third-root of 5
 
@@ -362,7 +393,11 @@ x <- rep(seq(from=-1, to=-2, by=-0.25), 3)
 x
 ```
 
-### Check your understanding:
+[Return to index](#index)
+
+---
+
+### Check your understanding 2
 
 1) Generate the series from 1 to 100 counting by 3.5
 
@@ -375,6 +410,8 @@ x
 5) Generate a 25 element vector with unique sequential values evenly spaced between 0 and 1
 
 [Return to index](#index)
+
+---
 
 
 ### Vector recycling
@@ -476,11 +513,19 @@ gsub('e', 'z', x)
 x
 grepl('e', x)
 ```
+
 [Return to index](#index)
 
 ---
 
-### Vector integer indexing:
+### Vector integer indexing
+
+Individual values or arbitrary subsets of values can be retrieved from
+  a vector by specifying the position of the desired values using an 
+  'index'. The simplest method uses an integer index to specify the 
+  position(s) of the desired value(s) in the vector being indexed. The 
+  first value in a vector is retrieved with an index of 1 (not 0!!!).
+  The index can be of any length.
 
 ```
 x <- (1 : 10) ^ 2
@@ -488,6 +533,7 @@ x
 x[1]
 x[2]
 x[3]
+x[length(x)]
 x[1 : 5]
 x[10 : 6]
 x[c(1, 10, 2, 9, 3, 8)]
@@ -495,11 +541,19 @@ x[-1]
 x[-(1 : 5)]
 x[seq(from=2, to=10, by=2)]
 ```
+
 [Return to index](#index)
 
 ---
 
 ### Vector logical indexing:
+
+Another very useful indexing approach is to return values meeting some sort of logical 
+  criterion. In these cases, we can use a test which returns a logical value for every 
+  element in the vector, indicating whether the criterion has been met for that value.
+  So a logical index should usually be the same length as the vector being indexed. A 
+  logical index that is shorter than the vector being indexed will be recycled without 
+  warning.
 
 ```
 x <- (1 : 10) ^ 2
@@ -515,12 +569,19 @@ x[! grepl('abc', x)]
 x[c(T, F)]        ## recycle
 x[c(T, F, T)]     ## no warning!!!
 ```
+
 [Return to index](#index)
 
 ---
 
 
 ### More vector indexing:
+
+Indexed vector values are 'lvalues', that is you can assign to them. If 
+  you assign to a position beyond the length of the vector, the vector
+  will be automatically extended to a length sufficient to accommodate 
+  the last position indexed. Retrieving a position beyond the length of
+  the vector will return the missing value indicator `NA`.
 
 ```
 x <- 1:10
@@ -532,10 +593,13 @@ x
 x[1000]             ## NA is 'missing value'
 x[length(x) + 1] <- length(x) + 1
 ```
+
 [Return to index](#index)
 
 
 ### More concatenation:
+
+Vectors can be combined using the `c()` function. 
 
 ```
 x <- 1:10
@@ -549,12 +613,14 @@ y <- 21:30
 z <- c(x, y, rev(x), rev(y))
 z
 ```
+
 [Return to index](#index)
 
 ---
 
-### More vector operators:
+### Some general vector utility functions
 
+```
 x <- 1:10
 length(x)
 rev(x)
@@ -575,10 +641,13 @@ sort(table(x), decreasing=T)
 x <- 1 : 100
 i <- x > 35
 table(i)
+```
+
+[Return to index](#index)
 
 ---
 
-### Check your understanding:
+### Check your understanding 3
 
 1) how many positive integers, when squared, yield
      a value of more than 200 and less than 3000?
@@ -611,4 +680,5 @@ plot(x=tm, y=dst, main="My dot plot", type="p", xlab="time (s)", ylab="distance 
 plot(x=tm, y=dst, main="My line plot", type="l", xlab="time (s)", ylab="distance (m)")
 points(x=tm, y=dst)
 ```
+
 [Return to index](#index)

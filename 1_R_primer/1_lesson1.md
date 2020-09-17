@@ -12,8 +12,8 @@
 - [Vector generation](#vector-generation)
 - [Vector recycling](#vector-recycling)
 - [Some vectorized numeric operations](#some-vectorized-numeric-operations)
-- [Some vectorized character operations](#some-vectorized-character-operations)
 - [Some vectorized logical operations](#some-vectorized-logical-operations)
+- [Some vectorized character operations](#some-vectorized-character-operations)
 - [Some general vector utility functions](#some-general-vector-utility-functions)
 - [Vector integer indexing](#vector-integer-indexing)
 - [Vector logical indexing](#vector-logical-indexing)
@@ -587,7 +587,7 @@ x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index 
 
 ---
 
-### Vector logical indexing:
+### Vector logical indexing
 
 Another very useful indexing approach is to return values meeting some sort of logical 
   criterion. In these cases, we can use a test which returns a logical value for every 
@@ -615,7 +615,7 @@ x[c(T, F, T)]                        ## no warning!!!
 
 ---
 
-### More concatenation:
+### More concatenation
 
 Vectors can be combined using the `c()` function. 
 
@@ -685,7 +685,7 @@ table(i)
 
 ---
 
-### Simple plotting:
+### Simple plotting
 
 An extremely important element of data analysis is data visualization. Let's take what you've
   learned thus far and make some simple plots.

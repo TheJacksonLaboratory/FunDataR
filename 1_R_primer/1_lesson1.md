@@ -54,10 +54,14 @@ A literal value by itself is a complete expression. So you can enter any accepta
   press `<ENTER>`, and the value will be displayed on subsequent lines in the terminal. 
 
 ```
-## Here is an example:
+## Here is an example comment
+
 3.14159                 ## numeric literal value
+
 4L                      ## integer literal
+
 "quick brown fox"       ## character literal
+
 TRUE                    ## logical literal
 ```
 
@@ -108,7 +112,7 @@ A function is a bit of computer code that can be called by name, given an argume
 class(2)                ## looks like an integer, but ...
 class(2L)
 ?class
-help(class)
+help(class)             ## 'help()' is a function; can pass a function as argument by passing name 
 ```
 
 An expression can be made by combining operators (like the `+` below) with values (like the numeric
@@ -217,8 +221,8 @@ xor(FALSE, FALSE)       ## what is (F xor F)?
 
 Although R is primarily a programming language for crunching numbers, we still often need
   to represent 'strings' that is a series of characters, which can include not only digits,
-  signs, and decimal places, but any letters, numbers, punctuation, etc. This job is 
-  handled by the 'character' data type in R. Character values are used as labels for
+  signs, and decimal places, but any letters, numbers, punctuation, label plots, etc. This 
+  job is handled by the 'character' data type in R. Character values are used as labels for
   group membership (e.g. treated vs. untreated; allele status; gender; etc) when 
   analyzing categorical data. The 'character' type is also used to specify information
   such as file paths, software package information, usage hints, error messages, etc.
@@ -229,10 +233,10 @@ Although R is primarily a programming language for crunching numbers, we still o
 
 ```
 "abc de"                        ## 1x and 2x quotes equivalent; 2x 'preferred'
-class("abc de")
+class("abc de")                 ## whitespace characters count too!
 
-''                              ## use 2x to embed 1x and vice-versa
-class('"')                      ## an empty string in quotes is still of type character
+'"'                             ## use 2x to embed 1x and vice-versa
+class('')                       ## an empty string in quotes is still of type character
 
 nchar('')                       ## how many characters long (\0 not counted)
 nchar('abc de')
@@ -343,7 +347,7 @@ xor(y, y)
 
 ### Vectors
 
-In R, the basic data type is vector-like (like a series or linear array of values), which is 
+In R, the basic data type is vector-like (a series or linear array of values), which is 
   different from most other programming languages. It is best to think a 'scalar' (that is,
   a single value, or variable holding a single value) in R as simply being a vector of 
   length 1.
@@ -428,7 +432,7 @@ x
 Vectors of different lengths can be combined by operators or functions. This often results in the shorter 
   vector being 'recycled', that is, the shorter vector (say 'y') is concatenated to itself until it is at 
   least as long as the longer vector (say 'x'), then the tail is trimmed until it is the same length as x. 
-  Then the resulting concatenated/trimmed vector is combined with 'x' as if both vectors always had the 
+  The resulting concatenated/trimmed vector is combined with 'x' as if both vectors always had the 
   same length. If the length of 'x' is not an integer multiple of the length of 'y', then a warning is 
   issued. However, if the length of 'x' is an integer multiple of the length of 'y', no warning is given. 
   Utilizing this 'feature' can lead to more confusion of code maintainers (like yourself a few months later) 

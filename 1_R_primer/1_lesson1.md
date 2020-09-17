@@ -45,19 +45,19 @@ After starting R, an R terminal window will be launched. If you bring that windo
 If the expression does not include an assignment of the resulting value to a variable (like the 
   example above), the resulting value is typically printed out on the screen. 
 
-The simplest expressions are values themselves. Each value has a data type associated with it, which 
+The simplest expressions are literal values themselves. Each value has a data type associated with it, which 
   can be determined using the `class()` function. The data type determines which operators and functions 
   can be applied to the value.
 
-A value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
+A literal value by itself is a complete expression. So you can enter any acceptable value at the `>` prompt,
   press `<ENTER>`, and the value will be displayed on subsequent lines in the terminal. 
 
 ```
 ## Here is an example:
-3.14159                 ## numeric value
-4L                      ## integer value
-"quick brown fox"       ## character value
-TRUE                    ## logical value
+3.14159                 ## numeric literal value
+4L                      ## integer literal
+"quick brown fox"       ## character literal
+TRUE                    ## logical literal
 ```
 
 Comments in R are designated by the `#` symbol. That is, anything you type after a `#` symbol will
@@ -93,7 +93,7 @@ An integer value is composed solely of an optional sign and digits. It should be
   an positive or negative integer exponent (see above for some examples):
 
 ```
-2                  ## a super-simple numeric value
+2                  ## a super-simple numeric literal value
 2L                 ## the almost equally simple integer equivalent
 ```
 
@@ -115,7 +115,7 @@ An expression can be made by combining operators (like the `+` below) with value
   single or double quotes and preceding it with a `?`, or by calling the `help()` function:
 
 ```
-2 + 3                   ## a complete expression with two values and one operator (`+`)
+2 + 3                   ## a complete expression with two literal values and one operator (`+`)
 class(2 + 3)            ## the class of the result of the operation
 2L + 3L                 ## integer math
 class(2L + 3L)          ## result is integer too
@@ -174,7 +174,7 @@ Certain operators (and functions) which take numbers as arguments, can return lo
 class(2 < 3)            ## what data type is returned by the '<' operator?
 ```
 
-Logical values are represented by the unquoted (case-sensitive) tokens `TRUE`, `T`, 
+Logical values are represented by the unquoted (case-sensitive) literal values `TRUE`, `T`, 
   `FALSE`, and `F`:
 
 ```
@@ -221,19 +221,21 @@ Although R is primarily a programming language for crunching numbers, we still o
   group membership (e.g. treated vs. untreated; allele status; gender; etc) when 
   analyzing categorical data. The 'character' type is also used to specify information
   such as file paths, software package information, usage hints, error messages, etc.
-  Character values are set apart by being enclosed in single or double quotes. In R,
-  single and double quotes are equivalent. The norm is to use double quotes, unless you 
-  need to embed a double quote in a string, in which case enclose the entire string
+  Character literal values are set apart by being enclosed in single or double quotes. 
+  In R, single and double quotes are equivalent. The norm is to use double quotes, unless 
+  you need to embed a double quote in a string, in which case enclose the entire string
   in single quotes.
 
 ```
 "abc de"                        ## 1x and 2x quotes equivalent; 2x 'preferred'
 class("abc de")
+
 ''                              ## use 2x to embed 1x and vice-versa
 class('"')                      ## an empty string in quotes is still of type character
 
 nchar('')                       ## how many characters long (\0 not counted)
 nchar('abc de')
+
 substr('abc de', 2, 4)          ## substring: 2d to 4th character, inclusive
 
 tolower('AbCdE123_')            ## convert to lower-case
@@ -272,23 +274,24 @@ In general, you should try to use descriptive variable names so that your code c
   understood. However, for short self-contained pieces of code, quick prototyping, or where readability 
   is not otherwise impaired, it is common to see single letter variable names employed. When doing so, 
   it is important to remember that there are base functions called `c()`, `q()` and `t()`. Defining a 
-  variable named `c` would result in the `c()` command being 'masked' for some purposes, unless the
-  full package path is specified (which usually is not done). Therefore, it is a best to avoid using 
-  `c`, `q`, or `t` for user-defined variable names.
+  variable named `c` would result in the `c()` command being 'masked' for some purposes (such as 
+  passing the function to another function, unless the full package path is specified (which usually 
+  is not done). Therefore, it is a best to avoid using `c`, `q`, or `t` for user-defined variable names.
 
 Numeric operators and functions work on variables:
 
 ```
-x <- 3                    ## avoid c, q, t
+x <- 3                    ## assign literal value `3` to variable named `x`; avoid c, q, t for variable names
 x
-x <- 2 + 3
+x <- 2 + 3                ## assign result of operation to `x`
 x
 x <- 2
 y <- 3
 x + y
-z <- x + y
+z <- x + y                ## variable names used in place of the values they store
 z
-.a <- 97
+
+.a <- 97                  ## 'hidden' variable name
 ls()                      ## list all the defined variables (except those starting with '.')
 ls(all.names=T)           ## incantation discovered by reading the scrolls returned by '?ls'
 rm(x)                     ## get rid of the variable x
@@ -298,30 +301,36 @@ rm(list=ls())             ## delete all defined variables (except those starting
 rm(list=ls(all.names=T))  ## really delete everything; could also 'rm(.a)' to just get rid of .a
 .a                        ## really is gone
 ls(all.names=T)
+
 system.time(x <- 3)       ## how much time does it take to perform an assingment?
 system.time(x = 3)        ## oops! is 'x' a variable or a parameter to be passed to system.time()?
+?system.time              ## for instance, `gcFirst` is a parameter name you could assign to
 ```
 
-Same with character operators and functions:
+Character operators and functions also work with variables:
 
 ```
 x <- 'abc'
 x
+
 grepl('y', x)
 grepl('bc', x)
 ```
 
-And logical operators/functions:
+And logical operators/functions work with variables as well:
 
 ```
 x <- T
 y <- F
+
 x && y
 x && x
 y && y
+
 x || y
 x || x
 y || y
+
 xor(x, y)
 xor(x, x)
 xor(y, y)
@@ -374,7 +383,6 @@ x <- 5 : -5                        ## from 5 to -5, by 1 (or rather by -1), incl
 x
 class(x)                           ## ':' produces integers!
 
-
 seq(from=1, to=10, by=2)           ## allows a different 'stride'
 x <- seq(from=10, to=1, by=-2.5)   ## stride need not be integer, but needs correct sign
 x
@@ -413,17 +421,16 @@ x
 
 ---
 
-
 ### Vector recycling
 
-Vectors of different lengths can be combined. This often results in the shorter vector being 'recycled',
-  that is, the shorter vector (say 'y') is concatenated to itself until it is at least as long as the 
-  longer vector (say 'x'), then the tail is trimmed until it is the same length as x. Then the resulting 
-  concatenated/trimmed vector is combined with 'x' as if both vectors always had the same length. If the
-  length of 'x' is not an integer multiple of the length of 'y', then a warning is issued. However, if
-  the length of 'x' is an integer multiple of the length of 'y', no warning is given. Utilizing this 
-  'feature' can lead to more confusion of code maintainers (like yourself a few months later) that can
-  outweigh any advantages. It is best to only combine vectors of equal length unless one of the vectors
+Vectors of different lengths can be combined by operators or functions. This often results in the shorter 
+  vector being 'recycled', that is, the shorter vector (say 'y') is concatenated to itself until it is at 
+  least as long as the longer vector (say 'x'), then the tail is trimmed until it is the same length as x. 
+  Then the resulting concatenated/trimmed vector is combined with 'x' as if both vectors always had the 
+  same length. If the length of 'x' is not an integer multiple of the length of 'y', then a warning is 
+  issued. However, if the length of 'x' is an integer multiple of the length of 'y', no warning is given. 
+  Utilizing this 'feature' can lead to more confusion of code maintainers (like yourself a few months later) 
+  that can outweigh any advantages. It is best to only combine vectors of equal length unless one of the vectors
   has a length of 1 (since the intent there is usually pretty clear).
 
 ```
@@ -451,6 +458,7 @@ x
 y
 x + y                                  ## longer not multiple of shorter: recycles shorter w/ warning
 ```
+
 [Return to index](#index)
 
 ---
@@ -462,19 +470,17 @@ x <- 1 : 10
 sum(x)                                                 ## sum up the whole series; yields single number
 prod(x)                                                ## product of series; yields single number
 cumsum(x)                                              ## cumulative sum; yields vector w/ length == length(x)
-mean(x)                                                ## average
+mean(x)                                                ## average of the series; yields one number
 sd(x)                                                  ## standard deviation (sample, not population)
 summary(x)                                             ## check it out
 quantile(x, probs=c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1))  ## you can set the probabilities to whatever
 
-
 x <- c(0.02345, 0.50000, 0.98765)
 round(x)
-?round
 round(x, digits=2)                                     ## decimal places
 signif(x, digits=2)                                    ## digits
-round(seq(from=-3, to=10, length.out=10))
 ```
+
 [Return to index](#index)
 
 ---
@@ -484,17 +490,21 @@ round(seq(from=-3, to=10, length.out=10))
 ```
 x <- 1 : 10
 x < 8                                                  ## yields logical vector of equal length to 'x'
+
 sum(x < 8)                                             ## when logical treated as numbers, T==1; F==0
 table(x < 8)                                           ## group counts (here, TRUE and FALSE are groups)
 x >= 5
 sum(x >= 5)                                            ## how many values in x are greater than or equal to 5?
+
 x < 8 && x >= 5   ## oops!                             ## '&&' not a vector operator!!! Only right if length(x) == 1.
 x < 8 & x >= 5                                         ## vectorized 'and'; yields logical of same length as 'x'
 x > 8 || x < 5    ## oops!                             ## '||' not a vector operator!!! Only right if length(x) == 1.
 x > 8 | x < 5                                          ## vectorized 'or'; yields logical of same length as 'x'
 sum(x > 8 | x < 5)                                     ## how many TRUE values resulted from vectorized 'or'?
+
 !(x > 8 | x < 5)                                       ## '!' vectorized: reverses all logical values
 ```
+
 [Return to index](#index)
 
 ---
@@ -503,15 +513,19 @@ sum(x > 8 | x < 5)                                     ## how many TRUE values r
 
 ```
 x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
-nchar(x)
-substr(x, 2, 4)
-substr(x, 2, 4) <- 'yz'
-x
+
+nchar(x)                                               ## number of characters in each element
+substr(x, 2, 4)                                        ## substrings: characters 2-4 from each element
+substr(x, 2, 4) <- 'yz'                                ## can assign to substrings
+x                                                      ## see the change
+
 toupper(x)
 x
-gsub('e', 'z', x)
+
+gsub('e', 'z', x)                                      ## substitute 'z' for 'e'
 x
-grepl('e', x)
+
+grepl('e', x)                                          ## can I have an 'e' please?
 ```
 
 [Return to index](#index)
@@ -530,16 +544,40 @@ Individual values or arbitrary subsets of values can be retrieved from
 ```
 x <- (1 : 10) ^ 2
 x
-x[1]
-x[2]
-x[3]
-x[length(x)]
-x[1 : 5]
-x[10 : 6]
-x[c(1, 10, 2, 9, 3, 8)]
-x[-1]
-x[-(1 : 5)]
-x[seq(from=2, to=10, by=2)]
+
+x[1]                           ## value in first position
+x[2]                           ## value in second position
+x[3]                           ## value in third position
+
+x[length(x)]                   ## value in last position
+x[length(x) - 1]               ## value in next to last position
+
+x[1 : 5]                       ## first five values
+x[10 : 6]                      ## similar idea
+x[c(1, 10, 3, 5, 3, 10, 1)]    ## arbitrary order, can duplicate
+
+x[-1]                          ## only works for integer index: everything except this
+x[-(1 : 5)]                    ## everything except these five
+
+x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
+```
+
+Indexed vector values are 'lvalues', that is you can assign to them. If 
+  you assign to a position beyond the length of the vector, the vector
+  will be automatically extended to a length sufficient to accommodate 
+  the last position indexed. Retrieving a position beyond the length of
+  the vector will return the missing value indicator `NA`.
+
+```
+x <- 1:10
+length(x)
+
+x[12] <- 12
+length(x)                            ## automatically extends
+x                                    ## NA is 'missing value'
+
+x[1000]                              ## NA is 'missing value'/unknown
+x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index works
 ```
 
 [Return to index](#index)
@@ -566,35 +604,13 @@ x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
 x[grepl('abc', x)]
 x[! grepl('abc', x)]
 
-x[c(T, F)]        ## recycle
-x[c(T, F, T)]     ## no warning!!!
+x[c(T, F)]                           ## recycle
+x[c(T, F, T)]                        ## no warning!!!
 ```
 
 [Return to index](#index)
 
 ---
-
-
-### More vector indexing:
-
-Indexed vector values are 'lvalues', that is you can assign to them. If 
-  you assign to a position beyond the length of the vector, the vector
-  will be automatically extended to a length sufficient to accommodate 
-  the last position indexed. Retrieving a position beyond the length of
-  the vector will return the missing value indicator `NA`.
-
-```
-x <- 1:10
-length(x)
-
-x[12] <- 12
-length(x)
-x
-x[1000]             ## NA is 'missing value'
-x[length(x) + 1] <- length(x) + 1
-```
-
-[Return to index](#index)
 
 
 ### More concatenation:
@@ -669,16 +685,55 @@ table(i)
 
 ### Simple plotting:
 
+An extremely important element of data analysis is data visualization. Let's take what you've
+  learned thus far and make some simple plots.
+
 ```
-tm <- 1:100
-dst <- t0 ^ 2
+tm <- 1:100                            ## time
+dst <- tm ^ 2                          ## distance, assuming a constant force
+tm
+dst
 
-plot(x=tm, y=dst)
+plot(x=tm, y=dst)                      ## minimal plot
 
-plot(x=tm, y=dst, main="My default plot", xlab="time (s)", ylab="distance (m)")
-plot(x=tm, y=dst, main="My dot plot", type="p", xlab="time (s)", ylab="distance (m)")
-plot(x=tm, y=dst, main="My line plot", type="l", xlab="time (s)", ylab="distance (m)")
-points(x=tm, y=dst)
+plot(                                  ## not a complete expression yet
+  x=tm,                                ## x positions
+  y=dst,                               ## corresponding y positions
+  main="My default plot",              ## title for plot
+  xlab="time (s)",                     ## how you want the x-axis labeled
+  ylab="distance (m)"                  ## how you want the y-axis labeled
+)                                      ## finally a complete statement
+
+plot(
+  x=tm, 
+  y=dst, 
+  main="My dot plot", 
+  type="p",                            ## specify you want points plotted
+  xlab="time (s)", 
+  ylab="distance (m)", 
+  col="cyan"
+)
+
+## now add some dashed lines:
+lines(x=tm, y=dst, col='orangered', lty=3)  
+
+plot(
+  x=tm, 
+  y=dst, 
+  main="My line plot", 
+  type="l",                            ## specify you want a line plot
+  xlab="time (s)", 
+  ylab="distance (m)", 
+  col="cyan"
+)
+
+## now add some '+' points:
+points(x=tm, y=dst, col='orangered', pch='+')
 ```
 
 [Return to index](#index)
+
+---
+
+## FIN!
+

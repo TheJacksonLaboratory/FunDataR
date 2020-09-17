@@ -4,6 +4,16 @@
 ### Index
 
 - [Names and character indexing](#names-and-character-indexing)
+- [Matrices](#matrices)
+- [Matrix indexing](#matrix-indexing)
+- [Matrix operations](#matrix-operations)
+- [Factors](#factors)
+- [Lists](#lists)
+- [List indexing](#list-indexing)
+- [Some useful list operations](#some-useful-list-operations)
+- [Data frames](#data frames)
+- [Data frame indexing](#data-frame-indexing)
+- [Formulas for plotting and fitting](#formulas-for-plotting-and-fitting)
 
 ### Check your understanding
 
@@ -46,7 +56,7 @@ x[c('1st', '4th', '5th')]
 
 ---
 
-## Matrices
+### Matrices
 
 ```
 x <- matrix(1:12, nrow=3)        ## typically numeric
@@ -142,7 +152,7 @@ x[, '3rd', drop=F]
 
 ---
 
-## Matrix operations:
+### Matrix operations
 
 ```
 (x <- matrix(c(1, 2, 3, 1, 2, 1, 2, 3, 1), ncol=3))
@@ -180,7 +190,7 @@ dim(x)
 
 ---
 
-## QUIZ:
+### Check your understanding 1
 
 1) build a matrix with the first column the integers from 1 to 10,
      the second column the first 10 even integers, and
@@ -202,7 +212,7 @@ dim(x)
 
 ---
 
-## Factors:
+### Factors:
 
 ```
 (x1 <- c(rep('control', 30)))
@@ -233,7 +243,7 @@ tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
 
 ---
 
-## Lists: hold vectors of potentially different lengths and types; like structures, dictionaries, and maps.
+### Lists: hold vectors of potentially different lengths and types; like structures, dictionaries, and maps.
 
 ```
 x <- list(
@@ -262,7 +272,7 @@ str(1 : 10000)
 
 ---
 
-## List indexing:
+### List indexing:
 
 ```
 str(x)
@@ -297,7 +307,7 @@ x$grades[2]
 
 ---
 
-## Some useful list operations
+### Some useful list operations
 
 ```
 str(x)
@@ -311,6 +321,12 @@ class(sapply(x, length))
 sapply(x, length)[3]
 sapply(x[c('classes', 'favorite.foods')], length)
 ```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 2
 
 [Return to index](#index)
 
@@ -368,7 +384,13 @@ dat$weight
 
 ---
 
-### Plot or fit a data.frame
+### Check your understanding 3
+
+[Return to index](#index)
+
+---
+
+### Formulas for plotting and fitting
 
 Plot:
 

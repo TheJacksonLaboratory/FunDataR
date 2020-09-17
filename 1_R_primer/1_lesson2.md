@@ -25,7 +25,7 @@
 
 ### Names and character indexing
 
-The concatenation command `c()` potentially takes two pre-defined parameters: `recursive` and `use.names`.
+The concatenation command `c()` optionally takes two pre-defined parameters: `recursive` and `use.names`.
   In addition, the command can take user-defined names for each value, where the user-defined names are
   passed in as parameter names and the value is passed as a parameter value. Alternatively, the `names()`
   command can be used to assign names for each value in an already initialized vector. These names provide
@@ -71,17 +71,17 @@ In addition to handling linear one-dimensional arrays of data (vectors), R has g
   arrays are two-dimensional arrays, also known as 'matrices'. As you may imagine, these look like
   the tables you might manipulate in excel. One restriction that matrices have that Excel tables do
   not is that R matrices require every value in the matrix to be of the same type. If you need to mix
-  heterogenous types of data, your first choice will probably be data.frames, which are discussed 
-  further in the next few sections. When dealing with large data tables containing a single type, 
-  however, matrices should be preferred over data.frames, since matrices offer substantial time/space 
-  efficiency improvements compared with data.frame operations. Interestingly, matrices in R are 
-  implemented by simply adding a 'dim' attribute to a vector. That is, the internal representation 
-  continues to be linear, and the 'dim' attribute, which holds the number of rows and columns
-  intended for the matrix are used to treat the data as if it were truly two-dimensional. For 
-  matrices, remember, the order is always `row, column`. The `dim()` command returns the size of the
-  matrix or array. For matrices, this is always the number of rows followed by the number of 
-  columns. For indexing matrices, the row index always comes first and the column index comes 
-  second (see next section).
+  heterogenous types of data (like numeric and character), your first choice will probably be 
+  data.frames, which are discussed further in the next few sections. When dealing with large data 
+  tables containing a single type, however, matrices should be preferred over data.frames, since 
+  matrices offer substantial time/space efficiency improvements compared with data.frame operations. 
+  Interestingly (at least to geeks like me), matrices in R are implemented by simply adding a 'dim' 
+  attribute to a vector. That is, the internal representation continues to be linear, and the 
+  'dim' attribute, which holds the number of rows and columns intended for the matrix are used to 
+  treat the data as if it were truly two-dimensional. For matrices, remember, the order is always 
+  `row, column`. The `dim()` command returns the size of the matrix or array. For matrices, this is 
+  always the number of rows followed by the number of columns. For indexing matrices, the row index 
+  always comes first and the column index comes second (see next section).
 
 ```
 x <- matrix(1:12, nrow=3)        ## matrices typically numeric; but do not have to be
@@ -111,6 +111,7 @@ x
 class(x)                         ## works! all it takes is the 'dim' attribute
 dim(x)
 attributes(x)
+
 ```
 
 [Return to index](#index)
@@ -152,6 +153,7 @@ attributes(y)                     ## keeps 'dim' attribute
 y <- x[, 1, drop=F]               ## first column, as 1-D matrix (not vector!)
 y
 dim(y)                            ## keeps 'dim' attribute
+
 ```
 
 Also like vectors, matrices and arrays can be indexed using logical vectors, except 
@@ -169,6 +171,7 @@ dim(x)
 
 x[c(T, F, T, F), c(F, T, T)]      ## match index lengths to dimension sizes
 x[c(F, T, F, T), ]                ## omit one index: selects everything in corresponding dimension
+
 ```
 
 Character indices can also be used with matrices and arrays. Instead of using the
@@ -194,6 +197,7 @@ x
 x['a', '2nd']
 x[c('b', 'd'), c('1st', '2nd')]
 x[, '3rd', drop=F]               ## a 1-D array, not a vector
+
 ```
 
 [Return to index](#index)

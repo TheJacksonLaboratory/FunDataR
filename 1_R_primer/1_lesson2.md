@@ -33,12 +33,12 @@ The concatenation command `c()` optionally takes two pre-defined parameters: `re
   from the vector.
 
 ```
-x <- c(length=3.7, height=23.2, width=16.3)
+x <- c(length=3.7, height=23.2, width=16.3)             ## note: names are not quoted here!
 x
 names(x)                                                ## get a character vector of names
 
-x['length']                                             ## get the element from the position labeled 'length'
-x['height']
+x["length"]                                             ## get the element from the position labeled 'length'
+x['height']                                             ## note: here the names must be quoted
 x['width'] 
 x[2]                                                    ## still works
 
@@ -60,6 +60,7 @@ x
 
 x['2d']
 x[c('1st', '4th', '5th')]
+
 ```
 
 [Return to index](#index)
@@ -80,10 +81,10 @@ In addition to handling linear one-dimensional arrays of data (vectors), R has g
   Interestingly (at least to geeks like me), matrices in R are implemented by simply adding a 'dim' 
   attribute to a vector. That is, the internal representation continues to be linear, and the 
   'dim' attribute, which holds the number of rows and columns intended for the matrix are used to 
-  treat the data as if it were truly two-dimensional. For matrices, remember, the order is always 
-  `row, column`. The `dim()` command returns the size of the matrix or array. For matrices, this is 
-  always the number of rows followed by the number of columns. For indexing matrices, the row index 
-  always comes first and the column index comes second (see next section).
+  treat the underlying vector as if it were truly two-dimensional. For matrices, remember, the order 
+  is always `row, column`. The `dim()` command returns the size of the matrix or array. For matrices, 
+  this is always the number of rows followed by the number of columns. For indexing matrices, the row 
+  index always comes first and the column index comes second (see next section).
 
 ```
 x <- matrix(1:12, nrow=3)        ## matrices typically numeric; but do not have to be
@@ -235,9 +236,7 @@ dim(x) <- c(3, 3)                      ## convert to square matrix
 x
 
 (y <- x %*% x)                         ## dot-product
-
 crossprod(x, y)                        ## cross-product
-
 solve(x)                               ## inversion of square non-singular matrix
 
 (y <- x %*% solve(x))                  ## note rounding issue (should be identity)
@@ -542,6 +541,7 @@ dim(dat)                         ## just like matrix (figured out from names and
 nrow(dat)                        ## just like matrix
 ncol(dat)                        ## just like matrix
 length(dat)                      ## just like list
+
 apply(dat, 1, length)            ## just like matrix
 apply(dat, 2, length)            ## just like matrix
 sapply(dat, length)              ## just like list

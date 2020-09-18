@@ -41,8 +41,9 @@ After starting R, an R terminal window will be launched. If you bring that windo
 
 4 +          ## an imcomplete expression
 3            ## the next line is interpreted as a continuation; now can be interpreted/is complete
+
 ```
- 
+
 If the expression does not include an assignment of the resulting value to a variable (like the 
   example above), the resulting value is typically printed out on the screen. 
 
@@ -63,6 +64,7 @@ A literal value by itself is a complete expression. So you can enter any accepta
 "quick brown fox"       ## character literal
 
 TRUE                    ## logical literal
+
 ```
 
 Comments in R are designated by the `#` symbol. That is, anything you type after a `#` symbol will
@@ -100,6 +102,7 @@ An integer value is composed solely of an optional sign and digits. It should be
 ```
 2                  ## a super-simple numeric literal value
 2L                 ## the almost equally simple integer equivalent
+
 ```
 
 A function is a bit of computer code that can be called by name, given an argument (in parentheses
@@ -112,7 +115,8 @@ A function is a bit of computer code that can be called by name, given an argume
 class(2)                ## looks like an integer, but ...
 class(2L)
 ?class
-help(class)             ## 'help()' is a function; can pass a function as argument by passing name 
+help(class)             ## 'help()' is a function; can pass a function as argument by passing name
+ 
 ```
 
 An expression can be made by combining operators (like the `+` below) with values (like the numeric
@@ -134,6 +138,7 @@ help('+')
 2 * 3                   ## multiply
 2 - 3                   ## subtract
 2 ^ 3                   ## power (coefficient and exponent need not be positive nor integer)
+
 ```
 
 If you hate to memorize precedence tables (I do) or want to change the order of operations, you
@@ -145,6 +150,7 @@ If you hate to memorize precedence tables (I do) or want to change the order of 
 (2 + 3) / 5
 3 ^ (1 / 2)
 (3 ^ (1 / 2)) ^ 2
+
 ```
 
 [Return to index](#index)
@@ -177,6 +183,10 @@ Certain operators (and functions) which take numbers as arguments, can return lo
 2 != 3                  ## is 2 not equal to 3?
 ?"<"                    ## what does the '<' operator do?
 class(2 < 3)            ## what data type is returned by the '<' operator?
+1 : 10
+3 %in% 1:10               ## is 3 in the set of integers spanning from 1 to 10 (inclusive)?
+-3 %in% 1:10              ## is -3 in the set of integers spanning from 1 to 10 (inclusive)?
+
 ```
 
 Logical values are represented by the unquoted (case-sensitive) literal values `TRUE`, `T`, 
@@ -193,6 +203,7 @@ class(T)
 FALSE                   ## ok
 FA                      ## oops, only F or FALSE
 F                       ## ok
+
 ```
 
 Logical values can be combined using the operators `&&` (and) as well as `||` (or).
@@ -211,6 +222,7 @@ xor(TRUE, TRUE)         ## what is (T xor T)? this is the one that differs from 
 xor(FALSE, FALSE)       ## what is (F xor F)?
 !T                      ## not TRUE
 !F                      ## not FALSE
+
 ```
 
 [Return to index](#index)
@@ -251,6 +263,10 @@ gsub('b', 'd', 'ab cba')        ## substitute all instances of 'b' w/ 'd'; regex
  
 grepl('bc', 'abcba')            ## does second argument contain first as substring? regex-friendly
 grepl('yx', 'abcba')            ## does second argument contain first as substring? regex-friendly
+
+'yx' %in% c('ab', 'yx', 'fg')
+'yx' %in% c('ab', 'yt', 'fg')
+
 ```
 
 [Return to index](#index)
@@ -310,6 +326,7 @@ ls(all.names=T)
 system.time(x <- 3)       ## how much time does it take to perform an assingment?
 system.time(x = 3)        ## oops! is 'x' a variable or a parameter to be passed to system.time()?
 ?system.time              ## for instance, `gcFirst` is a parameter name you could assign to
+
 ```
 
 Character operators and functions also work with variables:
@@ -320,6 +337,9 @@ x
 
 grepl('y', x)
 grepl('bc', x)
+
+x %in% c('abc', 'bcde', 'cdefg')
+
 ```
 
 And logical operators/functions work with variables as well:
@@ -339,6 +359,7 @@ y || y
 xor(x, y)
 xor(x, x)
 xor(y, y)
+
 ```
 
 [Return to index](#index)
@@ -372,6 +393,7 @@ x <- c('abc', '', 'de')      ## and character types
 x
 class(x)
 length(x)
+
 ```
 
 [Return to index](#index)
@@ -405,6 +427,7 @@ x <- rep(1:3, 5)                   ## you can repeat a series
 x
 x <- rep(seq(from=-1, to=-2, by=-0.25), 3)
 x
+
 ```
 
 [Return to index](#index)
@@ -463,6 +486,7 @@ y <- 1 : 3
 x
 y
 x + y                                  ## longer not multiple of shorter: recycles shorter w/ warning
+
 ```
 
 [Return to index](#index)
@@ -485,6 +509,10 @@ x <- c(0.02345, 0.50000, 0.98765)
 round(x)
 round(x, digits=2)                                     ## decimal places
 signif(x, digits=2)                                    ## digits
+
+x <- 1 : 10
+x %in% 5 : 20                                          ## %in% makes more sense when working with vectors w/ length > 1
+
 ```
 
 [Return to index](#index)
@@ -509,6 +537,7 @@ x > 8 | x < 5                                          ## vectorized 'or'; yield
 sum(x > 8 | x < 5)                                     ## how many TRUE values resulted from vectorized 'or'?
 
 !(x > 8 | x < 5)                                       ## '!' vectorized: reverses all logical values
+
 ```
 
 [Return to index](#index)
@@ -532,6 +561,9 @@ gsub('e', 'z', x)                                      ## substitute 'z' for 'e'
 x
 
 grepl('e', x)                                          ## can I have an 'e' please?
+
+x %in% c("abc", "fyzbc",  "def", "cyzfghi")            ## %in% makes more sense when working with vectors w/ length > 1
+
 ```
 
 [Return to index](#index)
@@ -566,6 +598,7 @@ x[-1]                          ## only works for integer index: everything excep
 x[-(1 : 5)]                    ## everything except these five
 
 x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
+
 ```
 
 Indexed vector values are 'lvalues', that is you can assign to them. If 
@@ -575,7 +608,7 @@ Indexed vector values are 'lvalues', that is you can assign to them. If
   the vector will return the missing value indicator `NA`.
 
 ```
-x <- 1:10
+x <- 1 : 10
 length(x)
 
 x[12] <- 12
@@ -584,6 +617,7 @@ x                                    ## NA is 'missing value'
 
 x[1000]                              ## NA is 'missing value'/unknown
 x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index works
+
 ```
 
 [Return to index](#index)
@@ -612,6 +646,7 @@ x[! grepl('abc', x)]
 
 x[c(T, F)]                           ## recycle
 x[c(T, F, T)]                        ## no warning!!!
+
 ```
 
 [Return to index](#index)
@@ -623,7 +658,7 @@ x[c(T, F, T)]                        ## no warning!!!
 Vectors can be combined using the `c()` function. 
 
 ```
-x <- 1:10
+x <- 1 : 10
 x <- c(x, 11)                        ## add a value to end
 x
 x <- c(x, c(12, 13, 14))             ## add three more values to end
@@ -633,6 +668,7 @@ x <- 1:10
 y <- 21:30
 z <- c(x, y, rev(x), rev(y))         ## go nuts!
 z
+
 ```
 
 [Return to index](#index)
@@ -642,7 +678,7 @@ z
 ### Some general vector utilities
 
 ```
-x <- 1:10
+x <- 1 : 10
 length(x)
 rev(x)
 rev(x)[3]
@@ -652,6 +688,7 @@ x
 table(x)
 sort(x)
 sort(table(x))
+unique(x)
 
 x <- c('ab', 'a', 'ac', 'b', 'bd', 'b', 'ab', 'ab')
 x
@@ -662,6 +699,23 @@ sort(table(x), decreasing=T)
 x <- 1 : 100
 i <- x > 35
 table(i)
+
+## sets do not track member order and collapse redundant members:
+
+x <- c(1 : 10, 10 : 1)            ## vector has redundant members
+y <- 6 : 15
+z <- 6 : 15
+x
+y
+z
+
+union(x, y)                       ## put the 'sets' together, no redundancy
+intersect(x, y)                   ## what do the sets share
+setdiff(x, y)                     ## what does x have that y does not
+setdiff(y, x)                     ## what does y have that x does not
+setequal(x, y)                    ## is the set memebership identical?
+setequal(z, y)  
+
 ```
 
 [Return to index](#index)
@@ -734,6 +788,7 @@ plot(
 
 ## now add some '+' points:
 points(x=tm, y=dst, col='orangered', pch='+')
+
 ```
 
 [Return to index](#index)

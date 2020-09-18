@@ -184,8 +184,8 @@ Certain operators (and functions) which take numbers as arguments, can return lo
 ?"<"                    ## what does the '<' operator do?
 class(2 < 3)            ## what data type is returned by the '<' operator?
 1 : 10
-3 %in% 1:10               ## is 3 in the set of integers spanning from 1 to 10 (inclusive)?
--3 %in% 1:10              ## is -3 in the set of integers spanning from 1 to 10 (inclusive)?
+3 %in% 1:10             ## is 3 in the set of integers spanning from 1 to 10 (inclusive)?
+-3 %in% 1:10            ## is -3 in the set of integers spanning from 1 to 10 (inclusive)?
 
 ```
 
@@ -636,13 +636,13 @@ Another very useful indexing approach is to return values meeting some sort of l
 ```
 x <- (1 : 10) ^ 2
 x
-x[x > 30]
-x[x <= 30]
-x[x > 30 & x < 70]
+x[x > 30]                            ## get values greater than 30
+x[x <= 30]                           ## get values less than or equal to 30
+x[x > 30 & x < 70]                   ## combine conditions; '&' NOT '&&'!!!
 
 x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
-x[grepl('abc', x)]
-x[! grepl('abc', x)]
+x[grepl('abc', x)]                   ## get values that contain 'abc'
+x[! grepl('abc', x)]                 ## get values that do not contain 'abc'
 
 x[c(T, F)]                           ## recycle
 x[c(T, F, T)]                        ## no warning!!!
@@ -680,21 +680,21 @@ z
 ```
 x <- 1 : 10
 length(x)
-rev(x)
+rev(x)                            ## reverse order
 rev(x)[3]
 
 x <- c(1:5, 4:1, 1:3, 2:1)
 x
-table(x)
-sort(x)
+table(x)                          ## count distinct values
+sort(x)         
 sort(table(x))
-unique(x)
+unique(x)                         ## collapse redundant values
 
 x <- c('ab', 'a', 'ac', 'b', 'bd', 'b', 'ab', 'ab')
 x
 table(x)
 sort(x)
-sort(table(x), decreasing=T)
+sort(table(x), decreasing=T)      ## default order is increasing
 
 x <- 1 : 100
 i <- x > 35

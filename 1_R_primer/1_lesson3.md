@@ -20,6 +20,43 @@
 
 ### Type tests
 
+You will often run into a vector and need to determine its type. You've already seen
+  how to do this with the `class()` function. If you need to check for a particular
+  type (say 'logical') you could try to use the output of the `class()` command,
+  but there is an easier way. You can use the `is.<type>()` command, where `<type>` 
+  is the type you are testing for:
+
+```
+(x <- 1 : 10)
+class(x)
+is.integer(x)
+is.numeric(x)
+is.logical(x)
+is.character(x)
+
+(x <- seq(from=0, to=10, length.out=20))
+class(x)
+is.integer(x)
+is.numeric(x)
+is.logical(x)
+is.character(x)
+
+(x <- x >= 5)
+class(x)
+is.integer(x)
+is.numeric(x)
+is.logical(x)
+is.character(x)
+
+(x <- c('the', 'quick', 'brown', 'fox'))
+class(x)
+is.integer(x)
+is.numeric(x)
+is.logical(x)
+is.character(x)
+
+```
+
 [Return to index](#index)
 
 ---

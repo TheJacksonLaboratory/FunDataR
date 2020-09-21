@@ -74,6 +74,7 @@ x                                    ## NA is 'missing value'
 
 x[1000]                              ## NA is 'missing value'/unknown
 x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index works
+x                                    ## NA used to fill in missing values
 
 ```
 
@@ -166,12 +167,16 @@ In addition to handling linear one-dimensional arrays of data (vectors), R has g
   Interestingly (at least to geeks like me), matrices in R are implemented by simply adding a 'dim' 
   attribute to a vector. That is, the internal representation continues to be linear, and the 
   'dim' attribute, which holds the number of rows and columns intended for the matrix are used to 
-  treat the underlying vector as if it were actually two-dimensional. 
+  simulate two-dimensional behavior from the underlying vector. 
 
 For matrices, remember, the order is always `row, column`. The `dim()` command returns the size of 
   the matrix or array. For matrices, this is always the number of rows followed by the number of 
   columns. For indexing matrices, the row index always comes first and the column index comes 
   second (see next section).
+
+You can create matrices from a vector of a compatible length by assigning one of the `nrow` or
+  `ncol` parameters to the `matrix()` function. The other parameter is calculated based on the
+  vector length and the given parameter:
 
 ```
 x <- matrix(1:12, nrow=3)        ## matrices typically numeric; but do not have to be
@@ -186,6 +191,25 @@ attributes(x)                    ## 'dim' is all it takes
 dim(x)
 attributes(x)
 
+```
+
+Alternatively, you can simply assign dimensionality to a vector to turn it into a vector:
+
+```
+x <- 1 : 12                      ## just a vector
+dim(x) <- c(3, 4)                ## easy way to convert vector to matrix
+x
+class(x)
+dim(x)
+attributes(x)
+
+```
+
+You can generate matrices with a single initialization value in all cells by specifying the
+  initialization value along with the `nrow` and `ncol` parameters. The initialization value
+  is 'recycled' to fill a matrix of the specified dimensions:
+
+```
 matrix(1, nrow=3, ncol=4)        ## make a matrix with 3 rows and 4 columns, filled with 1s
 matrix(0, nrow=4, ncol=3)        ## make a matrix with 4 rows and 3 columns, filled with 0s
 
@@ -196,19 +220,17 @@ x                                ## ... revealing the vector beneath
 class(x)
 dim(x)                           ## NULL is 'nothing' (different from NA)
 
+```
+
+Here we play with attributes to show how a matrix is 'created' from a vector underneath the hood:
+
+```
 x <- 1:12                        ## just a vector
 class(x)
 dim(x)                           ## NULL is 'nothing' (different from NA)
 attr(x, "dim") <- c(3, 4)        ## what if we add the 'dim' attribute manually to a vector?
 x
 class(x)                         ## works! all it takes is the 'dim' attribute
-dim(x)
-attributes(x)
-
-x <- 1 : 12                      ## just a vector
-dim(x) <- c(3, 4)                ## easy way to convert vector to matrix
-x
-class(x)
 dim(x)
 attributes(x)
 
@@ -366,22 +388,22 @@ dim(x)
 
 ### Check your understanding 1
 
-1) build a matrix with the first column the integers from 1 to 10,
+1) Build a matrix with the first column the integers from 1 to 10,
      the second column the first 10 even integers, and
      the third column the first 10 odd integers.
 
-2) generate a vector with one value per row in the matrix from (1), where 
+2) Generate a vector with one value per row in the matrix from (1), where 
     the value is the product of the all the values in the corresponding row.
 
-3) generate a vector with the sum of each column of the matrix from (1)
+3) Generate a vector with the sum of each column of the matrix from (1)
 
-4) return the second and third columns of the matrix from (1) as a matrix
+4) Return the second and third columns of the matrix from (1) as a matrix
 
-5) return the second and third rows of the matrix from (1) as a matrix
+5) Return the second and third rows of the matrix from (1) as a matrix
 
-6) return the second row of the matrix from (1) as a vector
+6) Return the second row of the matrix from (1) as a vector
 
-7) return the second row of the matrix from (1) as a (one row) matrix
+7) Return the second row of the matrix from (1) as a (one row) matrix
 
 [Return to index](#index)
 
@@ -402,7 +424,7 @@ Another data type that is derived from an integer vector by adding a couple attr
 
 Below we simulate a dataset with two groups ('control' and 'treated'), each with 
   30 observations. For the 'control' group, we simulate values by (pseudo-)random
-  draws from a normal (a.k.a guassian) distribution with a mean of 10 and a 
+  draws from a normal (a.k.a Guassian) distribution with a mean of 10 and a 
   standard deviation of 3. For the 'treated' group, we simulate values by drawing
   from a normal distribution with a mean of 15 and a standard deviation of 5.
   Normal distributions can be fully specified using just two parameters, 
@@ -425,16 +447,18 @@ We use the `set.seed()` function to seed any pseudo-random process in R, if we w
 sessionInfo()                     ## get version information for current R setup
 
 ## perform your 'experiment':
-set.seed(5)                       ## 'seed' pseudo-random number generator to make reproducible
+set.seed(6)                       ## 'seed' pseudo-random number generator to make reproducible
 rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
-rnorm(1, mean=10, sd=3)           ## and another
-rnorm(1, mean=100, sd=30)         ## and another
+runif(1, min=0, max=1)            ## get one random value from a uniform distribution on interval [0, 1)
+rbinom(3, size=1, prob=0.5)       ## get three coin flips (1=heads, 0=tails)
+rpois(1, lambda=10)               ## get one random count from a process with avg rate of 10 per unit time
 
 ## repeat your 'experiment':
-set.seed(5)                       ## reset seed to original value
-rnorm(1, mean=1, sd=1)            ## get random value from normal distribution (same as last time)
-rnorm(1, mean=10, sd=3)           ## and another (same as last time)
-rnorm(1, mean=100, sd=30)         ## and another (same as last time)
+set.seed(6)                       ## 'seed' pseudo-random number generator to make reproducible
+rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
+runif(1, min=0, max=1)            ## get one random value from a uniform distribution on interval [0, 1)
+rbinom(3, size=1, prob=0.5)       ## get three coin flips (1=heads, 0=tails)
+rpois(1, lambda=10)               ## get one random count from a process with avg rate of 10 per unit time
 
 (x1 <- c(rep('control', 30)))     ## make up one group of 30
 (y1 <- rnorm(30, mean=10, sd=3))  ## simulate values for each member of the first group
@@ -565,13 +589,24 @@ The most useful operations specifically intended for lists are the commands
   `lapply()` and `sapply()`. They both apply a user-specified function to each 
   element of the list. They differ in that `lapply(x)` always returns a list with 
   one element per element in the list `x`, while `sapply()` tries to return
-  a vector, if possible. For functions which predictably return values of the 
-  same length for any valid input, `sapply()` will usually succeed in returning
-  a vector, while functions with more complicated return values may result in 
-  a list to be returned by `sapply()`, identical to that which would be returned
-  by `lapply()`.
+  a vector (with one element per list element), if possible. For functions which 
+  predictably return values of the same length for any valid input, `sapply()` 
+  will usually succeed in returning a vector, while functions with more complicated 
+  return values may result in a list to be returned by `sapply()`, identical to 
+  that which would be returned by `lapply()`.
 
 ```
+x <- list(
+  fname='mitch', 
+  lname='kostich', 
+  major='undecided',
+  year.grad=2023, 
+  year.birth=1906,
+  classes=c('basket weaving', 'chiromancy', 'chainsaw juggling', 'cat psychology'),
+  grades=c('C+', 'C-', 'B-', 'D'),
+  favorite.foods=c('mango pickle', 'century egg', 'camembert')
+)
+
 str(x)
 length(x)                         ## length of list (how many elements at outer level)
 lapply(x, length)                 ## length of each element of list
@@ -591,7 +626,7 @@ sapply(x[c('classes', 'favorite.foods')], length)
 
 ### Check your understanding 2
 
-1) make a list with at least five member elements, incorporating at least two
+1) Make a list with at least five member elements, incorporating at least two
      data types. Make sure at least two of the member elements are
      of different lengths than the rest of the elements.
 
@@ -658,7 +693,7 @@ sapply(dat, length)              ## just like list
 Data frames can be indexed using either the methods used for lists or the methods 
   used for matrices. Character indexing of rows depends on assignment of 
   `row.names` attribute (e.g. using the `rownames()` function). Rownames are 
-  not required to be unique, but the operation of your code will be clearer if 
+  not required to be unique, but your code will be clearer if 
   you are always sure to make `names` and `row.names` elements are unique.
 
 ```
@@ -687,18 +722,18 @@ dat$weight                        ## like a list
 
 ### Check your understanding 3
 
-1) Make a data.frame with 5 rows and 4 columns and at least two 
+1) Make a `data.frame` with 5 rows and 4 columns and at least two 
      data types. Name the columns.
 
-2) Add some row.names to the data.frame from (1).
+2) Add some `row.names` to the `data.frame` from (1).
 
 3) Pull the 2d and 3d columns from the 1st and 3d row with a 
      single indexing operation using a character index and 
      a logical index.
 
-4) Using sapply, determine the type of each column.
+4) Using `sapply()`, determine the type of each column.
 
-5) Using apply, determine the type of each column.
+5) Using `apply()`, determine the type of each column.
 
 [Return to index](#index)
 

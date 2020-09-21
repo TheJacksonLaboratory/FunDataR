@@ -1,5 +1,8 @@
 # Fundamentals of computational data analysis using R
 ## A primer on programming using R: lesson 1
+#### Contact: mitch.kostich@jax.org
+
+---
 
 ### Index
 
@@ -14,11 +17,7 @@
 - [Some vectorized numeric operations](#some-vectorized-numeric-operations)
 - [Some vectorized logical operations](#some-vectorized-logical-operations)
 - [Some vectorized character operations](#some-vectorized-character-operations)
-- [Vector integer indexing](#vector-integer-indexing)
-- [Vector logical indexing](#vector-logical-indexing)
-- [More concatenation](#more-concatenation)
 - [Some general vector utilities](#some-general-vector-utilities)
-- [Simple plotting](#simple-plotting)
 
 ### Check your understanding
 
@@ -570,99 +569,14 @@ x %in% c("abc", "fyzbc",  "def", "cyzfghi")            ## %in% makes more sense 
 
 ---
 
-### Vector integer indexing
-
-Individual values or arbitrary subsets of values can be retrieved from
-  a vector by specifying the position of the desired values using an 
-  'index'. The simplest method uses an integer index to specify the 
-  position(s) of the desired value(s) in the vector being indexed. The 
-  first value in a vector is retrieved with an index of 1 (not 0!!!).
-  The index can be of any length.
-
-```
-x <- (1 : 10) ^ 2
-x
-
-x[1]                           ## value in first position
-x[2]                           ## value in second position
-x[3]                           ## value in third position
-
-x[length(x)]                   ## value in last position
-x[length(x) - 1]               ## value in next to last position
-
-x[1 : 5]                       ## first five values
-x[10 : 6]                      ## similar idea
-x[c(1, 10, 3, 5, 3, 10, 1)]    ## arbitrary order, can duplicate
-
-x[-1]                          ## only works for integer index: everything except this
-x[-(1 : 5)]                    ## everything except these five
-
-x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
-
-```
-
-Indexed vector values are 'lvalues', that is you can assign to them. If 
-  you assign to a position beyond the length of the vector, the vector
-  will be automatically extended to a length sufficient to accommodate 
-  the last position indexed. Retrieving a position beyond the length of
-  the vector will return the missing value indicator `NA`.
-
-```
-x <- 1 : 10
-length(x)
-
-x[12] <- 12
-length(x)                            ## automatically extends
-x                                    ## NA is 'missing value'
-
-x[1000]                              ## NA is 'missing value'/unknown
-x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index works
-
-```
-
-[Return to index](#index)
-
----
-
-### Vector logical indexing
-
-Another very useful indexing approach is to return values meeting some sort of logical 
-  criterion. In these cases, we can use a test which returns a logical value for every 
-  element in the vector, indicating whether the criterion has been met for that value.
-  So a logical index should usually be the same length as the vector being indexed. A 
-  logical index that is shorter than the vector being indexed will be recycled without 
-  warning.
-
-```
-x <- (1 : 10) ^ 2
-x
-x[x > 30]                            ## get values greater than 30
-x[x <= 30]                           ## get values less than or equal to 30
-x[x > 30 & x < 70]                   ## combine conditions; '&' NOT '&&'!!!
-
-x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
-x[grepl('abc', x)]                   ## get values that contain 'abc'
-x[! grepl('abc', x)]                 ## get values that do not contain 'abc'
-
-x[c(T, F)]                           ## recycle
-x[c(T, F, T)]                        ## no warning!!!
-
-```
-
-[Return to index](#index)
-
----
-
-### More concatenation
+### Some general vector utilities
 
 Vectors can be combined using the `c()` function. 
 
 ```
 x <- 1 : 10
-x <- c(x, 11)                        ## add a value to end
-x
-x <- c(x, c(12, 13, 14))             ## add three more values to end
-x
+(x <- c(x, 11))                      ## add a value to end
+(x <- c(x, c(12, 13, 14)))           ## add three more values to end
 
 x <- 1:10
 y <- 21:30
@@ -671,11 +585,7 @@ z
 
 ```
 
-[Return to index](#index)
-
----
-
-### Some general vector utilities
+A number of other commonly employed functions that work for vectors of any type:
 
 ```
 x <- 1 : 10
@@ -683,15 +593,14 @@ length(x)
 rev(x)                            ## reverse order
 rev(x)[3]
 
-x <- c(1:5, 4:1, 1:3, 2:1)
-x
+(x <- c(1:5, 4:1, 1:3, 2:1))
 table(x)                          ## count distinct values
 sort(x)         
 sort(table(x))
 unique(x)                         ## collapse redundant values
+sort(unique(x))
 
-x <- c('ab', 'a', 'ac', 'b', 'bd', 'b', 'ab', 'ab')
-x
+(x <- c('ab', 'a', 'ac', 'b', 'bd', 'b', 'ab', 'ab'))
 table(x)
 sort(x)
 sort(table(x), decreasing=T)      ## default order is increasing
@@ -700,8 +609,11 @@ x <- 1 : 100
 i <- x > 35
 table(i)
 
-## sets do not track member order and collapse redundant members:
+```
 
+Set operations do not track member order and collapse redundant members:
+
+```
 x <- c(1 : 10, 10 : 1)            ## vector has redundant members
 y <- 6 : 15
 z <- 6 : 15
@@ -730,70 +642,16 @@ setequal(z, y)
 2) generate a vector containing only those positive integers
      (not their squared values! use logical vector index perhaps?)
 
-3) trim off the first 2 values and the last two values
+3) trim off the first 2 values and the last two values from the vector you made
 
-4) add the integers 101, 102, and 103 to the back end of the vector
+4) add the integers 101, 102, and 103 to the back end of the resulting vector
 
-5) add the integers 1, 2, 3 to the front of the vector
+5) add the integers 1, 2, 3 to the vector you made in the last step
 
-6) reverse the order of the vector
-
-[Return to index](#index)
-
----
-
-### Simple plotting
-
-An extremely important element of data analysis is data visualization. Let's take what you've
-  learned thus far and make some simple plots.
-
-```
-tm <- 1:100                            ## time
-dst <- tm ^ 2                          ## distance, assuming a constant force
-tm
-dst
-
-plot(x=tm, y=dst)                      ## minimal plot
-
-plot(                                  ## not a complete expression yet
-  x=tm,                                ## x positions
-  y=dst,                               ## corresponding y positions
-  main="My default plot",              ## title for plot
-  xlab="time (s)",                     ## how you want the x-axis labeled
-  ylab="distance (m)"                  ## how you want the y-axis labeled
-)                                      ## finally a complete statement
-
-plot(
-  x=tm, 
-  y=dst, 
-  main="My dot plot", 
-  type="p",                            ## specify you want points plotted
-  xlab="time (s)", 
-  ylab="distance (m)", 
-  col="cyan"
-)
-
-## now add some dashed lines:
-lines(x=tm, y=dst, col='orangered', lty=3)  
-
-plot(
-  x=tm, 
-  y=dst, 
-  main="My line plot", 
-  type="l",                            ## specify you want a line plot
-  xlab="time (s)", 
-  ylab="distance (m)", 
-  col="cyan"
-)
-
-## now add some '+' points:
-points(x=tm, y=dst, col='orangered', pch='+')
-
-```
+6) reverse the order of the vector you made in the last step
 
 [Return to index](#index)
 
 ---
 
 ## FIN!
-

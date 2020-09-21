@@ -60,6 +60,55 @@ is.character(x)
 
 ```
 
+In addition to these conventional types, we have the missing value
+  related types `NA` and `NULL`. The `NA` value is used as a placeholder
+  for missing values. It can be included as an element in any kind of
+  vector. The `NULL` value is used as a placeholder for a missing object.
+  It is normally not used as an element of vector, but instead to indicate
+  that an entire vector or other object is missing. Detecting NAs depends
+  on the `is.na()` function, which returns a value for every element in 
+  a vector. `NULL`s are detected using the `is.null()` function, which 
+  returns a single value for any object you feed to it.
+
+```
+(x <- NA)                           ## vector of length 1
+class(x)                            ## NA defaults to logical (most convertible class)
+length(x)                           ## length 1 (compare to NULL)
+attributes(x)
+is.na(x)                            ## a logical vector of the same length as x
+is.null(x)                          ## a logical vector always of length 1
+
+(x <- c(1, NA, 3, NA, 5))           ## NA is placeholder in vector for missing values
+class(x)                            ## NA 'promoted' to numeric (see type conversion section)
+length(x)                           ## each NA counts for 1
+attributes(x)
+is.na(x)                            ## a logical vector of the same length as x
+is.null(x)                          ## a logical vector always of length 1
+
+(x <- NULL)
+class(x)
+attributes(x)
+length(x)                           ## compare to length(NA)
+is.na(x)                            ## a logical vector of the same length as x; length(x) == 0
+is.null(x)                          ## a logical vector always of length 1
+
+(x <- c(1, NULL, 3, NULL, 5))       ## NULL not a missing value indicator; is a 'nothingness' indicator
+class(x) 
+length(x)                           ## NULLs gone, because they were 'nothing'
+attributes(x)
+is.na(x)
+is.null(x)
+
+rm(x)                               ## undefine x: x no longer exists
+x                                   ## not the same as setting to NULL ...
+class(x)
+length(x)
+attributes(x)
+is.na(x)
+is.null(x)
+
+```
+
 [Return to index](#index)
 
 ---
@@ -70,8 +119,8 @@ You may have noticed that you can combine integer and numeric types successfully
   what is the resulting type? Let's take a look:
 
 ```
-x <- 3L
-y <- 4
+x <- 3L                      ## integer
+y <- 4                       ## numeric
 class(x)
 class(y)
 (z <- x + y)
@@ -96,38 +145,65 @@ class(x)
 
 ```
 
-So the direction of conversion is `logical -> integer -> numeric -> character`. If any
-  type is combined with any second type that lies to the right of the first type in 
-  the series, the first type is converted to the second type. The conversions are pretty
-  sensible for the most part, as was demo'd in the previous code block. But what about
-  converting types in the opposite direction? Turns out that is possible too, using 
-  the `as.<type>()` series of functions:
+So the direction of auto-conversion is `logical -> integer -> numeric -> character`. 
+  If any type is combined with any second type that lies to the right of the first type 
+  in the series, the first type is converted to the second type. The conversions are 
+  pretty sensible for the most part, as was demo'd in the previous code block. But what 
+  about converting types in the opposite direction? Turns out that is possible too, 
+  using the `as.<type>()` series of functions:
 
 ```
 str(x <- list(logical=T, integer=1L, numeric=1, character="1"))
-sapply(x, as.logical)
-sapply(x, as.integer)
-sapply(x, as.numeric)
+sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE 
+sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
+sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
 sapply(x, as.character)
 
 str(x <- list(logical=F, integer=0L, numeric=0, character="0"))
-sapply(x, as.logical)
-sapply(x, as.integer)
-sapply(x, as.numeric)
+sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE
+sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
+sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
 sapply(x, as.character)
 
-str(x <- list(logical=F, integer=-3L, numeric=-0.1, character=""))
-sapply(x, as.logical)
-sapply(x, as.integer)
-sapply(x, as.numeric)
+str(x <- list(logical=F, integer=-3L, numeric=-0.1, character="-1.6e5"))
+sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE
+sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
+sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
 sapply(x, as.character)
 
-as.logical("TRUE")                ## works!
+```
+
+So a character representation of a number can be converted into an integer or
+  numeric, and an integer or numeric can be converted into a logical, but 
+  a character representation of a number cannot be directly converted into
+  a logical! Instead, you can always indirectly convert a character representation 
+  of a numeric value into a logical by passing to `as.numeric()` first. 
+  In addition, : there are several character values that can be directly
+  converted to logical values. The example code below enumerates them: 
+
+```
+as.logical("0")                     ## nope!
+as.logical("1")                     ## nope!
+as.logical("")                      ## nope
+
+## TRUE and FALSE character equivalents:
+
+as.logical("TRUE")                  ## works!
 as.logical("FALSE")
 as.logical("T")
 as.logical("F")
-as.logical("true")                ## works! even though 'true' is not keyword (unlike 'TRUE' and 'T')
+as.logical("true")                  ## works! even though 'true' is not keyword (unlike 'TRUE' and 'T')
 as.logical("false")
+as.logical("True")
+as.logical("False")
+
+as.logical(as.character(TRUE))      ## works (as expected)!
+as.logical(as.character(FALSE))     ## works (as expected)!
+
+as.logical(as.numeric("0"))         ## simple work-around
+as.logical(as.numeric("-0.0"))      ## simple work-around
+as.logical(as.numeric("1"))         ## simple work-around
+as.logical(as.numeric("-3.2e-16"))  ## simple work-around
 
 ```
 
@@ -189,6 +265,35 @@ y[y != i]                         ## which values don't match
 all.equal(y, i)                   ## is y approximately equal to its theoretical value?
 isTRUE(T)                         ## is.logical(x) && length(x) == 1 && !is.na(x) && x
 isTRUE(all.equal(y, i))           ## the 'safe' way to test for equality
+
+```
+
+Standard floating point representations include several special values including 
+  'not a number' (`NaN` in R) and 'infinity' (`Inf` in R). The `NaN` value in R turns out to 
+  be a 'subtype' of the NA type: all `NaN` are `NA`, but not all `NA are `NaN`. R provides 
+  special functions for detection of `NaN` and `Inf` values. This is particularly important
+  for `NA` and `NaN` values, as any comparisons of these values, even with themselves, only
+  yields `NA`: 
+
+```
+(x <- c(-1 / 0, 0 / 0, 1 / 0))
+is.finite(x)
+is.infinite(x)
+is.nan(x)
+is.na(x)
+
+(x <- c(-Inf, NA, NaN, Inf))
+is.finite(x)
+is.infinite(x)
+is.nan(x)
+is.na(x)
+
+NA == NA                          ## nope
+NaN == NA                         ## nope
+NaN == NaN                        ## nope
+Inf == Inf                        ## works!
+-Inf == -Inf                      ## works!
+Inf == -Inf                       ## makes sense!
 
 ```
 

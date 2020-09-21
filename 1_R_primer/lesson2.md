@@ -1,9 +1,12 @@
 # Fundamentals of computational data analysis using R
 ## A primer on programming using R: lesson 2
+#### Contact: mitch.kostich@jax.org
 
 ### Index
 
-- [Names and character indexing](#names-and-character-indexing)
+- [Vector integer indexing](#vector-integer-indexing)
+- [Vector logical indexing](#vector-logical-indexing)
+- [Vector character indexing](#vector-character-indexing)
 - [Matrices](#matrices)
 - [Matrix indexing](#matrix-indexing)
 - [Matrix operations](#matrix-operations)
@@ -13,7 +16,6 @@
 - [Some useful list operations](#some-useful-list-operations)
 - [Data frames](#data-frames)
 - [Data frame indexing](#data-frame-indexing)
-- [Formulas for plotting and fitting](#formulas-for-plotting-and-fitting)
 
 ### Check your understanding
 
@@ -23,7 +25,88 @@
 
 ---
 
-### Names and character indexing
+### Vector integer indexing
+
+Individual values or arbitrary subsets of values can be retrieved from
+  a vector by specifying the position of the desired values using an 
+  'index'. The simplest method uses an integer index to specify the 
+  position(s) of the desired value(s) in the vector being indexed. The 
+  first value in a vector is retrieved with an index of 1 (not 0!!!).
+  The index can be of any length.
+
+```
+(x <- (1 : 10) ^ 2)            ## outer parentheses prints result of assignment
+
+x[1]                           ## value in first position
+x[2]                           ## value in second position
+x[3]                           ## value in third position
+
+x[length(x)]                   ## value in last position
+x[length(x) - 1]               ## value in next to last position
+
+x[1 : 5]                       ## first five values
+x[10 : 6]                      ## similar idea
+x[c(1, 10, 3, 5, 3, 10, 1)]    ## arbitrary order, can duplicate
+
+x[-1]                          ## only works for integer index: everything except this
+x[-(1 : 5)]                    ## everything except these five
+
+x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
+
+```
+
+Indexed vector values are 'lvalues', that is you can assign to them. If 
+  you assign to a position beyond the length of the vector, the vector
+  will be automatically extended to a length sufficient to accommodate 
+  the last position indexed. Retrieving a position beyond the length of
+  the vector will return the missing value indicator `NA`.
+
+```
+x <- 1 : 10
+length(x)
+
+x[12] <- 12
+length(x)                            ## automatically extends
+x                                    ## NA is 'missing value'
+
+x[1000]                              ## NA is 'missing value'/unknown
+x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index works
+
+```
+
+[Return to index](#index)
+
+---
+
+### Vector logical indexing
+
+Another very useful indexing approach is to return values meeting some sort of logical 
+  criterion. In these cases, we can use a test which returns a logical value for every 
+  element in the vector, indicating whether the criterion has been met for that value.
+  So a logical index should usually be the same length as the vector being indexed. A 
+  logical index that is shorter than the vector being indexed will be recycled without 
+  warning.
+
+```
+(x <- (1 : 10) ^ 2)
+x[x > 30]                            ## get values greater than 30
+x[x <= 30]                           ## get values less than or equal to 30
+x[x > 30 & x < 70]                   ## combine conditions; '&' NOT '&&'!!!
+
+x <- c('abcder', 'cdefghi', 'e', 'fgabc', 'ghijkla')
+x[grepl('abc', x)]                   ## get values that contain 'abc'
+x[! grepl('abc', x)]                 ## get values that do not contain 'abc'
+
+x[c(T, F)]                           ## recycle
+x[c(T, F, T)]                        ## no warning!!!
+
+```
+
+[Return to index](#index)
+
+---
+
+### Vector character indexing
 
 The concatenation command `c()` optionally takes two pre-defined parameters: `recursive` and `use.names`.
   In addition, the command can take user-defined names for each value, where the user-defined names are
@@ -33,10 +116,8 @@ The concatenation command `c()` optionally takes two pre-defined parameters: `re
   from the vector.
 
 ```
-x <- c(length=3.7, height=23.2, width=16.3)             ## note: names are not quoted here!
-x
+(x <- c(length=3.7, height=23.2, width=16.3))           ## note: names are not quoted here!
 names(x)                                                ## get a character vector of names
-
 x["length"]                                             ## get the element from the position labeled 'length'
 x['height']                                             ## note: here the names must be quoted
 x['width'] 
@@ -95,13 +176,12 @@ nrow(x)
 ncol(x)
 attributes(x)                    ## 'dim' is all it takes
 
-x <- matrix(1:12, ncol=4)        ## number of rows inferred
-x
+(x <- matrix(1:12, ncol=4))      ## number of rows inferred
 dim(x)
 attributes(x)
 
-x <- matrix(1, nrow=3, ncol=4)   ## make a matrix with 3 rows and 4 columns, filled with 1s
-x <- matrix(0, nrow=4, ncol=3)   ## make a matrix with 4 rows and 3 columns, filled with 0s
+matrix(1, nrow=3, ncol=4)        ## make a matrix with 3 rows and 4 columns, filled with 1s
+matrix(0, nrow=4, ncol=3)        ## make a matrix with 4 rows and 3 columns, filled with 0s
 
 x <- matrix(1:12, ncol=4)        ## number of rows inferred
 x
@@ -111,7 +191,6 @@ class(x)
 dim(x)                           ## NULL is 'nothing' (different from NA)
 
 x <- 1:12                        ## just a vector
-x
 class(x)
 dim(x)                           ## NULL is 'nothing' (different from NA)
 attr(x, "dim") <- c(3, 4)        ## what if we add the 'dim' attribute manually to a vector?
@@ -320,7 +399,7 @@ Below we simulate a dataset with two groups ('control' and 'treated'), each with
   draws from a normal (a.k.a guassian) distribution with a mean of 10 and a 
   standard deviation of 3. For the 'treated' group, we simulate values by drawing
   from a normal distribution with a mean of 15 and a standard deviation of 5.
-  Normal distributions can be fully specified using just the two parameters, 
+  Normal distributions can be fully specified using just two parameters, 
   `mean` and `sd`. The `rnorm()` function is used to generate random values from
   a normal distribution. Executing `?nrorm` will display a help page with other related
   functions for the normal distribution.
@@ -360,6 +439,7 @@ unclass(x)                        ## drops $class attribute; result is an intege
 
 (y <- c(y1, y2))
 tapply(y, x, mean)
+tapply(y, x, sd)
 tapply(y, x, summary)  ## what are those '$' thingies?
 tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
 
@@ -567,7 +647,6 @@ dat <- data.frame(
   operator=factor(rep(c('weichun', 'mitch'), 10))
 )
 rownames(dat) <- letters[1 : nrow(dat)]
-
 dat
 
 dat[2, 3]                         ## like a matrix (integers)
@@ -599,52 +678,6 @@ dat$weight                        ## like a list
 4) Using sapply, determine the type of each column.
 
 5) Using apply, determine the type of each column.
-
-[Return to index](#index)
-
----
-
-### Formulas for plotting and fitting
-
-Here we give an example of a common notation used to express functional
-  relationships between variables. This notation is widely used when 
-  specifying statistical models in R. A basic example would be 
-  `weight ~ operator`, which means that `weight` is conidered to be 
-  a function of `operator`. For plotting purposes, this means that 
-  `weight` ends up plotted on the 'y' (vertical) axis and `operator` 
-  ends up plotted on the 'x' (horizontal) axis. This notation is often
-  used along with a `data` parameter that specifies a data.frame in 
-  which the variables can be found. Simply plotting a data.frame 
-  (without a formula) results in a grid of plots in which each 
-  variable is plotted against every other variable. This can be 
-  useful for exploring a new dataset for potential relationships 
-  between variables:
-
-```
-dat <- data.frame(
-  treatment=factor(c(rep('ctl', 10), rep('trt', 10))),
-  weight=c(rnorm(10, mean=10, sd=3), rnorm(10, mean=20, sd=5)),
-  operator=factor(rep(c('weichun', 'mitch'), 10))
-)
-rownames(dat) <- letters[1 : nrow(dat)]
-dat
-
-plot(dat)                            ## what do you see?
-plot(rock)                           ## 'rock' is a data set included with R
-
-par(mfrow=c(1, 2))                   ## make a plot layout with 1 row and 2 columns
-plot(weight ~ operator, data=dat)    ## plot this in first slot (row 1, column 1)
-plot(weight ~ treatment, data=dat)   ## plot this in second slot (row 1, column 2)
-
-```
-
-The same type of notation is commonly used to fit a statistical model to a data.frame:
-
-```
-fit1 <- lm(weight ~ treatment, data=dat)
-summary(fit1)
-
-```
 
 [Return to index](#index)
 

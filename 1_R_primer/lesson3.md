@@ -1,5 +1,6 @@
 # Fundamentals of computational data analysis using R
 ## A primer on programming using R: lesson 3
+#### Contact: mitch.kostich@jax.org
 
 ### Index
 

@@ -2,6 +2,8 @@
 ## A primer on programming using R: lesson 3
 #### Contact: mitch.kostich@jax.org
 
+---
+
 ### Index
 
 - [Simple plotting](#simple-plotting)

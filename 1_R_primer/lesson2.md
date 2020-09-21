@@ -2,6 +2,8 @@
 ## A primer on programming using R: lesson 2
 #### Contact: mitch.kostich@jax.org
 
+---
+
 ### Index
 
 - [Vector integer indexing](#vector-integer-indexing)
@@ -55,11 +57,12 @@ x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
 
 ```
 
-Indexed vector values are 'lvalues', that is you can assign to them. If 
-  you assign to a position beyond the length of the vector, the vector
-  will be automatically extended to a length sufficient to accommodate 
-  the last position indexed. Retrieving a position beyond the length of
-  the vector will return the missing value indicator `NA`.
+Indexed vector values are 'lvalues' ('left-values'), that is something that can be on 
+  the left-side of an assignment expression. Simply put, an 'lvalue' is something that a 
+  new value can be assigned to. If you assign a value to a position beyond the last position
+  of the current vector, that vector will be automatically extended to a length sufficient 
+  to accommodate the last position indexed. Retrieving a position beyond the current last 
+  position of the vector will return the missing value indicator `NA`.
 
 ```
 x <- 1 : 10
@@ -80,7 +83,7 @@ x[length(x) + 1] <- length(x) + 1    ## any expression that yields needed index 
 
 ### Vector logical indexing
 
-Another very useful indexing approach is to return values meeting some sort of logical 
+Another useful indexing approach is to return values meeting some sort of logical 
   criterion. In these cases, we can use a test which returns a logical value for every 
   element in the vector, indicating whether the criterion has been met for that value.
   So a logical index should usually be the same length as the vector being indexed. A 
@@ -121,10 +124,11 @@ names(x)                                                ## get a character vecto
 x["length"]                                             ## get the element from the position labeled 'length'
 x['height']                                             ## note: here the names must be quoted
 x['width'] 
-x[2]                                                    ## still works
+x[2]                                                    ## integer indexing still works
+x[c(T, F, T)]                                           ## logical indexing still works
 
 x <- seq(from=2, to=10, by=2)
-names(x) <- c("duo", "quad", "hex", "oct", "dec")       ## can add/change names like this
+names(x) <- c("duo", "quad", "hex", "oct", "dec")       ## can change names like this
 x
 x['hex']
 x[c('quad', 'single', 'oct')]                           ## can use a vector of names to index
@@ -162,10 +166,12 @@ In addition to handling linear one-dimensional arrays of data (vectors), R has g
   Interestingly (at least to geeks like me), matrices in R are implemented by simply adding a 'dim' 
   attribute to a vector. That is, the internal representation continues to be linear, and the 
   'dim' attribute, which holds the number of rows and columns intended for the matrix are used to 
-  treat the underlying vector as if it were truly two-dimensional. For matrices, remember, the order 
-  is always `row, column`. The `dim()` command returns the size of the matrix or array. For matrices, 
-  this is always the number of rows followed by the number of columns. For indexing matrices, the row 
-  index always comes first and the column index comes second (see next section).
+  treat the underlying vector as if it were actually two-dimensional. 
+
+For matrices, remember, the order is always `row, column`. The `dim()` command returns the size of 
+  the matrix or array. For matrices, this is always the number of rows followed by the number of 
+  columns. For indexing matrices, the row index always comes first and the column index comes 
+  second (see next section).
 
 ```
 x <- matrix(1:12, nrow=3)        ## matrices typically numeric; but do not have to be
@@ -404,7 +410,7 @@ Below we simulate a dataset with two groups ('control' and 'treated'), each with
   a normal distribution. Executing `?nrorm` will display a help page with other related
   functions for the normal distribution.
 
-We use the `seed()` function to seed any pseudo-random process in R, if we want to make that
+We use the `set.seed()` function to seed any pseudo-random process in R, if we want to make that
   process reproducible. The underlying generators are not truly random in R, but utilize
   algorithms that operate on one number (the seed) that is used to generate another number
   (the random number for this round) which is used as the seed for the next call of the 
@@ -417,7 +423,18 @@ We use the `seed()` function to seed any pseudo-random process in R, if we want 
 
 ```
 sessionInfo()                     ## get version information for current R setup
-seed(5)                           ## 'seed' pseudo-random number generator to make reproducible
+
+## perform your 'experiment':
+set.seed(5)                       ## 'seed' pseudo-random number generator to make reproducible
+rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
+rnorm(1, mean=10, sd=3)           ## and another
+rnorm(1, mean=100, sd=30)         ## and another
+
+## repeat your 'experiment':
+set.seed(5)                       ## reset seed to original value
+rnorm(1, mean=1, sd=1)            ## get random value from normal distribution (same as last time)
+rnorm(1, mean=10, sd=3)           ## and another (same as last time)
+rnorm(1, mean=100, sd=30)         ## and another (same as last time)
 
 (x1 <- c(rep('control', 30)))     ## make up one group of 30
 (y1 <- rnorm(30, mean=10, sd=3))  ## simulate values for each member of the first group
@@ -427,8 +444,8 @@ seed(5)                           ## 'seed' pseudo-random number generator to ma
 (x <- c(x1, x2))                  ## group 1, followed by group 2
 (x <- factor(x))                  ## default level mapping: alphabetical order
 class(x)
-attributes(x)                     ## levels and class
 levels(x)                         ## first maps to 1, second to 2, etc.
+attributes(x)                     ## levels and class
 unclass(x)                        ## drops $class attribute; result is an integer vector!
 
 x <- c(x1, x2)
@@ -456,6 +473,10 @@ Lists are the most flexible basic structure provided by R. Lists are similar to
   vectors, each with a potentially different length and type from other list member
   vectors.
 
+To get a quick idea of what is within a potentially more complicated data type (like list),
+  it is often convenient to use the `str()` command, which works on all the data types 
+  we will discuss in this course.
+
 ```
 x <- list(
   fname='mitch', 
@@ -472,11 +493,11 @@ x
 class(x)
 attributes(x)              ## just names; 'list' because recursive vector, or vector of vector
 
-str(x)                     ## can use for every structure we have/will discussed
-str(1)
-str('a')
-str(1 : 10)
-str(1 : 10000)
+str(x)                     ## works on lists
+str(1)                     ## works on numeric 'scalar'
+str('a')                   ## works on character
+str(1 : 10)                ## works on longer vectors
+str(1 : 10000)             ## as vector gets even longer, shows synopsis
 
 ```
 
@@ -607,7 +628,7 @@ dat <- data.frame(
 
 dat                               ## rows are observations, columns are variables
 class(dat)                        ## names, row.names, class (implies equal lengths)
-attributes(dat)
+attributes(dat)                   ## dimensions from lengths of 'names' and 'row.names'
 unclass(dat)                      ## drop $class attribute
 class(unclass(dat))               ## show your true self, list!
 
@@ -638,7 +659,7 @@ Data frames can be indexed using either the methods used for lists or the method
   used for matrices. Character indexing of rows depends on assignment of 
   `row.names` attribute (e.g. using the `rownames()` function). Rownames are 
   not required to be unique, but the operation of your code will be clearer if 
-  you are always sure to make `names` and `row.names` attributes unique.
+  you are always sure to make `names` and `row.names` elements are unique.
 
 ```
 dat <- data.frame(

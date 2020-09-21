@@ -2,6 +2,8 @@
 ## A primer on programming using R: lesson 1
 #### Contact: mitch.kostich@jax.org
 
+---
+
 ### Index
 
 - [Expressions](#expressions)

@@ -550,11 +550,22 @@ x$cumsum[3:5, 3]
 Navigate directories:
 
 ```
-getwd()                   ## where am I at?
-setwd("C:\Users\kostim\tmp\rclass")           ## Oops! '\' is escape character: changes meaning of next char
-setwd("C:/Users/kostim/tmp/rclass")           ## '/' path delimiter works on windows + linux
-setwd("C:\\Users\\kostim\\tmp\\rclass")       ## this works on Windows too (escape '\' itself).
-getwd()
+getwd()                                    ## where am I at?
+list.files()                               ## what is in this folder (default path is '.')
+list.files(path="..")                      ## what is in the parent folder of this folder
+list.files(path="..", pattern=".dat$")     ## list files ending in ".txt" in parent folder
+
+for(file.i in list.files()) 
+  cat("next:", file.i, "\n")
+
+cat("\t", "here\n")                        ## '\' escape, changes meaning of next char; '\t' tab
+cat("\\t", "here\n")                       ## use '\\' if you want a backslash to be a backslash
+
+getwd()                                    ## where I start
+setwd("C:\Users\kostim\tmp\rclass")        ## Oops! '\' escape: '\t' tab '\r' carriage return
+setwd("C:/Users/kostim/tmp/rclass")        ## '/' path delimiter works on windows + linux
+setwd("C:\\Users\\kostim\\tmp\\rclass")    ## this works on Windows too (escape '\' itself).
+getwd()                                    ## where I end up
 
 ```
 

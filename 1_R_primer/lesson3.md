@@ -63,24 +63,20 @@ is.character(x)
 In addition to these conventional types, we have the missing value
   related types `NA` and `NULL`. The `NA` value is used as a placeholder
   for missing values. It can be included as an element in any kind of
-  vector. The `NULL` value is used as a placeholder for a missing object.
-  It is normally not used as an element of vector, but instead to indicate
-  that an entire vector or other object is missing. Detecting NAs depends
-  on the `is.na()` function, which returns a value for every element in 
-  a vector. `NULL`s are detected using the `is.null()` function, which 
+  vector. By contrast, the `NULL` value is used as a placeholder for a 
+  missing object (rather than value). It is normally not used as an 
+  element of vector, but instead to indicate that an entire vector or 
+  other object is missing. So it can be assigned as an element of a list.
+
+One can detect `NA`s using the `is.na()` function, which returns a value 
+  for every element in a vector (since any individual element can be set to `NA`). 
+  Similarly, `NULL` values are detected using the `is.null()` function, which 
   returns a single value for any object you feed to it.
 
 ```
 (x <- NA)                           ## vector of length 1
-class(x)                            ## NA defaults to logical (most convertible class)
+class(x)                            ## NA defaults to logical (most 'convertible' class)
 length(x)                           ## length 1 (compare to NULL)
-attributes(x)
-is.na(x)                            ## a logical vector of the same length as x
-is.null(x)                          ## a logical vector always of length 1
-
-(x <- c(1, NA, 3, NA, 5))           ## NA is placeholder in vector for missing values
-class(x)                            ## NA 'promoted' to numeric (see type conversion section)
-length(x)                           ## each NA counts for 1
 attributes(x)
 is.na(x)                            ## a logical vector of the same length as x
 is.null(x)                          ## a logical vector always of length 1
@@ -90,6 +86,13 @@ class(x)
 attributes(x)
 length(x)                           ## compare to length(NA)
 is.na(x)                            ## a logical vector of the same length as x; length(x) == 0
+is.null(x)                          ## a logical vector always of length 1
+
+(x <- c(1, NA, 3, NA, 5))           ## NA is placeholder in vector for missing values
+class(x)                            ## NA 'promoted' to numeric (see type conversion section)
+length(x)                           ## each NA counts for 1
+attributes(x)
+is.na(x)                            ## a logical vector of the same length as x
 is.null(x)                          ## a logical vector always of length 1
 
 (x <- c(1, NULL, 3, NULL, 5))       ## NULL not a missing value indicator; is a 'nothingness' indicator
@@ -128,10 +131,11 @@ class(z)
 
 ```
 
-So adding a numeric and integer results in a numeric answer that looks correct. What 
+So adding a numeric and integer results in the correct numeric value. What 
   about other combinations of data types? A simple way to explore this is with the
   `c()` concatenation function, which will take many different data types as arguments
-  but always returns a vector with a uniform type:
+  but always returns a vector with a uniform type, converting other input types into
+  the whatever the final type happens to be:
 
 ```
 (x <- c(F, 1L))
@@ -147,10 +151,12 @@ class(x)
 
 So the direction of auto-conversion is `logical -> integer -> numeric -> character`. 
   If any type is combined with any second type that lies to the right of the first type 
-  in the series, the first type is converted to the second type. The conversions are 
-  pretty sensible for the most part, as was demo'd in the previous code block. But what 
-  about converting types in the opposite direction? Turns out that is possible too, 
-  using the `as.<type>()` series of functions:
+  in the series, the type on the left in the series is converted to the type that lies 
+  further to the right. The conversions are pretty sensible for the most part, as was 
+  demo'd in the previous code block. 
+
+But what about converting types in the opposite direction? Turns out that is possible 
+  too, using the `as.<type>()` series of functions:
 
 ```
 str(x <- list(logical=T, integer=1L, numeric=1, character="1"))
@@ -200,10 +206,10 @@ as.logical("False")
 as.logical(as.character(TRUE))      ## works (as expected)!
 as.logical(as.character(FALSE))     ## works (as expected)!
 
-as.logical(as.numeric("0"))         ## simple work-around
-as.logical(as.numeric("-0.0"))      ## simple work-around
-as.logical(as.numeric("1"))         ## simple work-around
-as.logical(as.numeric("-3.2e-16"))  ## simple work-around
+as.logical(as.numeric("0"))         ## simple work-around for character 'numbers'
+as.logical(as.numeric("-0.0"))      ## simple work-around for character 'numbers'
+as.logical(as.numeric("1"))         ## simple work-around for character 'numbers'
+as.logical(as.numeric("-3.2e-16"))  ## simple work-around for character 'numbers'
 
 ```
 
@@ -222,17 +228,18 @@ R comes in 32-bit and 64-bit versions. However, both versions on my system use 4
   main difference between these R versions is the size of 'pointers', which is 4-bytes
   on my 32-bit version and 8-bytes on my 64-bit versions. This implies that the 64-bit
   version can accommodate much larger data structures (practically unlimited), while 
-  the 32-bit version is limited to vectors of only a few billion (!) elements. In order
+  the 32-bit version is limited to vectors of only a few billion(!) elements. In order
   to see the particulars of number representation, type `.Machine` at the `>` prompt
   and press `<ENTER>`. One thing to note is that the value of .Machine$integer.max is
-  only around 2 billion. However, using numerics (represented by double-precision 
+  'only' around 2 billion. However, using numerics (represented by double-precision 
   floating point numbers with .Machine$double.digits (53) 'fraction' bits and 
-  .Machine$double.exponent (11) 'exponent' bits, integers can be exactly represented
-  (not rounded) up to 9,007,199,254,740,992. Beyond this number, at best, only every 
-  other integer can be expressed. The point is that you can freely use the
-  numeric type to represent integers as long as you initialize with a whole number
-  only add, subtract or multiply by other whole numbers, and avoid division. For
-  instance, numerics are perfectly suitable for counting and indexing.
+  .Machine$double.exponent (11) 'exponent' bits, successive integers can be exactly 
+  represented (not rounded) up to 9,007,199,254,740,992 (`2 ^ 53`). Beyond this number, 
+  at best, only every other integer can be expressed. The point is that you can freely 
+  use the numeric type to represent very large integers as long as you initialize with 
+  a whole number only add, subtract or multiply by other whole numbers, and avoid 
+  division or other operations that might result in fractional results. So numerics 
+  are perfectly suitable for counting and indexing.
 
 ```
 .Machine
@@ -268,15 +275,15 @@ isTRUE(all.equal(y, i))           ## the 'safe' way to test for equality
 
 ```
 
-Standard floating point representations include several special values including 
-  'not a number' (`NaN` in R) and 'infinity' (`Inf` in R). The `NaN` value in R turns out to 
-  be a 'subtype' of the NA type: all `NaN` are `NA`, but not all `NA are `NaN`. R provides 
-  special functions for detection of `NaN` and `Inf` values. This is particularly important
-  for `NA` and `NaN` values, as any comparisons of these values, even with themselves, only
-  yields `NA`: 
+Standard floating point representations in any programming language include several special 
+  values including 'not a number' (represented by `NaN` in R) and 'infinity' (`Inf` in R). 
+  The `NaN` value in R turns out to be a 'subtype' of the NA type: all `NaN` are `NA`, but 
+  not all `NA are `NaN`. R provides  special functions for detection of `NaN` and `Inf` 
+  values. This is particularly important for `NA` and `NaN` values, as any comparisons of 
+  these values, even with themselves, only yields `NA`: 
 
 ```
-(x <- c(-1 / 0, 0 / 0, 1 / 0))
+(x <- c(-1 / 0, 0 / 0, 1 / 0))    ## note 0/0 is NA, not Inf
 is.finite(x)
 is.infinite(x)
 is.nan(x)
@@ -303,14 +310,140 @@ Inf == -Inf                       ## makes sense!
 
 ### Conditional execution
 
-if(cond) expr
-if(cond) cons.expr  else  alt.expr
+R includes facilities for conditional code execution similar to those found
+  in many other languages. In particular, it offers `if`, `for` and `while` 
+  statements. In addition, it includes the keyword `repeat` to repeat execution
+  of a loop, `break` to exit the loop prematurely, and `next` to skip the 
+  execution of the current loop iteration and begin the next iteration.
 
-for(var in seq) expr
-while(cond) expr
-repeat expr
-break
-next
+One thing to keep in mind is that many R functions/operators already work with 
+  vectors (like the `+` operator or the `sum()` function), or can be adapted to 
+  operate on vectors or lists using the `sapply()` and `lapply()`  commands. In turn, 
+  vectorized operations can be extended to matrices, arrays and data.frames using
+  the `apply()` function. As a result, there is less need to explicitly code
+  loops that iterate over data than in some other lower-level languages. In addition
+  to speeding development by simplifying code, using these vector/array-aware 
+  facilities can often result in reductions in run time of more than an order of
+  magnitude. So, whenever you set out to write a `for` loop or `while` loop in R,
+  first make sure that a vectorized operation, `sapply()`, `lapply()`, `tapply()`, 
+  or `apply()` is not an adequate solution for your problem.
+
+You can execute an entire block of code conditionally by placing that block within
+  curly brackets `{}`. 
+
+Here are some examples of how to use the `if` statement and blocks of code:
+
+```
+## '\n' is carriage return, or end-of-line marker:
+
+if(T) cat("is true\n")            ## a whole expression; end-of-line executes
+if(F) cat("is true\n")            ## nothing printed since false
+
+## the right way to 'if else':
+
+if(F) {                           ## expression won't be done till block closed w/ '}'
+  cat("is true\n")                ## first line in 'if' block of code
+  cat("really is true\n")         ## second/last line in 'if' block
+} else {                          ## block closing '}' ON SAME LINE as 'else {' open block
+  cat("is false\n")               ## first line of 'else' block
+  cat("really is false\n")        ## second/last line of 'else' block
+}                                 ## 'else' block complete, end-of-line executes
+
+## the wrong way to 'if else':
+
+if(F) { cat("is true\n") }        ## a whole expression; executed w/ end-of-line
+else { cat("is false\n") }        ## oops! expression starting w/ 'else' not valid
+
+## braces are optional:
+
+if(T) cat("true\n") else cat("false\n")  ## one-liner
+if(F) cat("true\n") else cat("false\n")  ## one-liner
+
+## a more realistic example:
+
+(x <- c(1, 2, 3, 1, 2, 1, 2, 3, 1))
+(x <- matrix(x, ncol=3))
+(y <- x %*% solve(x))             ## note rounding issue (should be identity)
+(i <- diag(3))                    ## identity matrix; equiv: cbind(c(1,0,0), c(0,1,0), c(0,0,1))
+
+## not right:
+
+if(y == i) cat("==\n") else cat("!=\n")
+
+## better, but often not what you want:
+
+if(identical(y, i)) {
+  cat("identical\n") 
+} else cat("not identical\n")
+
+## even better:
+
+if(all.equal(y, i)) {
+  cat("close enough\n")
+} else cat("not close enough")
+
+## the right way: more robust to potential error conditions
+
+if(isTRUE(all.equal(y, i))) {
+  cat("close enough\n") 
+} else cat("not close enough\n")
+
+```
+
+In R, `while` loops have a fairly simple structure:
+
+```
+x <- 1
+while(x < 10) x <- x + 1
+x
+
+x <- 1
+while(x < 10) {
+  cat("x:", x, "\n")             ## can mix literals and variables
+  x <- x + 1
+}
+x
+
+x <- 1
+while(T) {                       ## infinite loop (TRUE is always TRUE)
+  cat("x:", x, "\n")
+  x <- x + 1
+  if(x >= 10) break              ## conditionally 'break' out of loop
+}
+x
+
+```
+
+In R, 'for' loops cann be used to iterate over sequences of values:
+
+```
+x <- 1:10
+for(x.i in x) cat("x.i:", x.i, "\n")
+x
+
+x <- 1:10
+for(x.i in x) {
+  cat("Initially, x.i:", x.i, "\n")
+  x.i <- x.i + 1
+  cat("Later, x.i:", x.i, "\n")
+}
+x                                 ## 'x' unchanged
+
+x <- 1:100
+for(x.i in x) {
+  tmp <- x.i %% 5                 ## remainder from dividing x.i by 5
+  if(!tmp) cat(x.i, "\n")         ## print out if no remainder; as.logical(0) == F
+}
+
+## example use of 'next':
+
+x <- 1:100
+for(x.i in x) {
+  if(x.i %% 5) next               ## if remainder, then go to next iteration
+  cat(x.i, "\n")                  ## print out if no remainder
+}
+
+```
 
 [Return to index](#index)
 

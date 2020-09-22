@@ -324,11 +324,16 @@ Inf == -Inf                       ## makes sense!
 
 ### Check your understanding 1
 
+Set up your data as follows:
+
+```
 set.seed(3)
 x <- rbinom(30, 1, 0.5)           ## 30 coin flips (heads=1, tails=0)
 y <- rbinom(30, 1, 0.5)           ## 30 1s and 0s
 z <- x / y                        ## 1/0 is Inf; 0/0 is NaN
 x.char <- as.character(x)
+
+```
 
 1) How many infinite values are in z? Hint: make a logical index.
 
@@ -399,6 +404,17 @@ else { cat("is false\n") }        ## oops! expression starting w/ 'else' not val
 if(T) cat("true\n") else cat("false\n")  ## one-liner
 if(F) cat("true\n") else cat("false\n")  ## one-liner
 
+## you can chain multiple conditions like so:
+
+x <- 0
+if(x < 0) {
+  cat(x, "is less than zero\n")
+} else if(x > 0) {                ## can repeat for as many conditions as needed
+  cat(x, "is greater than zero\n")
+} else {
+  cat(x, "is zero\n")
+}
+
 ## a more realistic example:
 
 (x <- c(1, 2, 3, 1, 2, 1, 2, 3, 1))
@@ -430,7 +446,7 @@ if(isTRUE(all.equal(y, i))) {
 
 ```
 
-In R, `while` loops have a fairly simple structure:
+In R, `while()` loops have a fairly simple structure:
 
 ```
 rm(list=ls())                    ## fresh slate
@@ -456,7 +472,7 @@ x
 
 ```
 
-In R, 'for' loops can be used to iterate over sequences of values:
+In R, `for()` loops can be used to iterate over sequences of values:
 
 ```
 rm(list=ls())                     ## fresh slate
@@ -499,8 +515,15 @@ for(x.i in x) {
 
 ### Check your understanding 2
 
-1) Build a matrix with the first column the integers from 1 to 10,
-     the second column the first 10 even integers, and ...
+1) Use a `for()` loop to sum all the odd numbers from `1` to `99`.
+
+2) Do the same thing with a `while()` loop. 
+
+3) Check your work using the `sum()` function.
+
+4) Use a while loop to total up the whole numbers from `1` to `100`, printing 
+     out (you can use `cat()`) the total after each successive addition, stopping
+     (exiting the while loop) when the total reaches `1000`.
 
 [Return to index](#index)
 
@@ -605,8 +628,19 @@ x$cumsum[3:5, 3]
 
 ### Check your understanding 3
 
-1) Build a matrix with the first column the integers from 1 to 10,
-     the second column the first 10 even integers, and ...
+1) Write a function that takes two arguments, and yields a single vector where the values 
+     from the first argument are followed by a reversed copy of the second argument. That 
+     is, the output vector should have a length equal to the the sum of the lengths of 
+     its arguments. 
+
+2) Write a function that takes a single vector argument. If that argument is `logical`,
+     the number of `TRUE` values is returned. If that argument is `numeric`, a vector
+     with the square-root of each element is returned. If that argument is `character`,
+     then the length of the argument is returned.
+
+3) Write a function that takes a numeric vector as argument, and yields a vector
+     of the same length where the input vector has been transformed by multiplying 
+     the first element by `1`, the second element by `2`, the third element by `3`, etc.
 
 [Return to index](#index)
 

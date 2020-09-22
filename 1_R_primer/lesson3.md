@@ -74,6 +74,8 @@ One can detect `NA`s using the `is.na()` function, which returns a value
   returns a single value for any object you feed to it.
 
 ```
+rm(list=ls())                       ## fresh slate
+
 (x <- NA)                           ## vector of length 1
 class(x)                            ## NA defaults to logical (most 'convertible' class)
 length(x)                           ## length 1 (compare to NULL)
@@ -122,6 +124,8 @@ You may have noticed that you can combine integer and numeric types successfully
   what is the resulting type? Let's take a look:
 
 ```
+rm(list=ls())                ## fresh slate
+
 x <- 3L                      ## integer
 y <- 4                       ## numeric
 class(x)
@@ -138,6 +142,8 @@ So adding a numeric and integer results in the correct numeric value. What
   the whatever the final type happens to be:
 
 ```
+rm(list=ls())                       ## fresh slate
+
 (x <- c(F, 1L))
 class(x)
 
@@ -159,6 +165,8 @@ But what about converting types in the opposite direction? Turns out that is pos
   too, using the `as.<type>()` series of functions:
 
 ```
+rm(list=ls())                     ## fresh slate
+
 str(x <- list(logical=T, integer=1L, numeric=1, character="1"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE 
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
@@ -242,6 +250,8 @@ R comes in 32-bit and 64-bit versions. However, both versions on my system use 4
   are perfectly suitable for counting and indexing.
 
 ```
+rm(list=ls())                     ## fresh slate
+
 .Machine
 .Machine$integer.max              ## largest representable integer
 
@@ -260,6 +270,8 @@ Another issue to consider is that numeric calculations often result in some roun
   (what you've seen thus far) from tests of approximate equality. 
 
 ```
+rm(list=ls())                     ## fresh slate
+
 (x <- c(1, 2, 3, 1, 2, 1, 2, 3, 1))
 (x <- matrix(x, ncol=3))
 (y <- x %*% solve(x))             ## note rounding issue (should be identity)
@@ -283,6 +295,8 @@ Standard floating point representations in any programming language include seve
   these values, even with themselves, only yields `NA`: 
 
 ```
+rm(list=ls())                     ## fresh slate
+
 (x <- c(-1 / 0, 0 / 0, 1 / 0))    ## note 0/0 is NA, not Inf
 is.finite(x)
 is.infinite(x)
@@ -334,6 +348,8 @@ You can execute an entire block of code conditionally by placing that block with
 Here are some examples of how to use the `if` statement and blocks of code:
 
 ```
+rm(list=ls())                     ## fresh slate
+
 ## '\n' is carriage return, or end-of-line marker:
 
 if(T) cat("is true\n")            ## a whole expression; end-of-line executes
@@ -393,6 +409,8 @@ if(isTRUE(all.equal(y, i))) {
 In R, `while` loops have a fairly simple structure:
 
 ```
+rm(list=ls())                    ## fresh slate
+
 x <- 1
 while(x < 10) x <- x + 1
 x
@@ -417,6 +435,8 @@ x
 In R, 'for' loops can be used to iterate over sequences of values:
 
 ```
+rm(list=ls())                     ## fresh slate
+
 (x <- 1:10)                       ## iterate over vector
 for(x.i in x) cat("x.i:", x.i, "\n")
 
@@ -467,6 +487,8 @@ In R, the `function()` function is used to define new functions. The output of
   In the latter case, the use of `{}` is optional. :
 
 ```
+rm(list=ls())                         ## fresh slate
+
 x <- 1:10
 myfunc <- function(a) sum(a)          ## dumb pass-thru function
 myfunc                                ## just the name: see what's under the hood
@@ -505,8 +527,9 @@ A number of fancy features await you, including the ability to accept multiple a
   assign default values to arguments, and return complex objects:
 
 ```
-## x required; y and z are optional since defaults set:
+rm(list=ls())                        ## fresh slate
 
+## x required; y and z are optional since defaults set:
 myfunc <- function(x, y=20:11, z=21:30) {  
 
   ## validate input type:
@@ -547,9 +570,20 @@ x$cumsum[3:5, 3]
 
 ### Data import and export
 
-Navigate directories:
+Some commonly used functions for navigating file systems using R are demonstrated below. 
+  There are also functions such as `dir.create()` for creating directories, `dir.exists()`
+  for seeing if a directory exists, `file.exists()` for testing if a file exists, and
+  `unlink()` for removing files as well as directories. In R, the backslash serves as an
+  escape in character literals, which means that it changes the meaning of the character 
+  following the escape, usually resulting in the substitution of a non-printing character.
+  This complicates the use of backslashes `\` in file paths. They must be either doubled
+  up (escaping the escape character, substituting a plain old backslash) or replaced with
+  a forward slash. Forward slashes can be used as path delimiters in R on both Linux and
+  Windows machines.
 
 ```
+rm(list=ls())                              ## fresh slate
+
 getwd()                                    ## where am I at?
 list.files()                               ## what is in this folder (default path is '.')
 list.files(path="..")                      ## what is in the parent folder of this folder
@@ -569,31 +603,54 @@ getwd()                                    ## where I end up
 
 ```
 
-Read/write data frame:
+There are several ways to write data to the filesystem or read data from the filesystem into R.
+  The most commonly used method is reading and writing tabular data in a data.frame. The basic
+  functionality is demonstrated below. There are particular variants of `read.table()` and
+  `write.table()` that work the same but have different defaults that may be more convenient 
+  for particular situations, like `read.csv()` and `write.csv()` for comma-separated data, 
+  or `read.delim()` and `write.delim()` for tab-delimited data. 
 
 ```
+rm(list=ls())                       ## fresh slate
+
+## make up a data.frame with fake data:
 x1 <- data.frame(
   diet=c(rep('ad lib', 10), rep('low fat', 10), rep('high protein', 10)),
   strain=rep(c('BL/6', 'AJ'), 15),
   mass=c(rnorm(10, mean=25, sd=7), rnorm(10, 15, 5), rnorm(10, 20, 6))
 )
-
+rownames(x1) <- as.character(1:nrow(x1))
 x1
-write.table(x1, file="mouse_diets.tsv", quote=T, sep="\t", row.names=F)
+
+## write the data to file mouse_diets.tsv:
+setwd("C:/Users/kostim/tmp/rclass")
+write.table(x1, file="mouse_diets.tsv", quote=T, sep="\t")
+
+## read the data from mouse_diets.tsv into variable x2:
+setwd("C:/Users/kostim/tmp/rclass")
 x2 <- read.table(file="mouse_diets.tsv", header=T, sep="\t", as.is=T)
 all.equal(x1, x2)
 
-## also: colClasses, fill, row.names, col.names
-## read.csv(sep=',')
-## read.delim(sep='\t')
+```
+
+As we mentioned when we were describing matrices and data.frames, 
+  data.frames offer the flexibility of including columns of different
+  data types, while matrices offer efficiency gains that can be
+  realized only when all the column types are the same. This applies to
+  reading and writing data as well. If you have tabular data in a 
+  uniform format, you are usually better off storing that data in a
+  matrix instead of a data frame. Similarly, you are better off reading
+  and writing matrices to the filesystem using `write()` to write the
+  matrix data to the filesystem and `scan()` for reading data from
+  the filesystem into a matrix variable. These two functions are also
+  used for reading or writing vector data to disk.
 
 ```
-Read/write vector/matrix:
+rm(list=ls())                     ## fresh slate
 
-```
 x1 <- matrix(1:15, ncol=3)
-
-write(x1, file="matrix1.txt", ncolumns=3, sep=",")
+setwd("C:/Users/kostim/tmp/rclass")
+write(x1, file="matrix1.txt", ncolumns=ncol(x1), sep=",")
 x2 <- scan("matrix1.txt", what=integer(), sep=",")
 all.equal(x1, x2)
 
@@ -602,8 +659,15 @@ x2
 x2b <- matrix(x2, ncol=3)
 all.equal(x1, x2b)
 
-## scan(file, what, sep, quote, fill, blank.lines.skip, 
-## readLines(), readBin(), readChar()
+rm(list=ls())                     ## fresh slate
+
+x1 <- seq(from=0, to=20, by=2) ^ 2
+setwd("C:/Users/kostim/tmp/rclass")
+write(x1, file="vector1.txt", ncolumns=1, sep=",")
+x1
+x2
+x2 <- scan("vector1.txt", what=numeric(), sep=",")
+all.equal(x1, x2)
 
 ```
 

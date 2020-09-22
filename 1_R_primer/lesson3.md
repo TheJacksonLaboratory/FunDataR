@@ -324,8 +324,23 @@ Inf == -Inf                       ## makes sense!
 
 ### Check your understanding 1
 
-1) Build a matrix with the first column the integers from 1 to 10,
-     the second column the first 10 even integers, and ...
+set.seed(3)
+x <- rbinom(30, 1, 0.5)           ## 30 coin flips (heads=1, tails=0)
+y <- rbinom(30, 1, 0.5)           ## 30 1s and 0s
+z <- x / y                        ## 1/0 is Inf; 0/0 is NaN
+x.char <- as.character(x)
+
+1) How many infinite values are in z? Hint: make a logical index.
+
+2) How many `NaN` values are in z? Hint: make a logical index
+
+3) Return all the finite numeric values (not infinity and not `NaN`)
+
+4) Convert x into a logical vector, where `1` is replaced with `TRUE`
+     and `0` with `FALSE`.
+
+5) Convert x.char into a logical vector where `'1'` is replaced with
+     `TRUE` and `'0'` with `FALSE`. 
 
 [Return to index](#index)
 

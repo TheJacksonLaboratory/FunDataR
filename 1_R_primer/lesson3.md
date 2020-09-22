@@ -192,7 +192,7 @@ So a character representation of a number can be converted into an integer or
   a character representation of a number cannot be directly converted into
   a logical! Instead, you can always indirectly convert a character representation 
   of a numeric value into a logical by passing to `as.numeric()` first. 
-  In addition, : there are several character values that can be directly
+  In addition, there are several character values that can be directly
   converted to logical values. The example code below enumerates them: 
 
 ```
@@ -289,8 +289,8 @@ isTRUE(all.equal(y, i))           ## the 'safe' way to test for equality
 
 Standard floating point representations in any programming language include several special 
   values including 'not a number' (represented by `NaN` in R) and 'infinity' (`Inf` in R). 
-  The `NaN` value in R turns out to be a 'subtype' of the NA type: all `NaN` are `NA`, but 
-  not all `NA are `NaN`. R provides  special functions for detection of `NaN` and `Inf` 
+  The `NaN` value in R turns out to be a 'subtype' of the `NA` type: all `NaN` are `NA`, but 
+  not all `NA` are `NaN`. R provides  special functions for detection of `NaN` and `Inf` 
   values. This is particularly important for `NA` and `NaN` values, as any comparisons of 
   these values, even with themselves, only yields `NA`: 
 
@@ -317,6 +317,15 @@ Inf == Inf                        ## works!
 Inf == -Inf                       ## makes sense!
 
 ```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 1
+
+1) Build a matrix with the first column the integers from 1 to 10,
+     the second column the first 10 even integers, and ...
 
 [Return to index](#index)
 
@@ -441,6 +450,7 @@ rm(list=ls())                     ## fresh slate
 for(x.i in x) cat("x.i:", x.i, "\n")
 
 ## iterate over a list:
+
 x <- list(weight=37, colors=c('red', 'green', 'blue'), is.even=F)
 for(x.i in x) cat("x.i:", x.i, "length(x.i):", length(x.i), "\n")
 
@@ -467,6 +477,15 @@ for(x.i in x) {
 }
 
 ```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 2
+
+1) Build a matrix with the first column the integers from 1 to 10,
+     the second column the first 10 even integers, and ...
 
 [Return to index](#index)
 
@@ -530,6 +549,7 @@ A number of fancy features await you, including the ability to accept multiple a
 rm(list=ls())                        ## fresh slate
 
 ## x required; y and z are optional since defaults set:
+
 myfunc <- function(x, y=20:11, z=21:30) {  
 
   ## validate input type:
@@ -568,6 +588,15 @@ x$cumsum[3:5, 3]
 
 ---
 
+### Check your understanding 3
+
+1) Build a matrix with the first column the integers from 1 to 10,
+     the second column the first 10 even integers, and ...
+
+[Return to index](#index)
+
+---
+
 ### Data import and export
 
 Some commonly used functions for navigating file systems using R are demonstrated below. 
@@ -575,7 +604,7 @@ Some commonly used functions for navigating file systems using R are demonstrate
   for seeing if a directory exists, `file.exists()` for testing if a file exists, and
   `unlink()` for removing files as well as directories. In R, the backslash serves as an
   escape in character literals, which means that it changes the meaning of the character 
-  following the escape, usually resulting in the substitution of a non-printing character.
+  following the escape, usually resulting in the substitution of a 'special' character.
   This complicates the use of backslashes `\` in file paths. They must be either doubled
   up (escaping the escape character, substituting a plain old backslash) or replaced with
   a forward slash. Forward slashes can be used as path delimiters in R on both Linux and

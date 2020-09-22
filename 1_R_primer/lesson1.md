@@ -580,7 +580,7 @@ x <- 1 : 10
 
 x <- 1:10
 y <- 21:30
-z <- c(x, y, rev(x), rev(y))         ## go nuts!
+z <- c(x, y, x, -5:5, 10:1)          ## go nuts!
 z
 
 ```
@@ -622,9 +622,9 @@ y
 z
 
 union(x, y)                       ## put the 'sets' together, no redundancy
-intersect(x, y)                   ## what do the sets share
-setdiff(x, y)                     ## what does x have that y does not
-setdiff(y, x)                     ## what does y have that x does not
+intersect(x, y)                   ## what do the sets share?
+setdiff(x, y)                     ## what does x have that y does not?
+setdiff(y, x)                     ## what does y have that x does not?
 setequal(x, y)                    ## is the set memebership identical?
 setequal(z, y)  
 
@@ -636,19 +636,18 @@ setequal(z, y)
 
 ### Check your understanding 3
 
-1) how many positive integers, when squared, yield
+1) What is the sum of the integers from 1 to 100 (inclusive)?
+
+2) What results from summing the squares of the integers from 1 to 100 (inclusive)?
+
+3) What is the mean of the even integers from 2 to 100 (inclusive)?
+
+4) Make a vector containing the integers from -10 to -1 followed by the integers from 10 to 1.
+
+5) Reverse the order of elements in the vector you made in (4)
+
+6) How many positive integers, when squared, yield
      a value of more than 200 and less than 3000?
-
-2) generate a vector containing only those positive integers
-     (not their squared values! use logical vector index perhaps?)
-
-3) trim off the first 2 values and the last two values from the vector you made
-
-4) add the integers 101, 102, and 103 to the back end of the resulting vector
-
-5) add the integers 1, 2, 3 to the vector you made in the last step
-
-6) reverse the order of the vector you made in the last step
 
 [Return to index](#index)
 

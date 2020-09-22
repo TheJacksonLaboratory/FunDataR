@@ -626,9 +626,8 @@ sapply(x[c('classes', 'favorite.foods')], length)
 
 ### Check your understanding 2
 
-1) Make a list with at least five member elements, incorporating at least two
-     data types. Make sure at least two of the member elements are
-     of different lengths than the rest of the elements.
+1) Make a list with four member elements, including one logical (length=1), 
+     one integer (length=1), one numeric (length=3), and one character element (length=5).
 
 2) Retrieve the second element from your list as a list.
 
@@ -636,7 +635,7 @@ sapply(x[c('classes', 'favorite.foods')], length)
 
 4) Generate a vector with the class of each element of your list.
 
-5) Generate a list with the lengths of the 3d and 5th elements of your list.
+5) Generate a list with the lengths of the 2d (integer) and 4th (character) elements of your list.
 
 [Return to index](#index)
 
@@ -722,8 +721,9 @@ dat$weight                        ## like a list
 
 ### Check your understanding 3
 
-1) Make a `data.frame` with 5 rows and 4 columns and at least two 
-     data types. Name the columns.
+1) Make a `data.frame` with 5 rows and 4 columns, where the first column
+     is `logical`, second is `integer`, third is `numeric` and last is
+     `character`. Name the columns as you like.
 
 2) Add some `row.names` to the `data.frame` from (1).
 
@@ -731,9 +731,9 @@ dat$weight                        ## like a list
      single indexing operation using a character index and 
      a logical index.
 
-4) Using `sapply()`, determine the type of each column.
+4) Using `sapply()`, determine the data type of each column.
 
-5) Using `apply()`, determine the type of each column.
+5) Using `apply()`, determine the data type of each column.
 
 [Return to index](#index)
 

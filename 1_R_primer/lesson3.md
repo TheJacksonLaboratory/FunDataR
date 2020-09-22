@@ -414,12 +414,15 @@ x
 
 ```
 
-In R, 'for' loops cann be used to iterate over sequences of values:
+In R, 'for' loops can be used to iterate over sequences of values:
 
 ```
-x <- 1:10
+(x <- 1:10)                       ## iterate over vector
 for(x.i in x) cat("x.i:", x.i, "\n")
-x
+
+## iterate over a list:
+x <- list(weight=37, colors=c('red', 'green', 'blue'), is.even=F)
+for(x.i in x) cat("x.i:", x.i, "length(x.i):", length(x.i), "\n")
 
 x <- 1:10
 for(x.i in x) {
@@ -451,34 +454,90 @@ for(x.i in x) {
 
 ### User defined functions
 
+One of the most powerful and features R offers is the ability for users to define 
+  their own functions. The combination of user-defined functions and functions
+  like those you've seen for applying arbitrary functions to data (such as 
+  `lapply()`, `sapply()`, `tapply()`, and `apply()` allows complex
+  operations to be executed to large datasets using concise code.
+
+In R, the `function()` function is used to define new functions. The output of
+  `function()` can be assigned to a variable or used directly. Like expressions 
+  containing conditional execution statements, function definitions can include 
+  multi-line blocks of code enclosed within `{}` or single lines of code.
+  In the latter case, the use of `{}` is optional. :
+
 ```
-myfunc <- function(a, b) {
-  a / b                               ## result of last statement returned by default
+x <- 1:10
+myfunc <- function(a) sum(a)          ## dumb pass-thru function
+myfunc                                ## just the name: see what's under the hood
+myfunc(x)                             ## with parentheses '()': execute myfunc
+sum(x)                                ## quick check
+
+myfunc2 <- function(a) {
+  sum(a)
+}
+myfunc2(x)
+
+myfunc3 <- function(a) {
+
+  ## argument variables such as 'a' and internally defined variables such as 'tot' 
+  ##   and 'nxt' are only visible within the function block. The variable values
+  ##   only exist from the point where the variable is defined until the function 
+  ##   is exited.
+
+  tot <- 0
+  for(nxt in a) tot <- tot + nxt
+  tot                                 ## last expression 'tot' is returned
+}
+myfunc3(x)
+
+myfunc4 <- function(a) {
+  tot <- 0
+  for(a.i in a) tot <- tot + a.i
+  return(tot)                          ## can use explicit return() anywhere in block 
+}
+myfunc4(x)
+myfunc4
+
+```
+
+A number of fancy features await you, including the ability to accept multiple arguments,
+  assign default values to arguments, and return complex objects:
+
+```
+## x required; y and z are optional since defaults set:
+
+myfunc <- function(x, y=20:11, z=21:30) {  
+
+  ## validate input type:
+  if(! (is.numeric(x) && is.numeric(y) && is.numeric(z)) ) 
+    stop("all arguments must be numeric")
+
+  ## validate input lengths:
+  if(! (length(x) == length(y) && length(x) == length(z)) )
+    stop("all arguments must have same length")
+
+  out <- list(x=x, y=y, z=z)         ## save parameters for output
+
+  ## add some more useful elements to 'out':
+  out$avg.x <- mean(x, na.rm=T)      ## na.rm: ignore missing values
+  out$avg.y <- mean(y, na.rm=T)
+  out$avg.z <- mean(z, na.rm=T)
+  out$sum <- out$x + out$y + out$z
+  out$cumsum <- data.frame(x=cumsum(x), y=cumsum(y), z=cumsum(z))
+
+  out                                ## return 'out'
 }
 
-myfunc(1:5, 6:10)
-(1:5) / (6:10)
-
-myfunc <- function(a) {
-  return median(abs(a - median(a)))   ## or can use 'return' keyword
-}
-
-myfunc(1:10)
-mad(1:10, constant=1)
-
-myfunc <- function(a, b) {
-  tmp <- c(a, b)                      ## 'tmp' is only visible inside 'myfunc'
-  list(
-    mean=mean(tmp),
-    mean.a=mean(a),
-    mean.b=mean(b),
-    sd=sd(tmp),
-    sd.a=sd(a),
-    sd.b=sd(b)
-  )
-}
-
-myfunc(1:5, seq(from=2, to=10, length.out=5))
+myfunc(1:10, 10:1, 1:10)             ## first x, second y, third z (like definition)
+myfunc(1:10, 10:1)                   ## missing z, use default
+myfunc(1:10)                         ## missing y and z, use defaults
+myfunc()                             ## oops! no default assigned to first argument
+myfunc(x=1:10)                       ## explicitly assign
+myfunc(y=1:10)                       ## oops! no default assigned to x
+(x <- myfunc(1:10, z=rep(1, 10)))    ## get to skip y (use defaults for y)
+x$cumsum$z[3:5]
+x$cumsum[3:5, 3]
 
 ```
 

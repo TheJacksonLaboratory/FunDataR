@@ -50,15 +50,15 @@ x[1 : 5]                       ## first five values
 x[10 : 6]                      ## similar idea
 x[c(1, 10, 3, 5, 3, 10, 1)]    ## arbitrary order, can duplicate
 
-x[-1]                          ## only works for integer index: everything except this
-x[-(1 : 5)]                    ## everything except these five
+x[-1]                          ## only works for integer index: everything except first
+x[-(1 : 5)]                    ## everything except first five
 
 x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
 
 ```
 
-Indexed vector values are 'lvalues' ('left-values'), that is something that can be on 
-  the left-side of an assignment expression. Simply put, an 'lvalue' is something that a 
+Indexed vector values are 'lvalues' ('left-values', something that can be on the left-hand
+  side of an assignment expression). Simply put, an 'lvalue' is something that a 
   new value can be assigned to. If you assign a value to a position beyond the last position
   of the current vector, that vector will be automatically extended to a length sufficient 
   to accommodate the last position indexed. Retrieving a position beyond the current last 
@@ -247,8 +247,8 @@ Just like vectors, matrices (and higher-order arrays) can be indexed using integ
   one places two integers (for a matrix; the number of integers should equal the number
   of dimensions for higher order arrays) between the `[]` brackets. For matrices, the
   first integer is the row number of the value to be retrieved, and the second integer is
-  the column number of that value. As with vectors, integer indexing is 1-based (the first 
-  value is at index `1`, not `0`).
+  the column number of that value (rows then columns!). As with vectors, integer indexing 
+  is 1-based (the first value is at index `1`, not `0`).
 
 ```
 x <- matrix(1:12, nrow=4)
@@ -367,6 +367,12 @@ sum(x)                                 ## treats it like a vector (yields one nu
 apply(x, 1, sum)                       ## sum rows (yields vector with one element per row)
 apply(x, 2, sum)                       ## sum columns (yields one element per column)
 
+```
+
+There are also a few functions that help you build up matrices from component matrices or
+  vectors:
+
+```
 (x <- cbind(1:10, 101:110))            ## bind vectors together as columns of a matrix
 dim(x)
 
@@ -376,8 +382,13 @@ dim(x)
 (x <- t(x))                            ## transpose: rows to columns; columns to rows
 dim(x)
 
-(x <- cbind(x, 301:310))
-(x <- rbind(x, seq(from=11, to=311, by=100)))
+(x <- cbind(x, 301:310))               ## bind vector as column on right side of matrix 'x'
+## x <- cbind(301:31)                  ## would bind vector to left side of 'x'
+
+(v <- seq(from=11, to=311, by=100))
+(x <- rbind(x, v))                     ## bind vector as row on bottom of matrix 'x'
+## x <- rbind(v, x)                    ## would bind vector as row on top of 'x'
+
 dim(x)
 
 ```
@@ -471,6 +482,7 @@ set.seed(21)                      ## make reproducible
 
 (x <- c(x1, x2))                  ## group 1, followed by group 2
 (x <- factor(x))                  ## default level mapping: alphabetical order
+table(x)
 class(x)
 levels(x)                         ## first maps to 1, second to 2, etc.
 attributes(x)                     ## 'levels' and 'class'
@@ -715,14 +727,34 @@ dat <- data.frame(
 rownames(dat) <- letters[1 : nrow(dat)]
 dat
 
-dat[2, 3]                         ## like a matrix (integers)
-dat[2, 'operator']                ## like a matrix (integer + character)
-dat['b', 'operator']              ## like a matrix
-dat['b', 3]                       ## like a matrix
-dat[c('a', 'c'), 2:3]             ## like a matrix
-dat[c('a', 'c'), c(F, T, T)]      ## like a matrix
+dat[2, 3]                         ## index like a matrix (integers)
+dat[2, 'operator']                ## index like a matrix (integer + character)
+dat['b', 'operator']              ## index like a matrix
+dat['b', 3]                       ## index like a matrix
+dat[c('a', 'c'), 2:3]             ## index like a matrix
+dat[c('a', 'c'), c(F, T, T)]      ## index like a matrix
 
-dat$weight                        ## like a list
+## when pick one row (values of potentially different types):
+dat[3, ]                          ## index like a matrix
+attributes(dat[3, ])              ## BUT: still a data.frame
+class(dat[3, ])
+dim(dat[3, ])                     ## so still treated as 2-dimensions
+
+## however, when pick one column (values all same type):
+dat[, 2]                          ## index like a matrix
+attributes(dat[, 2])
+class(dat[, 2])
+dim(dat[, 2])
+
+## use 'drop=F' to preserve attributes:
+dat[, 2, drop=F]
+attributes(dat[, 2, drop=F])
+class(dat[, 2, drop=F])
+
+## another way to pick a column by name:
+dat$weight                        ## index like a list: yields vector
+attributes(dat$weight)            ## attributes gone
+class(dat$weight)                 ## vector indeed
 
 ```
 

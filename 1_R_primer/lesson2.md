@@ -475,9 +475,9 @@ Below we simulate a dataset with two groups ('control' and 'treated'), each with
 
 ```
 set.seed(21)                      ## make reproducible
-(x1 <- c(rep('control', 30)))     ## make up one group of 30
+(x1 <- rep('control', 30))        ## make up one group of 30
 (y1 <- rnorm(30, mean=10, sd=3))  ## simulate values for each member of the first group
-(x2 <- c(rep('treated', 30)))     ## make up a second group of 30
+(x2 <- rep('treated', 30))        ## make up a second group of 30
 (y2 <- rnorm(30, mean=15, sd=5))  ## simulate values for the second group
 
 (x <- c(x1, x2))                  ## group 1, followed by group 2

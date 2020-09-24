@@ -591,8 +591,9 @@ x[c('fname', 'grades')]           ## 1x brackets useful for selecting >1 element
 class(x[c('fname', 'grades')])    ## still a list, but only subset of elements
 x[c('fname', 'grades')][[2]]      ## index result like a list
 
-## saved best for last:
+## an easy way to specify a list element (no quotes, unless embedded spaces):
 x$grades                          ## only 1 value at a time, but easy typing!
+x$"grades"                        ## quotes optional
 class(x$grades)                   ## vector
 x$grades[2]                       ## normal vector indexing of result works
 

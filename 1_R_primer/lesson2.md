@@ -422,16 +422,6 @@ Another data type that is derived from an integer vector by adding a couple attr
   can be changed by explicitly passing a `levels` parameter to the `factor()` command, or 
   by using the `levels()` function.
 
-Below we simulate a dataset with two groups ('control' and 'treated'), each with 
-  30 observations. For the 'control' group, we simulate values by (pseudo-)random
-  draws from a normal (a.k.a Guassian) distribution with a mean of 10 and a 
-  standard deviation of 3. For the 'treated' group, we simulate values by drawing
-  from a normal distribution with a mean of 15 and a standard deviation of 5.
-  Normal distributions can be fully specified using just two parameters, 
-  `mean` and `sd`. The `rnorm()` function is used to generate random values from
-  a normal distribution. Executing `?nrorm` will display a help page with other related
-  functions for the normal distribution.
-
 We use the `set.seed()` function to seed any pseudo-random process in R, if we want to make that
   process reproducible. The underlying generators are not truly random in R, but utilize
   algorithms that operate on one number (the seed) that is used to generate another number
@@ -441,25 +431,39 @@ We use the `set.seed()` function to seed any pseudo-random process in R, if we w
   the same 1000 values in exactly the same order. If you want your work to be reproducible,
   seed every series of pseudo-random steps, document the seed used in your notebook and 
   report that seed along with versions of the softare used for pseudo-random processes 
-  within the methods section of any associated scientific publications.
+  within the methods section of any associated scientific publications. R has a series of
+  functions to generate random values from a specified distribution:
 
 ```
 sessionInfo()                     ## get version information for current R setup
 
 ## perform your 'experiment':
-set.seed(6)                       ## 'seed' pseudo-random number generator to make reproducible
-rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
-runif(1, min=0, max=1)            ## get one random value from a uniform distribution on interval [0, 1)
-rbinom(3, size=1, prob=0.5)       ## get three coin flips (1=heads, 0=tails)
-rpois(1, lambda=10)               ## get one random count from a process with avg rate of 10 per unit time
+set.seed(7)                       ## 'seed' pseudo-random number generator to make reproducible
+rnorm(1, mean=1, sd=1)            ## get 1 random value from normal distribution
+runif(2, min=0, max=1)            ## get 2 random value from a uniform distribution on interval [0, 1)
+rbinom(3, size=1, prob=0.5)       ## get 3 coin flips (1=heads, 0=tails)
+rpois(4, lambda=10)               ## get 4 random count from Poisson process with avg rate of 10 per
 
 ## repeat your 'experiment':
-set.seed(6)                       ## 'seed' pseudo-random number generator to make reproducible
-rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
-runif(1, min=0, max=1)            ## get one random value from a uniform distribution on interval [0, 1)
-rbinom(3, size=1, prob=0.5)       ## get three coin flips (1=heads, 0=tails)
-rpois(1, lambda=10)               ## get one random count from a process with avg rate of 10 per unit time
+set.seed(7)                       ## 'seed' pseudo-random number generator to make reproducible
+rnorm(1, mean=1, sd=1)            ## get 1 random value from normal distribution
+runif(2, min=0, max=1)            ## get 2 random value from a uniform distribution on interval [0, 1)
+rbinom(3, size=1, prob=0.5)       ## get 3 coin flips (1=heads, 0=tails)
+rpois(4, lambda=10)               ## get 4 random count from Poisson process with avg rate of 10 per
 
+```
+
+Below we simulate a dataset with two groups ('control' and 'treated'), each with 
+  30 observations. For the 'control' group, we simulate values by (pseudo-)random
+  draws from a normal (a.k.a Guassian) distribution with a mean of 10 and a 
+  standard deviation of 3. For the 'treated' group, we simulate values by drawing
+  from a normal distribution with a mean of 15 and a standard deviation of 5.
+  Normal distributions can be fully specified using just two parameters, 
+  `mean` and `sd`. The `rnorm()` function is used to generate random values from
+  a normal distribution.
+
+```
+set.seed(21)                      ## make reproducible
 (x1 <- c(rep('control', 30)))     ## make up one group of 30
 (y1 <- rnorm(30, mean=10, sd=3))  ## simulate values for each member of the first group
 (x2 <- c(rep('treated', 30)))     ## make up a second group of 30
@@ -469,19 +473,21 @@ rpois(1, lambda=10)               ## get one random count from a process with av
 (x <- factor(x))                  ## default level mapping: alphabetical order
 class(x)
 levels(x)                         ## first maps to 1, second to 2, etc.
-attributes(x)                     ## levels and class
+attributes(x)                     ## 'levels' and 'class'
 unclass(x)                        ## drops $class attribute; result is an integer vector!
 
+## can specify the order of mapping of labels to integer values:
 x <- c(x1, x2)
 (x <- factor(x, levels=c('treated', 'control')))
-attributes(x)                     ## levels and class
+attributes(x)                     ## 'levels' and 'class'
 levels(x)                         ## first maps to 1, second to 2, etc; user prescribed order
 unclass(x)                        ## drops $class attribute; result is an integer vector!
 
+## some superficial group comparisons:
 (y <- c(y1, y2))
 tapply(y, x, mean)
 tapply(y, x, sd)
-tapply(y, x, summary)  ## what are those '$' thingies?
+tapply(y, x, summary)             ## what are those '$' thingies?
 tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
 
 ```
@@ -502,6 +508,12 @@ To get a quick idea of what is within a potentially more complicated data type (
   we will discuss in this course.
 
 ```
+str(1)                     ## works on numeric 'scalar'
+str('a')                   ## works on character
+str(c(T, F, T))            ## works on logical
+str(1 : 10)                ## works on longer vectors
+str(1 : 10000)             ## as vector gets even longer, shows synopsis
+
 x <- list(
   fname='mitch', 
   lname='kostich', 
@@ -509,19 +521,14 @@ x <- list(
   year.grad=2023, 
   year.birth=1906,
   classes=c('basket weaving', 'chiromancy', 'chainsaw juggling', 'cat psychology'),
-  grades=c('C+', 'C-', 'B-', 'D'),
+  grades=c('B+', 'C-', 'D+', 'F'),
   favorite.foods=c('mango pickle', 'century egg', 'camembert')
 )
 
 x
 class(x)
 attributes(x)              ## just names; 'list' because recursive vector, or vector of vector
-
 str(x)                     ## works on lists
-str(1)                     ## works on numeric 'scalar'
-str('a')                   ## works on character
-str(1 : 10)                ## works on longer vectors
-str(1 : 10000)             ## as vector gets even longer, shows synopsis
 
 ```
 
@@ -548,34 +555,34 @@ x <- list(
 
 str(x)
 x['lname']
+x[c(T, T, F, F, T, T, F, F)]      ## logical indexing of lists works too
 
-x['grades']                       ## what is that '$' thingy? indicates a list!
+x['grades']                       ## what is that '$' thingy? indicates element of a list!
 class(x['grades'])                ## got a list back with single bracket
-x['grades'][2]                    ## cannot use a single bracket index on result
+x['grades'][2]                    ## oops! cannot use a single bracket indexing on result
 
 x[['grades']]                     ## no '$' thingy
 class(x[['grades']])              ## just a vector!
-x[['grades']][2]                  ## can index the result with single bracket
+x[['grades']][2]                  ## can index the result with single bracket (since vector)
 
 x[7]                              ## integer indexing with 1x bracket: same issue
-class(x[7])
-x[7][2]
+class(x[7])                       ## list
+x[7][2]                           ## oops! cannot use 1x bracket indexing on result
 
-x[[7]]                            ## double bracket saves the day again
-class(x[[7]])
-x[[7]][2]
-
-x[c('fname', 'grades')]
-class(x[c('fname', 'grades')])
-x[c('fname', 'grades')][[2]]
+x[[7]]                            ## double bracket saves the day again!
+class(x[[7]])                     ## vector
+x[[7]][2]                         ## no problem
 
 x[[c('fname', 'grades')]]         ## oops! can only use one name with 2x bracket
 
+x[c('fname', 'grades')]           ## 1x brackets useful for selecting >1 element
+class(x[c('fname', 'grades')])    ## still a list, but only subset of elements
+x[c('fname', 'grades')][[2]]      ## index result like a list
+
+## saved best for last:
 x$grades                          ## only 1 value at a time, but easy typing!
 class(x$grades)                   ## vector
 x$grades[2]                       ## normal vector indexing of result works
-
-x[c(T, T, F, F, T, T, F, F)]      ## logical indexing of lists works too
 
 ```
 
@@ -667,6 +674,10 @@ unclass(dat)                      ## drop $class attribute
 class(unclass(dat))               ## show your true self, list!
 
 str(dat)
+
+## don't try if more rows than letters! 
+##   usually use meaningful row.names, such as observation labels:
+
 rownames(dat) <- letters[1 : nrow(dat)]
 rownames(dat)
 colnames(dat)
@@ -693,7 +704,7 @@ Data frames can be indexed using either the methods used for lists or the method
   used for matrices. Character indexing of rows depends on assignment of 
   `row.names` attribute (e.g. using the `rownames()` function). Rownames are 
   not required to be unique, but your code will be clearer if 
-  you are always sure to make `names` and `row.names` elements are unique.
+  you always make sure `names` and `row.names` elements are unique.
 
 ```
 dat <- data.frame(

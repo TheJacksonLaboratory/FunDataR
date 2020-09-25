@@ -50,15 +50,15 @@ x[1 : 5]                       ## first five values
 x[10 : 6]                      ## similar idea
 x[c(1, 10, 3, 5, 3, 10, 1)]    ## arbitrary order, can duplicate
 
-x[-1]                          ## only works for integer index: everything except this
-x[-(1 : 5)]                    ## everything except these five
+x[-1]                          ## only works for integer index: everything except first
+x[-(1 : 5)]                    ## everything except first five
 
 x[seq(from=2, to=10, by=2)]    ## sometimes helps to be creative
 
 ```
 
-Indexed vector values are 'lvalues' ('left-values'), that is something that can be on 
-  the left-side of an assignment expression. Simply put, an 'lvalue' is something that a 
+Indexed vector values are 'lvalues' ('left-values', something that can be on the left-hand
+  side of an assignment expression). Simply put, an 'lvalue' is something that a 
   new value can be assigned to. If you assign a value to a position beyond the last position
   of the current vector, that vector will be automatically extended to a length sufficient 
   to accommodate the last position indexed. Retrieving a position beyond the current last 
@@ -247,8 +247,8 @@ Just like vectors, matrices (and higher-order arrays) can be indexed using integ
   one places two integers (for a matrix; the number of integers should equal the number
   of dimensions for higher order arrays) between the `[]` brackets. For matrices, the
   first integer is the row number of the value to be retrieved, and the second integer is
-  the column number of that value. As with vectors, integer indexing is 1-based (the first 
-  value is at index `1`, not `0`).
+  the column number of that value (rows then columns!). As with vectors, integer indexing 
+  is 1-based (the first value is at index `1`, not `0`).
 
 ```
 x <- matrix(1:12, nrow=4)
@@ -367,6 +367,12 @@ sum(x)                                 ## treats it like a vector (yields one nu
 apply(x, 1, sum)                       ## sum rows (yields vector with one element per row)
 apply(x, 2, sum)                       ## sum columns (yields one element per column)
 
+```
+
+There are also a few functions that help you build up matrices from component matrices or
+  vectors:
+
+```
 (x <- cbind(1:10, 101:110))            ## bind vectors together as columns of a matrix
 dim(x)
 
@@ -376,8 +382,13 @@ dim(x)
 (x <- t(x))                            ## transpose: rows to columns; columns to rows
 dim(x)
 
-(x <- cbind(x, 301:310))
-(x <- rbind(x, seq(from=11, to=311, by=100)))
+(x <- cbind(x, 301:310))               ## bind vector as column on right side of matrix 'x'
+## x <- cbind(301:31)                  ## would bind vector to left side of 'x'
+
+(v <- seq(from=11, to=311, by=100))
+(x <- rbind(x, v))                     ## bind vector as row on bottom of matrix 'x'
+## x <- rbind(v, x)                    ## would bind vector as row on top of 'x'
+
 dim(x)
 
 ```
@@ -422,16 +433,6 @@ Another data type that is derived from an integer vector by adding a couple attr
   can be changed by explicitly passing a `levels` parameter to the `factor()` command, or 
   by using the `levels()` function.
 
-Below we simulate a dataset with two groups ('control' and 'treated'), each with 
-  30 observations. For the 'control' group, we simulate values by (pseudo-)random
-  draws from a normal (a.k.a Guassian) distribution with a mean of 10 and a 
-  standard deviation of 3. For the 'treated' group, we simulate values by drawing
-  from a normal distribution with a mean of 15 and a standard deviation of 5.
-  Normal distributions can be fully specified using just two parameters, 
-  `mean` and `sd`. The `rnorm()` function is used to generate random values from
-  a normal distribution. Executing `?nrorm` will display a help page with other related
-  functions for the normal distribution.
-
 We use the `set.seed()` function to seed any pseudo-random process in R, if we want to make that
   process reproducible. The underlying generators are not truly random in R, but utilize
   algorithms that operate on one number (the seed) that is used to generate another number
@@ -441,47 +442,64 @@ We use the `set.seed()` function to seed any pseudo-random process in R, if we w
   the same 1000 values in exactly the same order. If you want your work to be reproducible,
   seed every series of pseudo-random steps, document the seed used in your notebook and 
   report that seed along with versions of the softare used for pseudo-random processes 
-  within the methods section of any associated scientific publications.
+  within the methods section of any associated scientific publications. R has a series of
+  functions to generate random values from a specified distribution:
 
 ```
 sessionInfo()                     ## get version information for current R setup
 
 ## perform your 'experiment':
-set.seed(6)                       ## 'seed' pseudo-random number generator to make reproducible
-rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
-runif(1, min=0, max=1)            ## get one random value from a uniform distribution on interval [0, 1)
-rbinom(3, size=1, prob=0.5)       ## get three coin flips (1=heads, 0=tails)
-rpois(1, lambda=10)               ## get one random count from a process with avg rate of 10 per unit time
+set.seed(7)                       ## 'seed' pseudo-random number generator to make reproducible
+rnorm(1, mean=1, sd=1)            ## get 1 random value from normal distribution
+runif(2, min=0, max=1)            ## get 2 random value from a uniform distribution on interval [0, 1)
+rbinom(3, size=1, prob=0.5)       ## get 3 coin flips (1=heads, 0=tails)
+rpois(4, lambda=10)               ## get 4 random count from Poisson process with avg rate of 10 per
 
 ## repeat your 'experiment':
-set.seed(6)                       ## 'seed' pseudo-random number generator to make reproducible
-rnorm(1, mean=1, sd=1)            ## get one random value from normal distribution
-runif(1, min=0, max=1)            ## get one random value from a uniform distribution on interval [0, 1)
-rbinom(3, size=1, prob=0.5)       ## get three coin flips (1=heads, 0=tails)
-rpois(1, lambda=10)               ## get one random count from a process with avg rate of 10 per unit time
+set.seed(7)                       ## 'seed' pseudo-random number generator to make reproducible
+rnorm(1, mean=1, sd=1)            ## get 1 random value from normal distribution
+runif(2, min=0, max=1)            ## get 2 random value from a uniform distribution on interval [0, 1)
+rbinom(3, size=1, prob=0.5)       ## get 3 coin flips (1=heads, 0=tails)
+rpois(4, lambda=10)               ## get 4 random count from Poisson process with avg rate of 10 per
 
-(x1 <- c(rep('control', 30)))     ## make up one group of 30
+```
+
+Below we simulate a dataset with two groups ('control' and 'treated'), each with 
+  30 observations. For the 'control' group, we simulate values by (pseudo-)random
+  draws from a normal (a.k.a Guassian) distribution with a mean of 10 and a 
+  standard deviation of 3. For the 'treated' group, we simulate values by drawing
+  from a normal distribution with a mean of 15 and a standard deviation of 5.
+  Normal distributions can be fully specified using just two parameters, 
+  `mean` and `sd`. The `rnorm()` function is used to generate random values from
+  a normal distribution.
+
+```
+set.seed(21)                      ## make reproducible
+(x1 <- rep('control', 30))        ## make up one group of 30
 (y1 <- rnorm(30, mean=10, sd=3))  ## simulate values for each member of the first group
-(x2 <- c(rep('treated', 30)))     ## make up a second group of 30
+(x2 <- rep('treated', 30))        ## make up a second group of 30
 (y2 <- rnorm(30, mean=15, sd=5))  ## simulate values for the second group
 
 (x <- c(x1, x2))                  ## group 1, followed by group 2
 (x <- factor(x))                  ## default level mapping: alphabetical order
+table(x)
 class(x)
 levels(x)                         ## first maps to 1, second to 2, etc.
-attributes(x)                     ## levels and class
+attributes(x)                     ## 'levels' and 'class'
 unclass(x)                        ## drops $class attribute; result is an integer vector!
 
+## can specify the order of mapping of labels to integer values:
 x <- c(x1, x2)
 (x <- factor(x, levels=c('treated', 'control')))
-attributes(x)                     ## levels and class
+attributes(x)                     ## 'levels' and 'class'
 levels(x)                         ## first maps to 1, second to 2, etc; user prescribed order
 unclass(x)                        ## drops $class attribute; result is an integer vector!
 
+## some superficial group comparisons:
 (y <- c(y1, y2))
 tapply(y, x, mean)
 tapply(y, x, sd)
-tapply(y, x, summary)  ## what are those '$' thingies?
+tapply(y, x, summary)             ## what are those '$' thingies?
 tapply(y, x, quantile, probs=c(0.1, 0.25, 0.5, 0.75, 0.9))
 
 ```
@@ -502,6 +520,12 @@ To get a quick idea of what is within a potentially more complicated data type (
   we will discuss in this course.
 
 ```
+str(1)                     ## works on numeric 'scalar'
+str('a')                   ## works on character
+str(c(T, F, T))            ## works on logical
+str(1 : 10)                ## works on longer vectors
+str(1 : 10000)             ## as vector gets even longer, shows synopsis
+
 x <- list(
   fname='mitch', 
   lname='kostich', 
@@ -509,19 +533,14 @@ x <- list(
   year.grad=2023, 
   year.birth=1906,
   classes=c('basket weaving', 'chiromancy', 'chainsaw juggling', 'cat psychology'),
-  grades=c('C+', 'C-', 'B-', 'D'),
+  grades=c('B+', 'C-', 'D+', 'F'),
   favorite.foods=c('mango pickle', 'century egg', 'camembert')
 )
 
 x
 class(x)
 attributes(x)              ## just names; 'list' because recursive vector, or vector of vector
-
 str(x)                     ## works on lists
-str(1)                     ## works on numeric 'scalar'
-str('a')                   ## works on character
-str(1 : 10)                ## works on longer vectors
-str(1 : 10000)             ## as vector gets even longer, shows synopsis
 
 ```
 
@@ -548,34 +567,35 @@ x <- list(
 
 str(x)
 x['lname']
+x[c(T, T, F, F, T, T, F, F)]      ## logical indexing of lists works too
 
-x['grades']                       ## what is that '$' thingy? indicates a list!
+x['grades']                       ## what is that '$' thingy? indicates element of a list!
 class(x['grades'])                ## got a list back with single bracket
-x['grades'][2]                    ## cannot use a single bracket index on result
+x['grades'][2]                    ## oops! cannot use a single bracket indexing on result
 
 x[['grades']]                     ## no '$' thingy
 class(x[['grades']])              ## just a vector!
-x[['grades']][2]                  ## can index the result with single bracket
+x[['grades']][2]                  ## can index the result with single bracket (since vector)
 
 x[7]                              ## integer indexing with 1x bracket: same issue
-class(x[7])
-x[7][2]
+class(x[7])                       ## list
+x[7][2]                           ## oops! cannot use 1x bracket indexing on result
 
-x[[7]]                            ## double bracket saves the day again
-class(x[[7]])
-x[[7]][2]
-
-x[c('fname', 'grades')]
-class(x[c('fname', 'grades')])
-x[c('fname', 'grades')][[2]]
+x[[7]]                            ## double bracket saves the day again!
+class(x[[7]])                     ## vector
+x[[7]][2]                         ## no problem
 
 x[[c('fname', 'grades')]]         ## oops! can only use one name with 2x bracket
 
+x[c('fname', 'grades')]           ## 1x brackets useful for selecting >1 element
+class(x[c('fname', 'grades')])    ## still a list, but only subset of elements
+x[c('fname', 'grades')][[2]]      ## index result like a list
+
+## an easy way to specify a list element (no quotes, unless embedded spaces):
 x$grades                          ## only 1 value at a time, but easy typing!
+x$"grades"                        ## quotes optional
 class(x$grades)                   ## vector
 x$grades[2]                       ## normal vector indexing of result works
-
-x[c(T, T, F, F, T, T, F, F)]      ## logical indexing of lists works too
 
 ```
 
@@ -626,9 +646,8 @@ sapply(x[c('classes', 'favorite.foods')], length)
 
 ### Check your understanding 2
 
-1) Make a list with at least five member elements, incorporating at least two
-     data types. Make sure at least two of the member elements are
-     of different lengths than the rest of the elements.
+1) Make a list with four member elements, including one logical (length=1), 
+     one integer (length=1), one numeric (length=3), and one character element (length=5).
 
 2) Retrieve the second element from your list as a list.
 
@@ -636,7 +655,7 @@ sapply(x[c('classes', 'favorite.foods')], length)
 
 4) Generate a vector with the class of each element of your list.
 
-5) Generate a list with the lengths of the 3d and 5th elements of your list.
+5) Generate a list with the lengths of the 2d (integer) and 4th (character) elements of your list.
 
 [Return to index](#index)
 
@@ -668,6 +687,10 @@ unclass(dat)                      ## drop $class attribute
 class(unclass(dat))               ## show your true self, list!
 
 str(dat)
+
+## don't try if more rows than letters! 
+##   usually use meaningful row.names, such as observation labels:
+
 rownames(dat) <- letters[1 : nrow(dat)]
 rownames(dat)
 colnames(dat)
@@ -694,7 +717,7 @@ Data frames can be indexed using either the methods used for lists or the method
   used for matrices. Character indexing of rows depends on assignment of 
   `row.names` attribute (e.g. using the `rownames()` function). Rownames are 
   not required to be unique, but your code will be clearer if 
-  you are always sure to make `names` and `row.names` elements are unique.
+  you always make sure `names` and `row.names` elements are unique.
 
 ```
 dat <- data.frame(
@@ -705,14 +728,34 @@ dat <- data.frame(
 rownames(dat) <- letters[1 : nrow(dat)]
 dat
 
-dat[2, 3]                         ## like a matrix (integers)
-dat[2, 'operator']                ## like a matrix (integer + character)
-dat['b', 'operator']              ## like a matrix
-dat['b', 3]                       ## like a matrix
-dat[c('a', 'c'), 2:3]             ## like a matrix
-dat[c('a', 'c'), c(F, T, T)]      ## like a matrix
+dat[2, 3]                         ## index like a matrix (integers)
+dat[2, 'operator']                ## index like a matrix (integer + character)
+dat['b', 'operator']              ## index like a matrix
+dat['b', 3]                       ## index like a matrix
+dat[c('a', 'c'), 2:3]             ## index like a matrix
+dat[c('a', 'c'), c(F, T, T)]      ## index like a matrix
 
-dat$weight                        ## like a list
+## when pick one row (values of potentially different types):
+dat[3, ]                          ## index like a matrix
+attributes(dat[3, ])              ## BUT: still a data.frame
+class(dat[3, ])
+dim(dat[3, ])                     ## so still treated as 2-dimensions
+
+## however, when pick one column (values all same type):
+dat[, 2]                          ## index like a matrix
+attributes(dat[, 2])
+class(dat[, 2])
+dim(dat[, 2])
+
+## use 'drop=F' to preserve attributes:
+dat[, 2, drop=F]
+attributes(dat[, 2, drop=F])
+class(dat[, 2, drop=F])
+
+## another way to pick a column by name:
+dat$weight                        ## index like a list: yields vector
+attributes(dat$weight)            ## attributes gone
+class(dat$weight)                 ## vector indeed
 
 ```
 
@@ -722,8 +765,9 @@ dat$weight                        ## like a list
 
 ### Check your understanding 3
 
-1) Make a `data.frame` with 5 rows and 4 columns and at least two 
-     data types. Name the columns.
+1) Make a `data.frame` with 5 rows and 4 columns, where the first column
+     is `logical`, second is `integer`, third is `numeric` and last is
+     `character`. Name the columns as you like.
 
 2) Add some `row.names` to the `data.frame` from (1).
 
@@ -731,9 +775,9 @@ dat$weight                        ## like a list
      single indexing operation using a character index and 
      a logical index.
 
-4) Using `sapply()`, determine the type of each column.
+4) Using `sapply()`, determine the data type of each column.
 
-5) Using `apply()`, determine the type of each column.
+5) Using `apply()`, determine the data type of each column.
 
 [Return to index](#index)
 

@@ -209,18 +209,19 @@ As was mentioned earlier, if you could measure e.g. the height of every individu
 
 2) Draw 1000 samples from a normal distribution with mean `0` and standard deviation `2` 
      and store the samples in the variable `y`. Make a histogram of `y`. Try to fiddle 
-     with the number of histograms 'bins' (`bins` parameter to `hist()`). Values in
-     in `c(3, 10, 30, 100, 300)` should provide a 'feel' for the bin size effect.
+     with the number of histograms 'bins' (`bins` parameter to `hist()`). Trying values 
+     in `c(3, 10, 30, 100, 300)` should provide a 'feel' for what happens when too
+     many or too few.
 
 3) Concatenate `x` and `y` into a single vector of length 2000. Generate
-     a 2D plot of the result. Can you tell where one distribution stops and the 
-     other starts?
+     a 2D plot of the result. From the plot, can you tell where one distribution 
+     (say the one from `x`) stops and the other (from `y`) starts?
 
 4) Add a horizontal line to the plot from question #3, at the mean of `z`. 
      Hint: abline parameter `h` for 'horizontal'.
 
 5) Add a vertical line to the plot at the 1000th position in the plot from question #4.
-     Hint: abline parameter `v` for 'vertical'; note the bottom positions are the
+     Hint: abline parameter `v` for 'vertical'; note the bottom axis positions are the
      order (or index positions) of the values in `z`, so the 1000th position marks
      the boundary between the values from `x` (uniform) and those from `y` (normal).
      Are some differences in the distribution of points between the left side and 

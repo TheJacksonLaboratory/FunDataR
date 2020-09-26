@@ -6,39 +6,78 @@
 
 ### Index
 
-- [Simple plotting](#simple-plotting)
-- [Formulas for plotting and fitting](#formulas-for-plotting-and-fitting)
+- [What is a mean?](#what-is-a-mean)
+- [Populations and samples](#populations-and-samples)
 
 - [Check 1](#check-your-understanding-1)
-- [Check 2](#check-your-understanding-2)
-- [Check 3](#check-your-understanding-3)
 
 ### What is a mean?
 
 You are probably familiar with the notion of the 'mean' or 'average' of a 
-  series of numbers as a type of central value for the series.
+  series of numbers as a type of central value for the numbers in the series.
   But you've probably also heard of the 'median' and may know that it too,
-  is a type of central value. You may also be familiar with the distinction
-  based on the difference in the formulas for calculating means and medians.
+  is a type of central value. You may know the distinction based on the 
+  difference in the procedures for calculating means and medians.
   The median of the series `x` would be found by sorting `x` then taking the 
-  middle value (or the mean of the two central values if x has even length). 
+  middle value (or the mean of the two central values if `x` has even length). 
   By contrast, means are calculated using (expressed in R): 
   `sum(x) / length(x)`. R also provides the premade (and compiled, so more
-  efficient) function `mean()` for this purpose.
+  efficient) function `mean(x)` for this purpose.
+
+Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
+  calculate their mean and plot the results. In this case (plotting a 
+  single variable `z`), the horizontal/bottom axis indicates the order 
+  in which the numbers occur in `z`. The vertical/left axis indicates
+  the magnitude of the numbers in `z`. Since the numbers were drawn 
+  at random, we do not expect any relationship between the magnitudes
+  (vertical axis) and order in which numbers were drawn (horizontal 
+  axis):
 
 ```
 rm(list=ls())
 
 set.seed(1)
-(y <- rnorm(30, mean=10, sd=3))
-mean(y)
-plot(y)
-abline(b=mean(y))
+(z <- rnorm(1000, mean=100, sd=10))
+mean(z)
+
+## let's see what this distribution looks like:
+hist(z)                           ## peaked toward center, much less in tails
+
+## let's make a 2D plot (values on vertical axis, order on horizontal):
+plot(z)                           ## 2D-plot; values cluster towards mean
+abline(h=mean(z), col='cyan')     ## add a h(orizontal) line at mean(z)
 
 ```
 
-A function to compute sum of squared distances
-Mean is the single value that minimizes that function
+Now let's repeat the same, but drawing from a uniform distribution in the 
+  numeric (includes fractional numbers) closed (includes endpoints) 
+  interval [90, 110]. We'll often sample from this distribution, so 
+  it is good to get a feel for it:
+
+```
+rm(list=ls())
+
+set.seed(1)
+(z <- runif(1000, min=80, max=120))
+mean(z)
+
+## let's see what this distribution looks like:
+hist(z)                           ## histogram
+
+## let's make a 2D plot (values on vertical axis, order on horizontal):
+plot(z)                           ## 2D-plot
+abline(h=mean(z), col='cyan')     ## add a h(orizontal) line at mean(z)
+
+```
+
+One distinctive (and conceptually very important) property of a 'mean' 
+  which you may not be as familiar with is that the sum of the squared 
+  distances between the elements of `x` and `mean(x)` is smaller than 
+  it is for any other single number. In that sense, `mean(x)` mimimizes 
+  a 'penalty function', which is the sum of squared distances between 
+  `mean(x)` and the individual values of `x`.
+
+Let's explore this a bit:
 
 ```
 rm(list=ls())
@@ -48,12 +87,13 @@ rm(list=ls())
 ##   m should be a numeric vector of length 1 or of length length(v)
 ##   return value is numeric of length 1, or NA on error
 ##
-##   could single line: 'return(sum((v - m) ^ 2))', but we'll break it
+##   Could just: 'return(sum((v - m) ^ 2))', but we'll break it
 ##     out for clarity and add a length check for robustness.
 
 f.ss <- function(v, m=0) {
 
-  ## length check: does length(m) equal 1 or length(v)?
+  ## length check: does length(m) equal 1 or length(v)?:
+
   if( (length(m) != 1)  && (length(m) != length(v)) ) {
     stop("length(m) not 1 or length(v)")
   }
@@ -64,8 +104,22 @@ f.ss <- function(v, m=0) {
   return(sum.sqr)           ## explicit return of sum of squared distances
 }
 
+## sanity check f.ss(); essential practice for all your functions!
+f.ss(0)                     ## default m==0; (0 - 0)^2 == 0
+f.ss(1)                     ## (1 - 0)^2 == 1
+f.ss(2)                     ## (2 - 0)^2 == 4
+f.ss(0, 0)                  ## (0 - 0)^2 == 0
+f.ss(0, 1)                  ## (0 - 1)^2 == 1
+f.ss(1, 1)                  ## (1 - 1)^2 == 0
+f.ss(0, c(0, 1))            ## oops! length(m) != 1 or length(v)
+f.ss(c(1, 0), 0)            ## (1 - 0)^2 + (0 - 0)^2 == 1
+f.ss(c(1, 0), c(0, 1))      ## (1 - 0)^2 + (0 - 1)^2 == 2
+f.ss(c(2, 0), c(0, 2))      ## (2 - 0)^2 + (0 - 2)^2 == 8
+
+## time for an 'experiment':
 set.seed(1)
-(y <- rnorm(30, mean=10, sd=3))
+(y <- rnorm(150, mean=100, sd=10))
+hist(y, breaks=20)
 mean(y)
 f.ss(y, mean(y))
 f.ss(y, mean(y) + 1)
@@ -73,7 +127,29 @@ f.ss(y, mean(y) - 1)
 f.ss(y, 0)
 f.ss(y, 20)
 
+## f.ss() minimized by mean() even for weird distributions like this
+##   3 peaked mixture of 2 uniforms and one normal:
+
+y <- c(
+  rnorm(50, mean=100, sd=10),  ## 50 draws from normal
+  runif(50, min=50, max=75),   ## 50 draws from uniform on interval [50, 75]
+  runif(50, min=125, max=150)  ## 50 draws from uniform on interval [125, 150]
+)
+y
+hist(y, breaks=20)             ## 3-peaks, normal flanked by two uniforms
+
+mean(y)
+f.ss(y, mean(y))
+f.ss(y, mean(y) + 1)
+f.ss(y, mean(y) - 1)
+f.ss(y, 0)
+f.ss(y, 200)
+
 ```
+
+---
+
+### Populations and samples
 
 There are two types of means that must be distinguished in order to understand
   statistical inference about means: the first is the 'population mean' and 
@@ -98,139 +174,57 @@ The most important thing about using samples to make estimates about populations
   Your study would be flawed (even if it happened to yield the correct answer)
   if you tried to estimate the US mean height by only sampling women or only 
   sampling in Baltimore. The issues with non-random sampling are well recognized 
-  in the field of medical predictive models: these 
-  models tend to predict outcomes better in white males than other members of the 
-  US or world populations, because 'in the old days' many medical studies 
-  conducted in the US used exclusively white male subjects. When predicting 
-  future events, we cannot really randomly sample the entire population (since
-  some events in the population haven't happened yet), so we rely on a usually
-  implicit assumption that the processes and trends of the past will continue
-  in the future without change. In many fields (such as economics and social
-  sciences), this assumption often proves incorrect. However, in the biomedical 
-  field, as well as other sciences, we are usually studying processes that we
-  can be fairly confident will continue to follow the patterns of the past
-  over any practically important prediction period. For instance, we can 
-  assume with substantial confidence that the earth will continue to rotate 
-  (abeit with the current pattern of deceleration), ATP will continue being 
-  used for storing and transmitting potential energy within a cell, and carbon 
-  will continue to have a valence of four.
-
+  in the field of medical predictive models: these models tend to predict outcomes 
+  better in white males than other members of the US or world populations, because 
+  'in the old days' many medical studies conducted in the US used exclusively 
+  white male subjects. When predicting future events, we cannot really randomly 
+  sample the entire population (since some events in the population haven't 
+  happened yet), so we rely on a usually implicit assumption that the processes 
+  and trends of the past will continue in the future without change. In many 
+  fields (such as economics and social sciences), this assumption often proves 
+  incorrect. However, in the biomedical field, as well as other sciences, we are 
+  usually studying processes that we can be fairly confident will continue to 
+  follow the patterns of the past over any practically important prediction 
+  period. For instance, we can assume with substantial confidence that the earth 
+  will continue to rotate (abeit with the current pattern of deceleration), ATP 
+  will continue being used for storing and transmitting potential energy within 
+  a cell, and carbon will continue to have a valence of four. By contrast, 
+  something like the unpredictable emergence of a pandemic can have a dramatic
+  impact on the performance of previously developed economic models.
+  
 As was mentioned earlier, if you could measure e.g. the height of every individual 
   in a population of interest, then you could calculate the mean height of the 
   population exactly. If instead you measure the height of everyone in a
   random sample from the population, you can calculate the mean height of 
   everyone in that sample exactly. But how good of an estimate of the population
-  mean will that sample mean be? Much of statistics revolves around this and
-  closely related questions. 
+  mean will that sample mean be? Much of what we will discuss in this course
+  revolves around this and closely related questions. 
 
 ---
 
 ### Check your understanding 1:
 
-1) what is the third-root of 5
+1) Draw 1000 samples from a uniform distribution on the interval `[-5, 5]` and store them
+     in the variable `x`. Make a histogram of `x`. 
 
-2) what is the sum of 500,726 and 324,781, divided by 67?
+2) Draw 1000 samples from a normal distribution with mean `0` and standard deviation `2` 
+     and store the samples in the variable `y`. Make a histogram of `y`. Try to fiddle 
+     with the number of histograms 'bins' (`bins` parameter to `hist()`). Values in
+     in `c(3, 10, 30, 100, 300)` should provide a 'feel' for the bin size effect.
 
-3) what is 3.14 to the 3.14 power?
+3) Concatenate `x` and `y` into a single vector of length 2000. Generate
+     a 2D plot of the result. Can you tell where one distribution stops and the 
+     other starts?
 
-[Return to index](#index)
+4) Add a horizontal line to the plot from question #3, at the mean of `z`. 
+     Hint: abline parameter `h` for 'horizontal'.
 
----
-
-### Simple plotting
-
-An extremely important element of data analysis is data visualization. Let's take what you've
-  learned thus far and make some simple plots.
-
-```
-tm <- 1:100                            ## time
-dst <- tm ^ 2                          ## distance, assuming a constant force
-tm
-dst
-
-plot(x=tm, y=dst)                      ## minimal plot
-
-plot(                                  ## not a complete expression yet
-  x=tm,                                ## x positions
-  y=dst,                               ## corresponding y positions
-  main="My default plot",              ## title for plot
-  xlab="time (s)",                     ## how you want the x-axis labeled
-  ylab="distance (m)"                  ## how you want the y-axis labeled
-)                                      ## finally a complete statement
-
-plot(
-  x=tm, 
-  y=dst, 
-  main="My dot plot", 
-  type="p",                            ## specify you want points plotted
-  xlab="time (s)", 
-  ylab="distance (m)", 
-  col="cyan"
-)
-
-## now add some dashed lines:
-lines(x=tm, y=dst, col='orangered', lty=3)  
-
-plot(
-  x=tm, 
-  y=dst, 
-  main="My line plot", 
-  type="l",                            ## specify you want a line plot
-  xlab="time (s)", 
-  ylab="distance (m)", 
-  col="cyan"
-)
-
-## now add some '+' points:
-points(x=tm, y=dst, col='orangered', pch='+')
-
-```
-
-[Return to index](#index)
-
----
-
-### Formulas for plotting and fitting
-
-Here we give an example of a common notation used to express functional
-  relationships between variables. This notation is widely used when 
-  specifying statistical models in R. A basic example would be 
-  `weight ~ operator`, which means that `weight` is conidered to be 
-  a function of `operator`. For plotting purposes, this means that 
-  `weight` ends up plotted on the 'y' (vertical) axis and `operator` 
-  ends up plotted on the 'x' (horizontal) axis. This notation is often
-  used along with a `data` parameter that specifies a data.frame in 
-  which the variables can be found. Simply plotting a data.frame 
-  (without a formula) results in a grid of plots in which each 
-  variable is plotted against every other variable. This can be 
-  useful for exploring a new dataset for potential relationships 
-  between variables:
-
-```
-dat <- data.frame(
-  treatment=factor(c(rep('ctl', 10), rep('trt', 10))),
-  weight=c(rnorm(10, mean=10, sd=3), rnorm(10, mean=20, sd=5)),
-  operator=factor(rep(c('weichun', 'mitch'), 10))
-)
-rownames(dat) <- letters[1 : nrow(dat)]
-dat
-
-plot(dat)                            ## what do you see?
-plot(rock)                           ## 'rock' is a data set included with R
-
-par(mfrow=c(1, 2))                   ## make a plot layout with 1 row and 2 columns
-plot(weight ~ operator, data=dat)    ## plot this in first slot (row 1, column 1)
-plot(weight ~ treatment, data=dat)   ## plot this in second slot (row 1, column 2)
-
-```
-
-The same type of notation is commonly used to fit a statistical model to a data.frame:
-
-```
-fit1 <- lm(weight ~ treatment, data=dat)
-summary(fit1)
-
-```
+5) Add a vertical line to the plot at the 1000th position in the plot from question #4.
+     Hint: abline parameter `v` for 'vertical'; note the bottom positions are the
+     order (or index positions) of the values in `z`, so the 1000th position marks
+     the boundary between the values from `x` (uniform) and those from `y` (normal).
+     Are some differences in the distribution of points between the left side and 
+     right side of your horizontal line apparent to you? 
 
 [Return to index](#index)
 

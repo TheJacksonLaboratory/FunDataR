@@ -9,24 +9,25 @@
 - [What is a mean?](#what-is-a-mean)
 - [Populations and samples](#populations-and-samples)
 - [Variances and standard deviations](#variances-and-standard-deviations)
-- [Standard errors](#standard-errors)
+- [Standard errors and bias](#standard-errors-and-bias)
 
 - [Check 1](#check-your-understanding-1)
 
 ### What is a mean?
 
 You are probably familiar with the notion of the 'mean' or 'average' of a 
-  series of numbers as a type of central value ('central tendency') for 
+  series of numbers as a type of central value (the 'central tendency') for 
   the numbers in the series. But you've probably also heard of the 'median' 
   and may know that it too, is a type of 'central tendency'. You may know the 
   difference between the two in terms of the procedures for calculating their 
   values. The median of the series `x` would be found by sorting `x` then 
-  taking the middle value (or the mean of the two central values if `x` has 
-  even length). By contrast, means are calculated using (expressed in R): 
+  taking the middle value (or the mean of the two central values, if `x` has 
+  even length). By contrast, means are calculated using the formula 
+  (expressed in R): 
 
 `sum(x) / length(x)`
 
-R also provides the premade (and compiled, so more
+R also provides the predefined (and compiled, so more
   efficient) function `mean(x)` for this purpose.
 
 Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
@@ -35,8 +36,8 @@ Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
   in which the numbers occur in `z`. The vertical/left axis indicates
   the magnitude of the numbers in `z`. Since the numbers were drawn 
   at random, we do not expect any relationship between the magnitudes
-  (vertical axis) and order in which numbers were drawn (horizontal 
-  axis):
+  (positions along the vertical axis) and order in which numbers were drawn 
+  (positions along the horizontal axis):
 
 ```
 rm(list=ls())
@@ -93,7 +94,8 @@ rm(list=ls())
 ##   return value is numeric of length 1, or NA on error
 ##
 ##   Could just: 'return(sum((v - m) ^ 2))', but we'll break it
-##     out for clarity and add a length check for robustness.
+##     out for clarity and add a length check in order to improve 
+##     robustness to input errors (by preventing unexpected recycling).
 
 f.ss <- function(v, m=0) {
 
@@ -128,16 +130,16 @@ set.seed(1)
 hist(z, breaks=20)
 mean(z)
 f.ss(z, mean(z))
-f.ss(z, mean(z) + 1)
-f.ss(z, mean(z) - 1)
-f.ss(z, 0)
-f.ss(z, 20)
+f.ss(z, mean(z) + 1)               ## penalty goes up as we move away from mean 
+f.ss(z, mean(z) - 1)               ## penalty also rises in other direction
+f.ss(z, 0)                         ## worse as you get further?
+f.ss(z, 200)                       ## seems like it in this direction?
 
 ## f.ss() minimized by mean() even for weird distributions like this
 ##   3 peaked mixture of 2 uniforms and one normal:
 
 z <- c(
-  rnorm(50, mean=100, sd=10),      ## 50 draws from normal
+  rnorm(50, mean=100, sd=10),      ## 50 draws from N(100, 10)
   runif(50, min=50, max=75),       ## 50 draws from uniform on interval [50, 75]
   runif(50, min=125, max=150)      ## 50 draws from uniform on interval [125, 150]
 )
@@ -147,11 +149,11 @@ hist(z, breaks=20)                 ## 3-peaks, normal flanked by two uniforms
 mean(z)
 f.ss(z, mean(z))
 f.ss(z, mean(z) + 1)               ## penalty goes up as we move away from mean
-f.ss(z, mean(z) - 1)               ## same thing in this direction
+f.ss(z, mean(z) - 1)               ## same thing in other direction
 f.ss(z, 0)                         ## worse as you get further?
 f.ss(z, 200)                       ## seems like it in this direction?
 
-## we can get a comprehensive view graphically:
+## we can get a more comprehensive view graphically:
 
 f <- function(a, b) f.ss(b, a)     ## flip the order of args so works with 'sapply()'
 m <- seq(from=1, to=200, by=0.01)  ## values to try for 'm'; will be 'x' axis
@@ -159,7 +161,7 @@ penalty <- sapply(m, f, z)         ## calculate the penalty at each value of 'm'
 plot(x=m, y=penalty)               ## single minimum (no local minima), 'convex' shape
 abline(v=mean(z), col='cyan')      ## v(ertical) line where m=mean(z)
 
-## or look at it in a less happhazard manner; the 'which()' function returns the
+## or computationally; the 'which()' function returns the
 ##   integer index of every TRUE value in a logical vector:
 
 tmp <- c(F, T, F, F, T, F, T)      ## a logical vector for demo purposes
@@ -172,9 +174,9 @@ round(mean(z), 2)                  ## mean(z) with precision matching 'm'
 
 ```
 
-Implications of the mean mimimizing the sum-of-squared distances to all values in a numeric 
-  set extend to both summarizing data and making predictions about unobserved values.
-  If you were to summarize the values in the set with a single value, the mean would 
+Implications of the mean of a numeric set mimimizing the sum-of-squared distances to all 
+  values in the set extend to both summarizing data and making predictions about unobserved 
+  values. If you were to summarize the values in the set with a single value, the mean would 
   be least incorrect of all possible answers, if correctness is quantified by the total 
   squared distance from (how far 'off') values in the set are from the estimate.
   Similarly, if I were to draw one value from the set and ask you to predict 
@@ -182,11 +184,13 @@ Implications of the mean mimimizing the sum-of-squared distances to all values i
   on average (if we repeated the experiment many, many times and averaged the penalties), 
   your best possible guess would be the mean of the set.
 
+[Return to index](#index)
+
 ---
 
 ### Populations and samples
 
-There are two types of means that must be distinguished in order to understand
+There are two types of means that must be distinguished during 
   statistical inference about means: the first is the 'population mean' and 
   the second is the 'sample mean'. In this context, 'population' refers to 
   the population you are interested in understanding. If you wanted to know
@@ -197,11 +201,11 @@ There are two types of means that must be distinguished in order to understand
   in many cases, it is not practical to measure every member of a population,
   so instead we work with more tractably sized sub-samples from the population. 
   A similar issue arises if we wish to understand a recurring event (something 
-  that's happened before and will continue to happen in the future). In this 
-  case, the population might be the entire series of events, including future 
-  events (if we are interested in prediction). However, future events are not 
-  currently available for measurement. So instead we work with samples from 
-  the past in order to make our estimates (predictions) of what will happen 
+  that's happened before and is expected to continue to happen in the future). 
+  In this case, the population might be the entire series of events, including 
+  future events (if we are interested in prediction). However, future events 
+  are not currently available for measurement. So instead we work with samples 
+  from the past in order to make our estimates (predictions) of what will happen 
   in the future.
 
 The most important thing about using samples to make estimates about populations
@@ -220,12 +224,12 @@ The most important thing about using samples to make estimates about populations
   incorrect. However, in the biomedical field, as well as other sciences, we are 
   often studying processes that we can be fairly confident will continue to 
   follow the patterns of the past over any practically important prediction 
-  period. For instance, we can assume with substantial confidence that the earth 
-  will continue to rotate (abeit with the current pattern of deceleration), ATP 
-  will continue being used for transmitting potential energy within 
-  a cell, and carbon will continue to have a valence of four. By contrast, 
-  something like the unforseen emergence of a pandemic can have a dramatic
-  impact on the performance of previously developed economic model.
+  period. For instance, we can assume with substantial confidence that over the
+  next million years the earth will continue to rotate (abeit with the current 
+  pattern of deceleration), ATP will continue being used for transmitting potential 
+  energy within a cell, and carbon will continue to have a valence of four. By 
+  contrast, unexpected remotely related occurrence, such as a trade war or pandemic, 
+  can drastically affect the accuracy of predictive economic models.
 
 As was mentioned earlier, if you could measure e.g. the height of every individual 
   in a population of interest, then you could calculate the mean height of the 
@@ -234,6 +238,8 @@ As was mentioned earlier, if you could measure e.g. the height of every individu
   everyone in that sample exactly. But how good of an estimate of the population
   mean will that sample mean be? Much of what we will discuss in this course
   revolves around this and closely related questions. 
+
+[Return to index](#index)
 
 ---
 
@@ -276,7 +282,7 @@ As we've discussed, the mean is an optimal summary of the 'central tendency' of 
   around the mean. However, since it is a sum, it will grow with the number of values
   in the set, even if the new values are drawn from exactly the same distribution.
   Instead, what we want is an average of the squared differences of the values in
-  the set from the mean. This value is called the variance of the set of values.
+  the set from the mean. This average is called the variance of the set of values.
 
 ```
 rm(list=ls())
@@ -309,8 +315,8 @@ mean(d1000 ^ 2)
 
 ```
 
-The variance calculation involves squaring values, which means that the units of
-  a variance will be the square of whatever unit was being used to measure the
+The variance calculation involves squaring values, which results in the units of
+  a variance being the square of whatever unit was being used to measure the
   mean. For instance, if the set of values were heights measured in inches of a 
   sample of US residents, the variance would have units of inches-squared. This 
   is an issue for when combining the mean and variance in your calculations. 
@@ -329,8 +335,182 @@ The variance calculation involves squaring values, which means that the units of
 
 ---
 
-### Standard errors
+### Standard errors and bias
+
+Let's take several random samples from a normal distribution in order to
+  estimate the mean of an infinite population (the distribution we are 
+  drawing from can yield an infinite number of values) based on samples of 
+  different sizes. Since we know the population mean and variance 
+  (both set as part of specifying the normal distribution), we can evaluate
+  how close the sample means are to the population mean and how much spread 
+  there is between sample means of different samples drawn from the same 
+  population. 
+
+```
+rm(list=ls())
+
+set.seed(1)
+
+(n <- (2 : 20) ^ 2)                  ## a series of sample sizes to try
+
+## 'population' (naive) formula for variance of v:
+
+f.var.pop <- function(v) {
+  d <- v - mean(v)
+  sum(d ^ 2) / length(v)
+}
+
+## 'sample' (theoretically correct) formula for variance of v; uses
+##   "Bessel's correction":
+
+f.var.smp <- function(v) {
+  d <- v - mean(v)
+  sum(d ^ 2) / (length(v) - 1)
+}
+
+f.stat <- function(n.i, m=0, s=1, R=10000) {
+
+  means <- numeric(0)                ## numeric vector of length 0 (empty)
+  s2.pop <- numeric(0)               ## empty numeric vector
+  s2.smp <- numeric(0)               ## empty numeric
+
+  for(i in 1:R) {                    ## conduct R 'experiments'
+    v.i <- rnorm(n.i, mean=m, sd=s)  ## v.i: random sample of size n.i from N(m, s)
+    m.i <- mean(v.i)                 ## m.i: mean of v.i
+    s2.pop.i <- f.var.pop(v.i)       ## variance of v.i based on 'population' formula
+    s2.smp.i <- f.var.smp(v.i)       ## variance of v.i based on 'sample' formula
+    means <- c(means, m.i)           ## add m.i to vector of sample means
+    s2.pop <- c(s2.pop, s2.pop.i)    ## add s.pop.i to end of sds.pop
+    s2.smp <- c(s2.smp, s2.smp.i)    ## add s.smp.i to end of sds2
+  }
+
+  bias.m <- mean(means) - m          ## how far off is average sample estimate from true value
+  se.m <- sd(means)                  ## standard error of the mean: sd() of R sample means
+  bias.s2.pop <- mean(s2.pop) - s^2  ## apparent bias of sd based on population formula
+  se.s2.pop <- sd(s2.pop)            ## standard error of sd based on population formula
+  bias.s2.smp <- mean(s2.smp) - s^2  ## apparent bias of sd based on sample formula
+  se.s2.smp <- sd(s2.smp)            ## standard error of sd based on sample formula
+
+  c(bias.m=bias.m, se.m=se.m, bias.s2.pop=bias.s2.pop, se.s2.pop=se.s2.pop, bias.s2.smp=bias.s2.smp, se.s2.smp=se.s2.smp)
+}
+
+(rslt <- sapply(n, f.stat))
+t(rslt)
+(rslt <- cbind(n=n, t(rslt)))
+summary(rslt)
+
+## set up a blank plot with the right axis ranges;
+##   "type='n'" means don't actually plot anything:
+
+plot(
+  x=range(n),                     ## make sure x axis can accommodate range of n
+  y=c(-0.3, 0.9),                 ## y axis spans range of 'bias' and 'se'
+  xlab='sample size',             ## label for (horizontal/bottom) x-axis
+  ylab='metric',                  ## label for (vertical/left) y-axis
+  type='n'                        ## don't actually plot anything yet
+)
+
+## more clearly indicate where '0' is:
+abline(h=0, lty=3)                ## dotted h(orizontal) line at y=0                    
+
+## connect the dots with line segments:
+
+lines(
+  x=rslt[, 'n'],                  ## x-axis: the sample size
+  y=rslt[, 'bias.m'],             ## y-axis: bias
+  col='cyan',                     ## color of the line segments
+  lty=2                           ## dashed line style
+)
+
+lines(
+  x=rslt[, 'n'],                  ## x-axis: sample size
+  y=rslt[, 'se.m'],               ## y-axis: standard error
+  col='cyan',                     ## color of line segments
+  lty=3                           ## dotted line style
+)
+
+lines(
+  x=rslt[, 'n'],                  ## x-axis: the sample size
+  y=rslt[, 'bias.s2.pop'],        ## y-axis: bias
+  col='magenta',                  ## color of the line segments
+  lty=2                           ## dashed line style
+)
+
+lines(
+  x=rslt[, 'n'],                  ## x-axis: sample size
+  y=rslt[, 'se.s2.pop'],          ## y-axis: standard error
+  col='magenta',                  ## color of line segments
+  lty=3                           ## dotted line style
+) 
+
+lines(
+  x=rslt[, 'n'],                  ## x-axis: the sample size
+  y=rslt[, 'bias.s2.smp'],        ## y-axis: bias
+  col='orangered',                ## color of the line segments
+  lty=2                           ## dashed line style
+)
+
+lines(
+  x=rslt[, 'n'],                  ## x-axis: sample size
+  y=rslt[, 'se.s2.smp'],          ## y-axis: standard error
+  col='orangered',                ## color of line segments
+  lty=3                           ## dotted line style
+) 
 
 
+## drop a simple legend in 'topright' part of plot:
+
+legend(
+  ## where to put legend:
+  'topright',
+  ## legend labels:
+  legend=c('Bias (mean)', 'SE (mean)', 'Bias (var pop)', 'SE (var pop)', 'Bias (var samp)', 'SE (var samp)'),
+  ## colors (in register w/ labels)
+  col=c('cyan', 'cyan', 'magenta', 'magenta', 'orangered', 'orangered'),
+  ## line types (in register w/ labels and colors):
+  lty=c(2, 3, 2, 3, 2, 3)
+)
+
+## the default formulas in R are the sample formulas:
+
+x <- runif(30, min=0, max=100)
+f.var.pop(x)
+f.var.smp(x)
+var(x)
+
+sqrt(f.var.pop(x))
+sqrt(f.var.smp(x))
+sd(x)
+
+```
+
+Take home message: In general, the standard error of a sample estimate of a population
+  parameter (such as the mean or standard deviation) decreases with increasing samples 
+  size, but with diminishing returns. In fact, the standard error for the mean is 
+  inversely proportional to square-root of sample size. The naive formula (same one 
+  you would use for a population) for the sample mean returns an unbiased estimator of 
+  the population mean. However, the naive formula for the sample variance
+  actually has a negative bias, which is particularly pronounced for small samples. 
+  This bias is eliminated by changing the formula to use `n - 1` instead of `n` in the 
+  denominator when averaging.
+
+The reason applying the population formula to a sample in order to estimate the population
+  variance results in downwardly biased estimates can be understood in terms of
+  our previous discussion about the mean minimizing the sum of squared distances to the 
+  values and the fact that the variance n is calculated from the squared distances
+  from the sample mean, not the population mean (which is typically unknown). But the 
+  sample mean is always a bit off from the population mean, because it is calculated from the 
+  sample instead of the whole population. But since it is a mean of the values in the 
+  sample, it will always have a lower average (or sum of) squared distances to the sample
+  values than any other number, including the population mean. Therefore, the variance 
+  calculated using the population formula and the sample mean will always be a bit smaller 
+  than if the sd was calculated using the same formula and the population mean. Theoretical 
+  analysis of this problem has resulted in proofs that using the sample formula (denominator 
+  of `n - 1` instead of `n`) results in an unbiased sample-based estimate of the population
+  standard deviation.
+
+[Return to index](#index)
+
+---
 
 ## FIN!

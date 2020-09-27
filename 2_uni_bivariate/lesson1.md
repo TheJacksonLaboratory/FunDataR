@@ -8,20 +8,25 @@
 
 - [What is a mean?](#what-is-a-mean)
 - [Populations and samples](#populations-and-samples)
+- [Variances and standard deviations](#variances-and-standard-deviations)
+- [Standard errors](#standard-errors)
 
 - [Check 1](#check-your-understanding-1)
 
 ### What is a mean?
 
 You are probably familiar with the notion of the 'mean' or 'average' of a 
-  series of numbers as a type of central value for the numbers in the series.
-  But you've probably also heard of the 'median' and may know that it too,
-  is a type of central value. You may know the distinction based on the 
-  difference in the procedures for calculating means and medians.
-  The median of the series `x` would be found by sorting `x` then taking the 
-  middle value (or the mean of the two central values if `x` has even length). 
-  By contrast, means are calculated using (expressed in R): 
-  `sum(x) / length(x)`. R also provides the premade (and compiled, so more
+  series of numbers as a type of central value ('central tendency') for 
+  the numbers in the series. But you've probably also heard of the 'median' 
+  and may know that it too, is a type of 'central tendency'. You may know the 
+  difference between the two in terms of the procedures for calculating their 
+  values. The median of the series `x` would be found by sorting `x` then 
+  taking the middle value (or the mean of the two central values if `x` has 
+  even length). By contrast, means are calculated using (expressed in R): 
+
+`sum(x) / length(x)`
+
+R also provides the premade (and compiled, so more
   efficient) function `mean(x)` for this purpose.
 
 Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
@@ -92,60 +97,90 @@ rm(list=ls())
 
 f.ss <- function(v, m=0) {
 
-  ## length check: does length(m) equal 1 or length(v)?:
+  ## length check: does length(m) equal 1 or length(v)?
+  ##   if not, 'stop' execution and return an informative error msg:
 
   if( (length(m) != 1)  && (length(m) != length(v)) ) {
     stop("length(m) not 1 or length(v)")
   }
 
-  dist <- v - m             ## distances between v and m; length(dist) == length(v)
-  dist.sqr <- dist ^ 2      ## distances squared; length(dist.sqr) == length(v)
-  sum.sqr <- sum(dist.sqr)  ## sum of the squared distances; length(sum.sqr) = 1
-  return(sum.sqr)           ## explicit return of sum of squared distances
+  dist <- v - m                    ## distances between v and m; length(dist) == length(v)
+  dist.sqr <- dist ^ 2             ## distances squared; length(dist.sqr) == length(v)
+  sum.sqr <- sum(dist.sqr)         ## sum of the squared distances; length(sum.sqr) = 1
+  return(sum.sqr)                  ## explicit return of sum of squared distances
 }
 
 ## sanity check f.ss(); essential practice for all your functions!
-f.ss(0)                     ## default m==0; (0 - 0)^2 == 0
-f.ss(1)                     ## (1 - 0)^2 == 1
-f.ss(2)                     ## (2 - 0)^2 == 4
-f.ss(0, 0)                  ## (0 - 0)^2 == 0
-f.ss(0, 1)                  ## (0 - 1)^2 == 1
-f.ss(1, 1)                  ## (1 - 1)^2 == 0
-f.ss(0, c(0, 1))            ## oops! length(m) != 1 or length(v)
-f.ss(c(1, 0), 0)            ## (1 - 0)^2 + (0 - 0)^2 == 1
-f.ss(c(1, 0), c(0, 1))      ## (1 - 0)^2 + (0 - 1)^2 == 2
-f.ss(c(2, 0), c(0, 2))      ## (2 - 0)^2 + (0 - 2)^2 == 8
+f.ss(0)                            ## default m==0; (0 - 0)^2 == 0
+f.ss(1)                            ## (1 - 0)^2 == 1
+f.ss(2)                            ## (2 - 0)^2 == 4
+f.ss(0, 0)                         ## (0 - 0)^2 == 0
+f.ss(0, 1)                         ## (0 - 1)^2 == 1
+f.ss(1, 1)                         ## (1 - 1)^2 == 0
+f.ss(0, c(0, 1))                   ## oops! length(m) != 1 or length(v)
+f.ss(c(1, 0), 0)                   ## (1 - 0)^2 + (0 - 0)^2 == 1
+f.ss(c(1, 0), c(0, 1))             ## (1 - 0)^2 + (0 - 1)^2 == 2
+f.ss(c(2, 0), c(0, 2))             ## (2 - 0)^2 + (0 - 2)^2 == 8
 
 ## time for an 'experiment':
 set.seed(1)
-(y <- rnorm(150, mean=100, sd=10))
-hist(y, breaks=20)
-mean(y)
-f.ss(y, mean(y))
-f.ss(y, mean(y) + 1)
-f.ss(y, mean(y) - 1)
-f.ss(y, 0)
-f.ss(y, 20)
+(z <- rnorm(150, mean=100, sd=10))
+hist(z, breaks=20)
+mean(z)
+f.ss(z, mean(z))
+f.ss(z, mean(z) + 1)
+f.ss(z, mean(z) - 1)
+f.ss(z, 0)
+f.ss(z, 20)
 
 ## f.ss() minimized by mean() even for weird distributions like this
 ##   3 peaked mixture of 2 uniforms and one normal:
 
-y <- c(
-  rnorm(50, mean=100, sd=10),  ## 50 draws from normal
-  runif(50, min=50, max=75),   ## 50 draws from uniform on interval [50, 75]
-  runif(50, min=125, max=150)  ## 50 draws from uniform on interval [125, 150]
+z <- c(
+  rnorm(50, mean=100, sd=10),      ## 50 draws from normal
+  runif(50, min=50, max=75),       ## 50 draws from uniform on interval [50, 75]
+  runif(50, min=125, max=150)      ## 50 draws from uniform on interval [125, 150]
 )
-y
-hist(y, breaks=20)             ## 3-peaks, normal flanked by two uniforms
+z
+hist(z, breaks=20)                 ## 3-peaks, normal flanked by two uniforms
 
-mean(y)
-f.ss(y, mean(y))
-f.ss(y, mean(y) + 1)
-f.ss(y, mean(y) - 1)
-f.ss(y, 0)
-f.ss(y, 200)
+mean(z)
+f.ss(z, mean(z))
+f.ss(z, mean(z) + 1)               ## penalty goes up as we move away from mean
+f.ss(z, mean(z) - 1)               ## same thing in this direction
+f.ss(z, 0)                         ## worse as you get further?
+f.ss(z, 200)                       ## seems like it in this direction?
+
+## we can get a comprehensive view graphically:
+
+f <- function(a, b) f.ss(b, a)     ## flip the order of args so works with 'sapply()'
+m <- seq(from=1, to=200, by=0.01)  ## values to try for 'm'; will be 'x' axis
+penalty <- sapply(m, f, z)         ## calculate the penalty at each value of 'm'; 'y' axis
+plot(x=m, y=penalty)               ## single minimum (no local minima), 'convex' shape
+abline(v=mean(z), col='cyan')      ## v(ertical) line where m=mean(z)
+
+## or look at it in a less happhazard manner; the 'which()' function returns the
+##   integer index of every TRUE value in a logical vector:
+
+tmp <- c(F, T, F, F, T, F, T)      ## a logical vector for demo purposes
+which(tmp)                         ## integer indices of every T in 'tmp'
+
+min(penalty)                       ## what is the lowest value of 'penalty'; can 'max()' too
+which(penalty == min(penalty))     ## get integer index where 'penalty' is at minimum
+m[which(penalty == min(penalty))]  ## what is the value of 'm' at the minimum 'penalty'
+round(mean(z), 2)                  ## mean(z) with precision matching 'm'
 
 ```
+
+Implications of the mean mimimizing the sum-of-squared distances to all values in a numeric 
+  set extend to both summarizing data and making predictions about unobserved values.
+  If you were to summarize the values in the set with a single value, the mean would 
+  be least incorrect of all possible answers, if correctness is quantified by the total 
+  squared distance from (how far 'off') values in the set are from the estimate.
+  Similarly, if I were to draw one value from the set and ask you to predict 
+  what the value was, penalizing you with the square of how far off your guess was,
+  on average (if we repeated the experiment many, many times and averaged the penalties), 
+  your best possible guess would be the mean of the set.
 
 ---
 
@@ -175,23 +210,23 @@ The most important thing about using samples to make estimates about populations
   if you tried to estimate the US mean height by only sampling women or only 
   sampling in Baltimore. The issues with non-random sampling are well recognized 
   in the field of medical predictive models: these models tend to predict outcomes 
-  better in white males than other members of the US or world populations, because 
-  'in the old days' many medical studies conducted in the US used exclusively 
-  white male subjects. When predicting future events, we cannot really randomly 
-  sample the entire population (since some events in the population haven't 
-  happened yet), so we rely on a usually implicit assumption that the processes 
-  and trends of the past will continue in the future without change. In many 
-  fields (such as economics and social sciences), this assumption often proves 
+  better in males of European descent better than other members of the US or world 
+  populations. This is because 'in the old days' many medical studies conducted in 
+  the US used exclusively white male subjects. When predicting future events, we 
+  cannot really randomly sample the entire population (since some events in the 
+  population haven't happened yet), so we rely on a usually implicit assumption that 
+  the processes and trends of the past will continue in the future without change. 
+  In many fields (such as economics and social sciences), this assumption often proves 
   incorrect. However, in the biomedical field, as well as other sciences, we are 
-  usually studying processes that we can be fairly confident will continue to 
+  often studying processes that we can be fairly confident will continue to 
   follow the patterns of the past over any practically important prediction 
   period. For instance, we can assume with substantial confidence that the earth 
   will continue to rotate (abeit with the current pattern of deceleration), ATP 
-  will continue being used for storing and transmitting potential energy within 
+  will continue being used for transmitting potential energy within 
   a cell, and carbon will continue to have a valence of four. By contrast, 
-  something like the unpredictable emergence of a pandemic can have a dramatic
-  impact on the performance of previously developed economic models.
-  
+  something like the unforseen emergence of a pandemic can have a dramatic
+  impact on the performance of previously developed economic model.
+
 As was mentioned earlier, if you could measure e.g. the height of every individual 
   in a population of interest, then you could calculate the mean height of the 
   population exactly. If instead you measure the height of everyone in a
@@ -230,5 +265,72 @@ As was mentioned earlier, if you could measure e.g. the height of every individu
 [Return to index](#index)
 
 ---
+
+### Variances and standard deviations
+
+As we've discussed, the mean is an optimal summary of the 'central tendency' of a set 
+  of values in the 'sum-of-squares' (sum-of-squared differences) sense. Another
+  aspect of a distribution which we'd often like to quantify is how spread out the
+  values in the set are. The 'sum-of-squares' we've been discussing captures how
+  far away values are from the mean, so it might be a reasonable measure of spread
+  around the mean. However, since it is a sum, it will grow with the number of values
+  in the set, even if the new values are drawn from exactly the same distribution.
+  Instead, what we want is an average of the squared differences of the values in
+  the set from the mean. This value is called the variance of the set of values.
+
+```
+rm(list=ls())
+
+set.seed(33)
+
+## 30, 100, 300, and 1000 samples from normal distribution N(0, 1):
+x30 <- rnorm(30, mean=0, sd=1)
+x100 <- rnorm(100, mean=0, sd=1)
+x300 <- rnorm(300, mean=0, sd=1)
+x1000 <- rnorm(1000, mean=0, sd=1) 
+
+## distances of values from respective means:
+d30 <- x30 - mean(x30)
+d100 <- x100 - mean(x100)
+d300 <- x300 - mean(x300)
+d1000 <- x1000 - mean(x1000)
+
+## sum-of-squared distances: diverge
+sum(d30 ^ 2)
+sum(d100 ^ 2)
+sum(d300 ^ 2)
+sum(d1000 ^ 2)
+
+## mean-of-squared distances: converge
+mean(d30 ^ 2)
+mean(d100 ^ 2)
+mean(d300 ^ 2)
+mean(d1000 ^ 2)
+
+```
+
+The variance calculation involves squaring values, which means that the units of
+  a variance will be the square of whatever unit was being used to measure the
+  mean. For instance, if the set of values were heights measured in inches of a 
+  sample of US residents, the variance would have units of inches-squared. This 
+  is an issue for when combining the mean and variance in your calculations. 
+  For instance, if you wanted to know how large the spread was relative to the
+  mean you want a unitless number for the ratio, but dividing the variance in
+  inches-squared by the mean height in inches would yield a ratio in inches,
+  which is hard to interpret. Similary, if you wanted to graph the mean and
+  the spread along the same axis, the variance would not work, because it is
+  expressed in different units than the mean. In order to overcome these issues,
+  we often work with the square-root of the variance, which is called the
+  standard deviation. The standard deviation will always be expressed in
+  the same units as the mean, so the two can be combined sensibly in calculations
+  and when plotting.
+
+[Return to index](#index)
+
+---
+
+### Standard errors
+
+
 
 ## FIN!

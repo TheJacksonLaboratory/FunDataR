@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## A primer on programming using R: lesson 3
+## Univariate and bivariate statistics: lesson 1
 #### Contact: mitch.kostich@jax.org
 
 ---
@@ -16,7 +16,7 @@
 ### What is a mean?
 
 You are probably familiar with the notion of the 'mean' or 'average' of a 
-  series of numbers as a type of central value (the 'central tendency') for 
+  series of numbers as a type of central value (or 'central tendency') for 
   the numbers in the series. But you've probably also heard of the 'median' 
   and may know that it too, is a type of 'central tendency'. You may know the 
   difference between the two in terms of the procedures for calculating their 
@@ -280,9 +280,10 @@ As we've discussed, the mean is an optimal summary of the 'central tendency' of 
   values in the set are. The 'sum-of-squares' we've been discussing captures how
   far away values are from the mean, so it might be a reasonable measure of spread
   around the mean. However, since it is a sum, it will grow with the number of values
-  in the set, even if the new values are drawn from exactly the same distribution.
-  Instead, what we want is an average of the squared differences of the values in
-  the set from the mean. This average is called the variance of the set of values.
+  in the set, rather than converge to a single value. Instead, what we want is an 
+  average of the squared differences of the values in the set from the mean. This 
+  average squared-distance from values to the mean is called the variance of the 
+  set of values.
 
 ```
 rm(list=ls())
@@ -361,7 +362,7 @@ f.var.pop <- function(v) {
 }
 
 ## 'sample' (theoretically correct) formula for variance of v; uses
-##   "Bessel's correction":
+##   "Bessel's correction" of denominator:
 
 f.var.smp <- function(v) {
   d <- v - mean(v)
@@ -376,9 +377,11 @@ f.stat <- function(n.i, m=0, s=1, R=10000) {
 
   for(i in 1:R) {                    ## conduct R 'experiments'
     v.i <- rnorm(n.i, mean=m, sd=s)  ## v.i: random sample of size n.i from N(m, s)
+
     m.i <- mean(v.i)                 ## m.i: mean of v.i
     s2.pop.i <- f.var.pop(v.i)       ## variance of v.i based on 'population' formula
     s2.smp.i <- f.var.smp(v.i)       ## variance of v.i based on 'sample' formula
+
     means <- c(means, m.i)           ## add m.i to vector of sample means
     s2.pop <- c(s2.pop, s2.pop.i)    ## add s.pop.i to end of sds.pop
     s2.smp <- c(s2.smp, s2.smp.i)    ## add s.smp.i to end of sds2
@@ -484,15 +487,19 @@ sd(x)
 
 ```
 
-Take home message: In general, the standard error of a sample estimate of a population
+Take home messages: In general, the standard error of a sample estimate of a population
   parameter (such as the mean or standard deviation) decreases with increasing samples 
-  size, but with diminishing returns. In fact, the standard error for the mean is 
-  inversely proportional to square-root of sample size. The naive formula (same one 
-  you would use for a population) for the sample mean returns an unbiased estimator of 
-  the population mean. However, the naive formula for the sample variance
-  actually has a negative bias, which is particularly pronounced for small samples. 
-  This bias is eliminated by changing the formula to use `n - 1` instead of `n` in the 
-  denominator when averaging.
+  size, but with diminishing returns. In fact, the standard error of the mean is 
+  directly proportional to the variance of the population parameter being measured and
+  inversely proportional to square-root of sample size:
+
+`standard_error_mean = population_variance / square_root(sample_size)`
+
+We also saw that the naive formula (same one you would use for a population) for the 
+  sample mean returns an unbiased estimator of the population mean. However, the naive 
+  formula for the sample variance actually has a negative bias, which is particularly 
+  pronounced for small samples. This bias is eliminated by changing the formula to 
+  use `n - 1` instead of `n` in the denominator when averaging.
 
 The reason applying the population formula to a sample in order to estimate the population
   variance results in downwardly biased estimates can be understood in terms of
@@ -501,13 +508,13 @@ The reason applying the population formula to a sample in order to estimate the 
   from the sample mean, not the population mean (which is typically unknown). But the 
   sample mean is always a bit off from the population mean, because it is calculated from the 
   sample instead of the whole population. But since it is a mean of the values in the 
-  sample, it will always have a lower average (or sum of) squared distances to the sample
-  values than any other number, including the population mean. Therefore, the variance 
-  calculated using the population formula and the sample mean will always be a bit smaller 
-  than if the sd was calculated using the same formula and the population mean. Theoretical 
-  analysis of this problem has resulted in proofs that using the sample formula (denominator 
-  of `n - 1` instead of `n`) results in an unbiased sample-based estimate of the population
-  standard deviation.
+  sample, it will always have a lower sum of squared distances (and therefore average 
+  square distance) to the sample values than any other number, including the population 
+  mean. Therefore, the variance calculated using the population formula and the sample mean 
+  will always be a bit smaller than if the sd was calculated using the same formula and the 
+  population mean. Theoretical analysis of this problem has resulted in proofs that using 
+  the sample formula for variance (using a denominator of `n - 1` instead of `n`) results 
+  in an unbiased sample-based estimate of the population standard deviation.
 
 [Return to index](#index)
 

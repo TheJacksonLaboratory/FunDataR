@@ -505,10 +505,10 @@ The reason applying the population formula to a sample in order to estimate the 
   variance results in downwardly biased estimates can be understood in terms of
   our previous discussion about the mean minimizing the sum of squared distances to the 
   values and the fact that the variance n is calculated from the squared distances
-  from the sample mean, not the population mean (which is typically unknown). But the 
-  sample mean is always a bit off from the population mean, because it is calculated from the 
-  sample instead of the whole population. But since it is a mean of the values in the 
-  sample, it will always have a lower sum of squared distances (and therefore average 
+  from the sample mean, not the population mean (since the latter is typically unknown). 
+  But the sample mean is always a bit off from the population mean, because it is calculated 
+  from the sample instead of the whole population. But since it is a mean of the values 
+  in the sample, it will always have a lower sum of squared distances (and therefore average 
   square distance) to the sample values than any other number, including the population 
   mean. Therefore, the variance calculated using the population formula and the sample mean 
   will always be a bit smaller than if the sd was calculated using the same formula and the 

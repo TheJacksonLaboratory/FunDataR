@@ -187,19 +187,19 @@ str(x <- list(logical=T, integer=1L, numeric=1, character="1"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE 
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
 sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
-sapply(x, as.character)
+sapply(x, as.character)           ## mostly just quotes stuff; T -> 'TRUE'
 
 str(x <- list(logical=F, integer=0L, numeric=0, character="0"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
 sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
-sapply(x, as.character)
+sapply(x, as.character)           ## mostly just quotes stuff; T -> 'TRUE'
 
 str(x <- list(logical=F, integer=-3L, numeric=-0.1, character="-1.6e5"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
 sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
-sapply(x, as.character)
+sapply(x, as.character)           ## mostly just quotes stuff; T -> 'TRUE'
 
 ```
 
@@ -431,8 +431,8 @@ rm(list=ls())                     ## fresh slate
 
 ## '\n' is carriage return, or end-of-line marker:
 
-if(T) cat("yes\n")            ## a whole expression; end-of-line executes
-if(F) cat("yes\n")            ## nothing printed since false
+if(T) cat("yes\n")                ## a whole expression; end-of-line executes
+if(F) cat("yes\n")                ## nothing printed since false
 
 ## wrong way to 'if else' across lines:
 

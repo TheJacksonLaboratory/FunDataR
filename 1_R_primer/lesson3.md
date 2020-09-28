@@ -187,19 +187,19 @@ str(x <- list(logical=T, integer=1L, numeric=1, character="1"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE 
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
 sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
-sapply(x, as.character)
+sapply(x, as.character)           ## mostly just quotes stuff; T -> 'TRUE'
 
 str(x <- list(logical=F, integer=0L, numeric=0, character="0"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
 sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
-sapply(x, as.character)
+sapply(x, as.character)           ## mostly just quotes stuff; T -> 'TRUE'
 
 str(x <- list(logical=F, integer=-3L, numeric=-0.1, character="-1.6e5"))
 sapply(x, as.logical)             ## numeric/integer 0 is FALSE; else TRUE
 sapply(x, as.integer)             ## logical TRUE -> 1L, FALSE -> 0L
 sapply(x, as.numeric)             ## logical TRUE -> 1, FALSE -> 0
-sapply(x, as.character)
+sapply(x, as.character)           ## mostly just quotes stuff; T -> 'TRUE'
 
 ```
 
@@ -290,11 +290,9 @@ Standard floating point representations in any programming language include seve
 ```
 rm(list=ls())                     ## fresh slate
 
-(x <- c(ninf=-1 / 0, nan=0 / 0, inf=1 / 0))    ## note 0/0 is NA, not Inf
-is.finite(x)
-is.infinite(x)
-is.nan(x)
-is.na(x)
+1 / 0
+-1 / 0
+0 / 0
 
 (x <- c(ninf=-Inf, na=NA, nan=NaN, inf=Inf))
 is.finite(x)
@@ -433,10 +431,15 @@ rm(list=ls())                     ## fresh slate
 
 ## '\n' is carriage return, or end-of-line marker:
 
-if(T) cat("yes\n")            ## a whole expression; end-of-line executes
-if(F) cat("yes\n")            ## nothing printed since false
+if(T) cat("yes\n")                ## a whole expression; end-of-line executes
+if(F) cat("yes\n")                ## nothing printed since false
 
-## right way to 'if else':
+## wrong way to 'if else' across lines:
+
+if(F) { cat("yes\n") }            ## a complete expression; executed at end-of-line
+else { cat("no\n") }              ## oops! expression starting w/ 'else' not valid
+
+## right way to 'if else' across lines:
 
 if(F) {                           ## expression won't be done till block closed w/ '}'
   cat("yes\n")                    ## first line in 'if' block of code
@@ -445,11 +448,6 @@ if(F) {                           ## expression won't be done till block closed 
   cat("no\n")                     ## first line of 'else' block
   cat("is false\n")               ## second/last line of 'else' block
 }                                 ## 'else' block complete, end-of-line executes
-
-## wrong way to 'if else':
-
-if(F) { cat("yes\n") }            ## a complete expression; executed at end-of-line
-else { cat("no\n") }              ## oops! expression starting w/ 'else' not valid
 
 ## braces are optional:
 
@@ -460,7 +458,7 @@ if(F) cat("yes\n") else cat("no\n")  ## one-liner
 
 x <- 0
 if(x < 0) {
-    cat(x, "is less than zero\n")
+    cat(x, "is less than zero\n")   ## can mix variables and literals w/ cat()
 } else if(x == 1) {
     cat(x, "is one\n")        
 } else if(x > 0) {
@@ -486,7 +484,7 @@ if(identical(y, i)) {
   cat("identical\n") 
 } else cat("not identical\n")
 
-## the right way: more robust to potential error conditions
+## the right way; more robust to potential errors:
 
 if(isTRUE(all.equal(y, i))) {
   cat("close enough\n") 
@@ -500,12 +498,13 @@ In R, `while()` loops have a fairly simple structure:
 rm(list=ls())                    ## fresh slate
 
 x <- 1
-while(x < 10) x <- x + 1
+while(x < 10) 
+  x <- x + 1
 x
 
 x <- 1
 while(x < 10) {
-  cat("x:", x, "\n")             ## can mix literals and variables
+  cat("x:", x, "\n")
   x <- x + 1
 }
 x
@@ -526,12 +525,14 @@ In R, `for()` loops can be used to iterate over sequences of values:
 rm(list=ls())                     ## fresh slate
 
 (x <- 1:10)                       ## vector over which to iterate
-for(x.i in x) cat("x.i:", x.i, "\n")
+for(x.i in x) 
+  cat("x.i:", x.i, "\n")
 
 ## iterate over a list:
 
 x <- list(weight=37, colors=c('red', 'green', 'blue'), is.even=F)
-for(x.i in x) cat("x.i:", x.i, "length(x.i):", length(x.i), "\n")
+for(x.i in x) 
+  cat("x.i:", x.i, "length(x.i):", length(x.i), "\n")
 
 x <- 1:10
 for(x.i in x) {

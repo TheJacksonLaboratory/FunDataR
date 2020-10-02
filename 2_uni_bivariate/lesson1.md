@@ -11,6 +11,7 @@
 - [Populations and samples](#populations-and-samples)
 - [Variances and standard deviations](#variances-and-standard-deviations)
 - [Standard errors and bias](#standard-errors-and-bias)
+- [Distribution of estimates of the mean](#distribution-of-estimates-of-the-mean)
 
 - [Check 1](#check-your-understanding-1)
 
@@ -536,6 +537,57 @@ As an aside: the reason applying the population formula to a sample in order to 
   the sample formula for variance (using a denominator of `n - 1` instead of `n`) results 
   in an unbiased sample-based estimate of the population standard deviation, as we 
   observed in our experiments.
+
+[Return to index](#index)
+
+---
+
+### Distribution of estimates of the mean
+
+So we have now seen that if we repeatedly sample a very large (or infinite, in our case)
+  population and calculate the mean for each sample, we have seen that the mean of these
+  sample means is centered around the population mean. This means that the sample mean
+  is an 'unbiased estimator' of the population mean. We have also seen that the spread of 
+  these sample means around the population mean decreases with inceasing sample size. 
+  However, the spread of sample means reflects an important aspect of the population:
+  the more dispersed the population mean, the more dispersed is the distribution of the
+  sample means. However, the shape of the distribution of sample means does not necessarily
+  reflect the shape of the underlying population:
+
+```
+rm(list=ls())
+
+set.seed(10)
+
+m3 <- numeric(0) 
+
+for(i in 1:1e5) {
+  z_i <- runif(3, min=0, max=10)
+  m_i <- mean(z_i)
+  m3 <- c(m3, m_i)
+}
+
+m30 <- numeric(0) 
+
+for(i in 1:1e5) {
+  z_i <- runif(30, min=0, max=10)
+  m_i <- mean(z_i)
+  m30 <- c(m30, m_i)
+}
+
+par(mfrow=c(1, 2))        ## plotting area split into 1 row, 2 columns
+hist(m3)                  ## in first column
+hist(m30)                 ## in second column
+par(mfrow=c(1, 1))        ## reset plotting area to 1 row, 1 column
+
+```
+
+Here we can see that even though the shape of the population being sampled is uniform (should look
+  more or less like a rectangle with uniform height between 0 and 10), the shape of the 
+  distribution of sample means is bell shaped. In fact, the distribution of sample means of any
+  continuous distribution will have the familiar bell-shaped normal distribution, with the mean of
+  that normal distribution falling around the population mean (unbiased) and with the standard deviation
+  of that normal distribution (the other parameter) being equal to the standard error of the mean.
 
 [Return to index](#index)
 

@@ -1,17 +1,37 @@
 # Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: lesson 1
+## Univariate and bivariate statistics: bias and standard error
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
+- [Lesson goals](#lesson-goals)
 - [What is a mean?](#what-is-a-mean)
 - [Populations and samples](#populations-and-samples)
 - [Variances and standard deviations](#variances-and-standard-deviations)
 - [Standard errors and bias](#standard-errors-and-bias)
 
 - [Check 1](#check-your-understanding-1)
+
+### Lesson goals:
+
+1) Know how to calculate the mean, variance and standard deviation of a sample.
+
+2) Have feel for the shape of the normal (aka Gaussian) distribution and the
+   uniform distribution. Know how to draw random samples from each.
+
+3) Learn how to do basic histograms and 2D plots; get a feel for how changing
+   the number of histogram bins affects the output.
+
+3) Understand the difference between a population statistic (e.g. mean or 
+   standard deviation) and the corresponding sample statistic.
+
+4) Understand the two components of estimate accuracy: standard error and bias.
+
+5) Get a feel for how changing sample sizes changes the accuracy of 
+   population parameter estimates.
+
 
 ### What is a mean?
 

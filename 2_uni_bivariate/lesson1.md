@@ -346,11 +346,11 @@ The variance calculation involves squaring values, which results in the units of
   mean you want a unitless number for the ratio, but dividing the variance in
   inches-squared by the mean height in inches would yield a ratio in inches,
   which is hard to interpret. Similary, if you wanted to graph the mean and
-  the spread along the same axis, the variance would not work, because it is
-  expressed in different units than the mean. In order to overcome these issues,
-  we often work with the square-root of the variance, which is called the
-  standard deviation. The standard deviation will always be expressed in
-  the same units as the mean, so the two can be combined more sensibly in 
+  the spread along the same axis, using the variance might be confusing, because 
+  it is expressed in different units than the mean. In order to overcome these 
+  issues, we often work with the square-root of the variance, which is called 
+  the standard deviation. The standard deviation will always be expressed in
+  the same units as the mean, so the two can be combined more intuitively in 
   calculations and when plotting.
 
 [Return to index](#index)
@@ -524,17 +524,18 @@ We also saw that the naive formula (same one you would use for a population) for
 As an aside: the reason applying the population formula to a sample in order to estimate 
   the population variance results in downwardly biased estimates can be understood in terms 
   of our previous discussion about the mean minimizing the sum of squared distances to the 
-  values and the fact that the variance n is calculated from the squared distances
+  values and the fact that the variance is calculated from the squared distances
   from the sample mean, not the population mean (since the latter is typically unknown). 
   But the sample mean is always a bit off from the population mean, because it is calculated 
-  from the sample instead of the whole population. But since it is a mean of the values 
-  in the sample, it will always have a lower sum of squared distances (and therefore average 
-  square distance) to the sample values than any other number, including the population 
-  mean. Therefore, the variance calculated using the population formula and the sample mean 
+  from the sample instead of the whole population. But the sample mean will always 
+  have a lower sum of squared distances (and therefore average square distance) to the 
+  sample values than any other number, including the population mean. Therefore, the 
+  variance calculated by using the population formula plugging and the sample mean
   will always be a bit smaller than if the sd was calculated using the same formula and the 
   population mean. Theoretical analysis of this problem has resulted in proofs that using 
   the sample formula for variance (using a denominator of `n - 1` instead of `n`) results 
-  in an unbiased sample-based estimate of the population standard deviation.
+  in an unbiased sample-based estimate of the population standard deviation, as we 
+  observed in our experiments.
 
 [Return to index](#index)
 

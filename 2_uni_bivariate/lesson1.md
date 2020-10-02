@@ -13,13 +13,16 @@
 - [Standard errors and bias](#standard-errors-and-bias)
 - [Distribution of estimates of the mean](#distribution-of-estimates-of-the-mean)
 
+### Check your understanding
+
 - [Check 1](#check-your-understanding-1)
+- [Check 2](#check-your-understanding-2)
 
 ### Lesson goals:
 
-1) Know how to calculate the mean, variance and standard deviation of a sample.
+1) Learn how to calculate the mean, variance and standard deviation of a sample using R.
 
-2) Have feel for the shape of the normal (aka Gaussian) distribution and the
+2) Acquire a feel for the shape of the normal (aka Gaussian) distribution and the
    uniform distribution. Know how to draw random samples from each.
 
 3) Learn how to do basic histograms and 2D plots; get a feel for how changing
@@ -588,6 +591,20 @@ Here we can see that even though the shape of the population being sampled is un
   continuous distribution will have the familiar bell-shaped normal distribution, with the mean of
   that normal distribution falling around the population mean (unbiased) and with the standard deviation
   of that normal distribution (the other parameter) being equal to the standard error of the mean.
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 2:
+
+1) Generate a loop that draws 10000 samples of size 10 from a uniform distribution on the interval [-1, 1].
+
+2) Add to your loop in order to create a vector (length == 10000) of the standard deviations for each sample.
+
+3) Make a histogram of the distribution of standard deviations.
+
+4) Repeat this process for a uniform distribution on the interval [-100, 100].
 
 [Return to index](#index)
 

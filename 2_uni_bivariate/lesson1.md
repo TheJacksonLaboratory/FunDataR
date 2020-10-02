@@ -1,17 +1,41 @@
 # Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: lesson 1
+## Univariate and bivariate statistics: bias and standard error
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
+- [Lesson goals](#lesson-goals)
 - [What is a mean?](#what-is-a-mean)
 - [Populations and samples](#populations-and-samples)
 - [Variances and standard deviations](#variances-and-standard-deviations)
 - [Standard errors and bias](#standard-errors-and-bias)
 
 - [Check 1](#check-your-understanding-1)
+
+### Lesson goals:
+
+1) Know how to calculate the mean, variance and standard deviation of a sample.
+
+2) Have feel for the shape of the normal (aka Gaussian) distribution and the
+   uniform distribution. Know how to draw random samples from each.
+
+3) Learn how to do basic histograms and 2D plots; get a feel for how changing
+   the number of histogram bins affects the output.
+
+3) Understand the difference between a population statistic (e.g. mean or 
+   standard deviation) and the corresponding sample statistic.
+
+4) Understand the two components of estimate accuracy: standard error and bias.
+
+5) Get a feel for how increasing sample sizes changes the accuracy of 
+   population parameter estimates.
+
+[Return to index](#index)
+
+---
+
 
 ### What is a mean?
 
@@ -27,10 +51,12 @@ You are probably familiar with the notion of the 'mean' or 'average' of a
 
 `sum(x) / length(x)`
 
-R also provides the predefined (and compiled, so more
-  efficient) function `mean(x)` for this purpose.
+R also provides the predefined function `mean(x)` for this purpose. Unlike
+  our R expression above, the function `mean()` is compiled byte code, the 
+  execution of which can often result in faster execution than using an R 
+  expression like the one above.
 
-Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
+Let's take 1000 random numbers from a normal distribution,
   calculate their mean and plot the results. In this case (plotting a 
   single variable `z`), the horizontal/bottom axis indicates the order 
   in which the numbers occur in `z`. The vertical/left axis indicates
@@ -43,28 +69,28 @@ Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
 rm(list=ls())
 
 set.seed(1)
-(z <- rnorm(1000, mean=100, sd=10))
+str(z <- rnorm(1000, mean=100, sd=10))
 mean(z)
 
 ## let's see what this distribution looks like:
-hist(z)                           ## peaked toward center, much less in tails
+hist(z)                               ## peaked toward center, much less in tails
 
 ## let's make a 2D plot (values on vertical axis, order on horizontal):
-plot(z)                           ## 2D-plot; values cluster towards mean
-abline(h=mean(z), col='cyan')     ## add a h(orizontal) line at mean(z)
+plot(z)                               ## 2D-plot; values cluster towards mean
+abline(h=mean(z), col='cyan', lty=2)  ## add a h(orizontal) line at mean(z)
 
 ```
 
 Now let's repeat the same, but drawing from a uniform distribution in the 
   numeric (includes fractional numbers) closed (includes endpoints) 
-  interval [90, 110]. We'll often sample from this distribution, so 
+  interval [90, 110]. We'll often sample from a uniform distribution, so 
   it is good to get a feel for it:
 
 ```
 rm(list=ls())
 
 set.seed(1)
-(z <- runif(1000, min=80, max=120))
+str(z <- runif(1000, min=80, max=120))
 mean(z)
 
 ## let's see what this distribution looks like:
@@ -119,7 +145,7 @@ f.ss(2)                            ## (2 - 0)^2 == 4
 f.ss(0, 0)                         ## (0 - 0)^2 == 0
 f.ss(0, 1)                         ## (0 - 1)^2 == 1
 f.ss(1, 1)                         ## (1 - 1)^2 == 0
-f.ss(0, c(0, 1))                   ## oops! length(m) != 1 or length(v)
+f.ss(0, c(0, 1))                   ## ok: complain if length(m) not 1 or length(v)
 f.ss(c(1, 0), 0)                   ## (1 - 0)^2 + (0 - 0)^2 == 1
 f.ss(c(1, 0), c(0, 1))             ## (1 - 0)^2 + (0 - 1)^2 == 2
 f.ss(c(2, 0), c(0, 2))             ## (2 - 0)^2 + (0 - 2)^2 == 8
@@ -139,8 +165,8 @@ f.ss(z, 200)                       ## seems like it in this direction?
 ##   3 peaked mixture of 2 uniforms and one normal:
 
 z <- c(
-  rnorm(50, mean=100, sd=10),      ## 50 draws from N(100, 10)
-  runif(50, min=50, max=75),       ## 50 draws from uniform on interval [50, 75]
+  rnorm(150, mean=100, sd=10),     ## 150 draws from N(100, 10)
+  runif(100, min=50, max=75),      ## 100 draws from uniform on interval [50, 75]
   runif(50, min=125, max=150)      ## 50 draws from uniform on interval [125, 150]
 )
 z
@@ -157,6 +183,7 @@ f.ss(z, 200)                       ## seems like it in this direction?
 
 f <- function(a, b) f.ss(b, a)     ## flip the order of args so works with 'sapply()'
 m <- seq(from=1, to=200, by=0.01)  ## values to try for 'm'; will be 'x' axis
+str(m)
 penalty <- sapply(m, f, z)         ## calculate the penalty at each value of 'm'; 'y' axis
 plot(x=m, y=penalty)               ## single minimum (no local minima), 'convex' shape
 abline(v=mean(z), col='cyan')      ## v(ertical) line where m=mean(z)
@@ -175,11 +202,11 @@ round(mean(z), 2)                  ## mean(z) with precision matching 'm'
 ```
 
 Implications of the mean of a numeric set mimimizing the sum-of-squared distances to all 
-  values in the set extend to both summarizing data and making predictions about unobserved 
+  values in the set extend to both summarizing data and predicting/imputing unobserved 
   values. If you were to summarize the values in the set with a single value, the mean would 
   be least incorrect of all possible answers, if correctness is quantified by the total 
   squared distance from (how far 'off') values in the set are from the estimate.
-  Similarly, if I were to draw one value from the set and ask you to predict 
+  Similarly, if someone were to draw one value from the set and ask you to predict 
   what the value was, penalizing you with the square of how far off your guess was,
   on average (if we repeated the experiment many, many times and averaged the penalties), 
   your best possible guess would be the mean of the set.
@@ -228,8 +255,9 @@ The most important thing about using samples to make estimates about populations
   next million years the earth will continue to rotate (abeit with the current 
   pattern of deceleration), ATP will continue being used for transmitting potential 
   energy within a cell, and carbon will continue to have a valence of four. By 
-  contrast, unexpected remotely related occurrence, such as a trade war or pandemic, 
-  can drastically affect the accuracy of predictive economic models.
+  contrast, one unexpected remotely related occurrence, such as a trade war or 
+  pandemic, can drastically affect the predictive accuracy of even near-term 
+  economic models.
 
 As was mentioned earlier, if you could measure e.g. the height of every individual 
   in a population of interest, then you could calculate the mean height of the 
@@ -282,37 +310,30 @@ As we've discussed, the mean is an optimal summary of the 'central tendency' of 
   around the mean. However, since it is a sum, it will grow with the number of values
   in the set, rather than converge to a single value. Instead, what we want is an 
   average of the squared differences of the values in the set from the mean. This 
-  average squared-distance from values to the mean is called the variance of the 
+  average squared-distance from values to the mean is called the 'variance' of the 
   set of values.
 
 ```
 rm(list=ls())
 
-set.seed(33)
+set.seed(3)
 
-## 30, 100, 300, and 1000 samples from normal distribution N(0, 1):
-x30 <- rnorm(30, mean=0, sd=1)
-x100 <- rnorm(100, mean=0, sd=1)
-x300 <- rnorm(300, mean=0, sd=1)
-x1000 <- rnorm(1000, mean=0, sd=1) 
+## samples of various sizes from a 'population' (the normal distribution N(0, 1)):
 
-## distances of values from respective means:
-d30 <- x30 - mean(x30)
-d100 <- x100 - mean(x100)
-d300 <- x300 - mean(x300)
-d1000 <- x1000 - mean(x1000)
+(x <- 10 ^ (1 : 6))
+names(x) <- as.character(x)
+x
 
-## sum-of-squared distances: diverge
-sum(d30 ^ 2)
-sum(d100 ^ 2)
-sum(d300 ^ 2)
-sum(d1000 ^ 2)
+y <- sapply(x, rnorm, mean=0, sd=1)      ## one sample for each element of x
+d <- sapply(y, function(v) v - mean(v))  ## distances from sample elements to respective sample means
+d2 <- sapply(d, function(v) v * v)       ## square the distances
 
-## mean-of-squared distances: converge
-mean(d30 ^ 2)
-mean(d100 ^ 2)
-mean(d300 ^ 2)
-mean(d1000 ^ 2)
+str(y)
+str(d)
+str(d2)
+
+sapply(d2, sum)                          ## increasing sample size diverges
+sapply(d2, mean)                         ## increasing sample size converges towards population variance of 1
 
 ```
 
@@ -325,12 +346,12 @@ The variance calculation involves squaring values, which results in the units of
   mean you want a unitless number for the ratio, but dividing the variance in
   inches-squared by the mean height in inches would yield a ratio in inches,
   which is hard to interpret. Similary, if you wanted to graph the mean and
-  the spread along the same axis, the variance would not work, because it is
-  expressed in different units than the mean. In order to overcome these issues,
-  we often work with the square-root of the variance, which is called the
-  standard deviation. The standard deviation will always be expressed in
-  the same units as the mean, so the two can be combined sensibly in calculations
-  and when plotting.
+  the spread along the same axis, using the variance might be confusing, because 
+  it is expressed in different units than the mean. In order to overcome these 
+  issues, we often work with the square-root of the variance, which is called 
+  the standard deviation. The standard deviation will always be expressed in
+  the same units as the mean, so the two can be combined more intuitively in 
+  calculations and when plotting.
 
 [Return to index](#index)
 
@@ -352,8 +373,6 @@ rm(list=ls())
 
 set.seed(1)
 
-(n <- (2 : 20) ^ 2)                  ## a series of sample sizes to try
-
 ## 'population' (naive) formula for variance of v:
 
 f.var.pop <- function(v) {
@@ -371,8 +390,8 @@ f.var.smp <- function(v) {
 
 f.stat <- function(n.i, m=0, s=1, R=10000) {
 
-  means <- numeric(0)                ## numeric vector of length 0 (empty)
-  s2.pop <- numeric(0)               ## empty numeric vector
+  means <- numeric(length=0)         ## numeric vector of length 0 (empty)
+  s2.pop <- numeric(0)               ## empty numeric vector ('length' optional)
   s2.smp <- numeric(0)               ## empty numeric
 
   for(i in 1:R) {                    ## conduct R 'experiments'
@@ -397,6 +416,7 @@ f.stat <- function(n.i, m=0, s=1, R=10000) {
   c(bias.m=bias.m, se.m=se.m, bias.s2.pop=bias.s2.pop, se.s2.pop=se.s2.pop, bias.s2.smp=bias.s2.smp, se.s2.smp=se.s2.smp)
 }
 
+(n <- (2 : 20) ^ 2)                  ## a series of sample sizes to try
 (rslt <- sapply(n, f.stat))
 t(rslt)
 (rslt <- cbind(n=n, t(rslt)))
@@ -488,7 +508,7 @@ sd(x)
 ```
 
 Take home messages: In general, the standard error of a sample estimate of a population
-  parameter (such as the mean or standard deviation) decreases with increasing samples 
+  parameter (such as the mean or standard deviation) decreases with increasing sample 
   size, but with diminishing returns. In fact, the standard error of the mean is 
   directly proportional to the variance of the population parameter being measured and
   inversely proportional to square-root of sample size:
@@ -501,20 +521,21 @@ We also saw that the naive formula (same one you would use for a population) for
   pronounced for small samples. This bias is eliminated by changing the formula to 
   use `n - 1` instead of `n` in the denominator when averaging.
 
-The reason applying the population formula to a sample in order to estimate the population
-  variance results in downwardly biased estimates can be understood in terms of
-  our previous discussion about the mean minimizing the sum of squared distances to the 
-  values and the fact that the variance n is calculated from the squared distances
+As an aside: the reason applying the population formula to a sample in order to estimate 
+  the population variance results in downwardly biased estimates can be understood in terms 
+  of our previous discussion about the mean minimizing the sum of squared distances to the 
+  values and the fact that the variance is calculated from the squared distances
   from the sample mean, not the population mean (since the latter is typically unknown). 
   But the sample mean is always a bit off from the population mean, because it is calculated 
-  from the sample instead of the whole population. But since it is a mean of the values 
-  in the sample, it will always have a lower sum of squared distances (and therefore average 
-  square distance) to the sample values than any other number, including the population 
-  mean. Therefore, the variance calculated using the population formula and the sample mean 
+  from the sample instead of the whole population. But the sample mean will always 
+  have a lower sum of squared distances (and therefore average square distance) to the 
+  sample values than any other number, including the population mean. Therefore, the 
+  variance calculated by using the population formula plugging and the sample mean
   will always be a bit smaller than if the sd was calculated using the same formula and the 
   population mean. Theoretical analysis of this problem has resulted in proofs that using 
   the sample formula for variance (using a denominator of `n - 1` instead of `n`) results 
-  in an unbiased sample-based estimate of the population standard deviation.
+  in an unbiased sample-based estimate of the population standard deviation, as we 
+  observed in our experiments.
 
 [Return to index](#index)
 

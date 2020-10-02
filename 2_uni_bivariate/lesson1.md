@@ -54,10 +54,7 @@ You are probably familiar with the notion of the 'mean' or 'average' of a
 R also provides the predefined function `mean(x)` for this purpose. Unlike
   our R expression above, the function `mean()` is compiled byte code, the 
   execution of which can often result in faster execution than using an R 
-  expression like the one above:
-
-```
-
+  expression like the one above.
 
 Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
   calculate their mean and plot the results. In this case (plotting a 

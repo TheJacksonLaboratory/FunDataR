@@ -7,10 +7,10 @@
 ### Index
 
 - [Lesson goals](#lesson-goals)
-- [Estimating means](#estimating-means-of-continuous)
+- [Estimating means](#estimating-means)
 - [Estimating proportions](#estimating-proportions)
-- [Comparing means to a prior value](#comparing-means-to-a-prior-value)
-- [Comparing proportions to a prior value](#comparing-proportions-to-a-prior-value)
+- [Comparing means with prior values](#comparing-means-with-prior-values)
+- [Comparing proportions with prior values](#comparing-proportions-with-prior-values)
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
@@ -59,7 +59,7 @@ some code here
 
 ---
 
-### Comparing means to prior values
+### Comparing means with prior values
 
 Some stuff here.
 
@@ -72,7 +72,7 @@ some code here
 
 ---
 
-### Comparing proportions to prior values
+### Comparing proportions with prior values
 
 Some stuff here.
 

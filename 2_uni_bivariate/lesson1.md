@@ -27,8 +27,13 @@ You are probably familiar with the notion of the 'mean' or 'average' of a
 
 `sum(x) / length(x)`
 
-R also provides the predefined (and compiled, so more
-  efficient) function `mean(x)` for this purpose.
+R also provides the predefined function `mean(x)` for this purpose. Unlike
+  our R expression above, the function `mean()` is compiled byte code, the 
+  execution of which can often result in faster execution than using an R 
+  expression like the one above:
+
+```
+
 
 Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
   calculate their mean and plot the results. In this case (plotting a 
@@ -43,21 +48,21 @@ Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
 rm(list=ls())
 
 set.seed(1)
-(z <- rnorm(1000, mean=100, sd=10))
+str(z <- rnorm(1000, mean=100, sd=10))
 mean(z)
 
 ## let's see what this distribution looks like:
-hist(z)                           ## peaked toward center, much less in tails
+hist(z)                               ## peaked toward center, much less in tails
 
 ## let's make a 2D plot (values on vertical axis, order on horizontal):
-plot(z)                           ## 2D-plot; values cluster towards mean
-abline(h=mean(z), col='cyan')     ## add a h(orizontal) line at mean(z)
+plot(z)                               ## 2D-plot; values cluster towards mean
+abline(h=mean(z), col='cyan', lty=2)  ## add a h(orizontal) line at mean(z)
 
 ```
 
 Now let's repeat the same, but drawing from a uniform distribution in the 
   numeric (includes fractional numbers) closed (includes endpoints) 
-  interval [90, 110]. We'll often sample from this distribution, so 
+  interval [90, 110]. We'll often sample from a uniform distribution, so 
   it is good to get a feel for it:
 
 ```
@@ -119,7 +124,7 @@ f.ss(2)                            ## (2 - 0)^2 == 4
 f.ss(0, 0)                         ## (0 - 0)^2 == 0
 f.ss(0, 1)                         ## (0 - 1)^2 == 1
 f.ss(1, 1)                         ## (1 - 1)^2 == 0
-f.ss(0, c(0, 1))                   ## oops! length(m) != 1 or length(v)
+f.ss(0, c(0, 1))                   ## complain if length(m) not 1 or length(v)
 f.ss(c(1, 0), 0)                   ## (1 - 0)^2 + (0 - 0)^2 == 1
 f.ss(c(1, 0), c(0, 1))             ## (1 - 0)^2 + (0 - 1)^2 == 2
 f.ss(c(2, 0), c(0, 2))             ## (2 - 0)^2 + (0 - 2)^2 == 8
@@ -139,8 +144,8 @@ f.ss(z, 200)                       ## seems like it in this direction?
 ##   3 peaked mixture of 2 uniforms and one normal:
 
 z <- c(
-  rnorm(50, mean=100, sd=10),      ## 50 draws from N(100, 10)
-  runif(50, min=50, max=75),       ## 50 draws from uniform on interval [50, 75]
+  rnorm(150, mean=100, sd=10),     ## 150 draws from N(100, 10)
+  runif(100, min=50, max=75),      ## 100 draws from uniform on interval [50, 75]
   runif(50, min=125, max=150)      ## 50 draws from uniform on interval [125, 150]
 )
 z
@@ -228,8 +233,9 @@ The most important thing about using samples to make estimates about populations
   next million years the earth will continue to rotate (abeit with the current 
   pattern of deceleration), ATP will continue being used for transmitting potential 
   energy within a cell, and carbon will continue to have a valence of four. By 
-  contrast, unexpected remotely related occurrence, such as a trade war or pandemic, 
-  can drastically affect the accuracy of predictive economic models.
+  contrast, one unexpected remotely related occurrence, such as a trade war or 
+  pandemic, can drastically affect the predictive accuracy of even near-term 
+  economic models.
 
 As was mentioned earlier, if you could measure e.g. the height of every individual 
   in a population of interest, then you could calculate the mean height of the 
@@ -282,37 +288,30 @@ As we've discussed, the mean is an optimal summary of the 'central tendency' of 
   around the mean. However, since it is a sum, it will grow with the number of values
   in the set, rather than converge to a single value. Instead, what we want is an 
   average of the squared differences of the values in the set from the mean. This 
-  average squared-distance from values to the mean is called the variance of the 
+  average squared-distance from values to the mean is called the 'variance' of the 
   set of values.
 
 ```
 rm(list=ls())
 
-set.seed(33)
+set.seed(3)
 
-## 30, 100, 300, and 1000 samples from normal distribution N(0, 1):
-x30 <- rnorm(30, mean=0, sd=1)
-x100 <- rnorm(100, mean=0, sd=1)
-x300 <- rnorm(300, mean=0, sd=1)
-x1000 <- rnorm(1000, mean=0, sd=1) 
+## samples of various sizes from a 'population' (the normal distribution N(0, 1)):
 
-## distances of values from respective means:
-d30 <- x30 - mean(x30)
-d100 <- x100 - mean(x100)
-d300 <- x300 - mean(x300)
-d1000 <- x1000 - mean(x1000)
+(x <- 10 ^ (1 : 6))
+names(x) <- as.character(x)
+x
 
-## sum-of-squared distances: diverge
-sum(d30 ^ 2)
-sum(d100 ^ 2)
-sum(d300 ^ 2)
-sum(d1000 ^ 2)
+y <- sapply(x, rnorm, mean=0, sd=1)      ## one sample for each element of x
+d <- sapply(y, function(v) v - mean(v))  ## distances from sample elements to respective sample means
+d2 <- sapply(d, function(v) v * v)       ## square the distances
 
-## mean-of-squared distances: converge
-mean(d30 ^ 2)
-mean(d100 ^ 2)
-mean(d300 ^ 2)
-mean(d1000 ^ 2)
+str(y)
+str(d)
+str(d2)
+
+sapply(d2, sum)                          ## increasing sample size diverges
+sapply(d2, mean)                         ## increasing sample size converges towards population variance of 1
 
 ```
 
@@ -329,8 +328,8 @@ The variance calculation involves squaring values, which results in the units of
   expressed in different units than the mean. In order to overcome these issues,
   we often work with the square-root of the variance, which is called the
   standard deviation. The standard deviation will always be expressed in
-  the same units as the mean, so the two can be combined sensibly in calculations
-  and when plotting.
+  the same units as the mean, so the two can be combined more sensibly in 
+  calculations and when plotting.
 
 [Return to index](#index)
 
@@ -352,8 +351,6 @@ rm(list=ls())
 
 set.seed(1)
 
-(n <- (2 : 20) ^ 2)                  ## a series of sample sizes to try
-
 ## 'population' (naive) formula for variance of v:
 
 f.var.pop <- function(v) {
@@ -371,8 +368,8 @@ f.var.smp <- function(v) {
 
 f.stat <- function(n.i, m=0, s=1, R=10000) {
 
-  means <- numeric(0)                ## numeric vector of length 0 (empty)
-  s2.pop <- numeric(0)               ## empty numeric vector
+  means <- numeric(length=0)         ## numeric vector of length 0 (empty)
+  s2.pop <- numeric(0)               ## empty numeric vector ('length' optional)
   s2.smp <- numeric(0)               ## empty numeric
 
   for(i in 1:R) {                    ## conduct R 'experiments'
@@ -397,6 +394,7 @@ f.stat <- function(n.i, m=0, s=1, R=10000) {
   c(bias.m=bias.m, se.m=se.m, bias.s2.pop=bias.s2.pop, se.s2.pop=se.s2.pop, bias.s2.smp=bias.s2.smp, se.s2.smp=se.s2.smp)
 }
 
+(n <- (2 : 20) ^ 2)                  ## a series of sample sizes to try
 (rslt <- sapply(n, f.stat))
 t(rslt)
 (rslt <- cbind(n=n, t(rslt)))

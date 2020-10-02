@@ -32,6 +32,10 @@
 5) Get a feel for how changing sample sizes changes the accuracy of 
    population parameter estimates.
 
+[Return to index](#index)
+
+---
+
 
 ### What is a mean?
 

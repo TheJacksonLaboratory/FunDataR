@@ -29,7 +29,7 @@
 
 4) Understand the two components of estimate accuracy: standard error and bias.
 
-5) Get a feel for how changing sample sizes changes the accuracy of 
+5) Get a feel for how increasing sample sizes changes the accuracy of 
    population parameter estimates.
 
 [Return to index](#index)
@@ -56,7 +56,7 @@ R also provides the predefined function `mean(x)` for this purpose. Unlike
   execution of which can often result in faster execution than using an R 
   expression like the one above.
 
-Let's take 1000 random numbers from a normal (a.k.a. Gaussian) distribution,
+Let's take 1000 random numbers from a normal distribution,
   calculate their mean and plot the results. In this case (plotting a 
   single variable `z`), the horizontal/bottom axis indicates the order 
   in which the numbers occur in `z`. The vertical/left axis indicates
@@ -90,7 +90,7 @@ Now let's repeat the same, but drawing from a uniform distribution in the
 rm(list=ls())
 
 set.seed(1)
-(z <- runif(1000, min=80, max=120))
+str(z <- runif(1000, min=80, max=120))
 mean(z)
 
 ## let's see what this distribution looks like:
@@ -145,7 +145,7 @@ f.ss(2)                            ## (2 - 0)^2 == 4
 f.ss(0, 0)                         ## (0 - 0)^2 == 0
 f.ss(0, 1)                         ## (0 - 1)^2 == 1
 f.ss(1, 1)                         ## (1 - 1)^2 == 0
-f.ss(0, c(0, 1))                   ## complain if length(m) not 1 or length(v)
+f.ss(0, c(0, 1))                   ## ok: complain if length(m) not 1 or length(v)
 f.ss(c(1, 0), 0)                   ## (1 - 0)^2 + (0 - 0)^2 == 1
 f.ss(c(1, 0), c(0, 1))             ## (1 - 0)^2 + (0 - 1)^2 == 2
 f.ss(c(2, 0), c(0, 2))             ## (2 - 0)^2 + (0 - 2)^2 == 8
@@ -183,6 +183,7 @@ f.ss(z, 200)                       ## seems like it in this direction?
 
 f <- function(a, b) f.ss(b, a)     ## flip the order of args so works with 'sapply()'
 m <- seq(from=1, to=200, by=0.01)  ## values to try for 'm'; will be 'x' axis
+str(m)
 penalty <- sapply(m, f, z)         ## calculate the penalty at each value of 'm'; 'y' axis
 plot(x=m, y=penalty)               ## single minimum (no local minima), 'convex' shape
 abline(v=mean(z), col='cyan')      ## v(ertical) line where m=mean(z)
@@ -201,11 +202,11 @@ round(mean(z), 2)                  ## mean(z) with precision matching 'm'
 ```
 
 Implications of the mean of a numeric set mimimizing the sum-of-squared distances to all 
-  values in the set extend to both summarizing data and making predictions about unobserved 
+  values in the set extend to both summarizing data and predicting/imputing unobserved 
   values. If you were to summarize the values in the set with a single value, the mean would 
   be least incorrect of all possible answers, if correctness is quantified by the total 
   squared distance from (how far 'off') values in the set are from the estimate.
-  Similarly, if I were to draw one value from the set and ask you to predict 
+  Similarly, if someone were to draw one value from the set and ask you to predict 
   what the value was, penalizing you with the square of how far off your guess was,
   on average (if we repeated the experiment many, many times and averaged the penalties), 
   your best possible guess would be the mean of the set.
@@ -507,7 +508,7 @@ sd(x)
 ```
 
 Take home messages: In general, the standard error of a sample estimate of a population
-  parameter (such as the mean or standard deviation) decreases with increasing samples 
+  parameter (such as the mean or standard deviation) decreases with increasing sample 
   size, but with diminishing returns. In fact, the standard error of the mean is 
   directly proportional to the variance of the population parameter being measured and
   inversely proportional to square-root of sample size:
@@ -520,9 +521,9 @@ We also saw that the naive formula (same one you would use for a population) for
   pronounced for small samples. This bias is eliminated by changing the formula to 
   use `n - 1` instead of `n` in the denominator when averaging.
 
-The reason applying the population formula to a sample in order to estimate the population
-  variance results in downwardly biased estimates can be understood in terms of
-  our previous discussion about the mean minimizing the sum of squared distances to the 
+As an aside: the reason applying the population formula to a sample in order to estimate 
+  the population variance results in downwardly biased estimates can be understood in terms 
+  of our previous discussion about the mean minimizing the sum of squared distances to the 
   values and the fact that the variance n is calculated from the squared distances
   from the sample mean, not the population mean (since the latter is typically unknown). 
   But the sample mean is always a bit off from the population mean, because it is calculated 

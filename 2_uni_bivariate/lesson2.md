@@ -30,7 +30,17 @@
 Some stuff here.
 
 ```
-some code here
+rm(list=ls())
+set.seed(3)
+
+x <- rnorm(30, mean=100, sd=10)
+
+(rslt <- t.test(x))
+names(rslt)
+attributes(rslt)
+str(rslt)
+rslt$statistic
+
 
 ```
 

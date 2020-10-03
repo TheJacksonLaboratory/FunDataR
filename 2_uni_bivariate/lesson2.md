@@ -8,13 +8,14 @@
 
 - [Lesson goals](#lesson-goals)
 - [The Central Limit Theorem](#the-central-limit-theorem)
-- [Estimating means with t-test](#estimating-means-with-t-test)
-- [Comparing means with prior values](#comparing-means-with-prior-values)
+- [Estimating means with a t-test](#estimating-means-with-a-t-test)
+- [Comparing means with prior values](#comparing-means-with-hypothetical-values)
 - [Estimating proportions](#estimating-proportions)
-- [Comparing proportions with prior values](#comparing-proportions-with-prior-values)
+- [Comparing proportions with prior values](#comparing-proportions-with-hypothetical-values)
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
+- [Check 3](#check-your-understanding-3)
 
 ---
 
@@ -71,18 +72,15 @@ Assuming this distribution for the sample means, we can calculate probability
   distribution using the R function `qnorm()`. The probability of any sample
   mean having a value further from the population mean than the critical value
   is no more than the specified probability. This idea leads to the calculation
-  of confidence intervals for the sample means. Here, we begin by calculating
-  the conventional 'two-sided' confidence interval, where we consider the two
-  possibilities that the sample mean is higher than the population mean and 
-  also the possibility that the sample mean is lower than the population mean.
-  This is the most common scenario. If we want to know where the sample mean
-  will end up 95% of the time, we can split the remaining 5% (when the sample 
-  mean falls outside the interval) evenly between the two 'tails' (left rising 
-  tail and right falling tail) of the distribution. An approximation frequently
-  employed is that about 95% of the time a normally distributed value will fall
-  within two standard deviations of the mean. Therefore the sample mean should
-  fall within two standard errors of the population mean about 95% of the time.
-  We will calculate the 'critical values' more exactly here:
+  of confidence intervals for the sample means. If we want to know where the 
+  the mean of a random sample will end up 95% of the time, we can split the 
+  remaining 5% (how often a sample mean is expected to fall outside the interval) 
+  between the two 'tails' (left rising tail and right falling tail) of 
+  the distribution. An approximation frequently employed is that about 95% of 
+  the time a normally distributed value will fall within two standard deviations 
+  of the mean. Therefore the sample mean should fall within two standard errors 
+  of the population mean about 95% of the time. We will calculate the 'critical 
+  values' more exactly here:
 
 ```
 
@@ -124,11 +122,41 @@ pnorm(c(critical_99_left, critical_99_right), mean=100, sd=10)
 
 ```
 
+Invoking the CLT allows us to use a 'parametric' distribution (a distribution 
+  defined by defining the parameters of a family of distribution, like 
+  specifying the mean and standard deviation for a normal distribution) to
+  make various 'parametric' estimates of uncertainty, like the parametric 
+  confidence intervals for the mean above. Because such estimates of uncertainty 
+  asymptotically approach the 'truth' as the sample size approaches infinity, 
+  these estimates are sometimes termed 'asymptotically correct'. 
+
+How large a sample does one require in order to be able to invoke the CLT to 
+  justify using parametric confidence intervals for a mean? The speed with 
+  which the sample estimate distributions approach their theoretical parametric
+  values as sample size increases depends on the population distribution. If the
+  sample size is too low, the 'coverage' of confidence intervals will tend to
+  be lower than 'nominal'. That is, a parametric confidence interval that 
+  is supposed to be 95% (nominally 95%) may actually only tend to capture 
+  means of samples about 91% of the time. So the right answer depends both
+  on the shape of the population (the closer to normal, the better the 
+  parametric confidence intervals will cover the nominal interval) and how
+  good you need the coverage to actually be. If the main focus of a study is
+  a particular mean, you should ensure you have robust sample sizes. If you
+  are using parametric estimates to filter large numbers of largely redundant 
+  variables into a smaller set to use in a machine learning procedure, the
+  exact coverage of the confidence interval might be less important than 
+  getting a quick answer. With small samples, bootstrapping (a non-parametric
+  'resampling' procedure covered later in this course) can often provide 
+  confidence intervals with better coverage than those based on parametric 
+  methods. Bootstrapping also provides good opportunities to evaluate how 
+  well the CLT assumption holds. 
+
+
 [Return to index](#index)
 
 ---
 
-### Estimating means with t-test
+### Estimating means with a t-test
 
 Above we learned that if our sample sizes are large enough to justify invoking 
   the CLT, we can use the *population* mean, *population* standard deviation 
@@ -145,17 +173,18 @@ However, in statistical inference we are usually interested in moving in the
   normal distribution, called the Student's t-distribution. The t-distribution
   describes the probability distribution of the statistic:
 
-  `t = sample_mean / (sample_std_dev / sqrt(sample_size))`
+`t = sample_mean / (sample_std_dev / sqrt(sample_size))`
 
-This formula has the virtue of not requiring knowledge of any population 
-  parameter. The t-distribution has a single parameter, called the 
-  degrees-of-freedom, which is generally the number of samples `n` minus the 
-  number of parameters being estimated. Here there are two population
-  parameters being implicitly estimated: the population mean using the
-  sample mean, and the population standard deviation, using the sample
-  standard deviation. Therefore, the degrees-of-freedom, `df = n - 2`.
-  We plot the 'standard' normal distribution `N(0, 1)` and t-distributions
-  with various degrees-of-freedom for comparison:
+The `sample_std_dev` is calculated using the sample for data, but the formula
+  used continues to be the population version (without Bessel's correction of 
+  the denominator). The t-statistic calculation has the virtue of not requiring 
+  knowledge of any population parameter. The t-distribution has a single 
+  parameter, called the degrees-of-freedom `df`. The degrees-of-freedom 
+  is the difference between the size of the sample `n` and the number of 
+  population parameters being estimated. Here, we are estimating the mean of a 
+  single population, so one population parameter is being estimated, so 
+  `df <- n - 1`. Below we plot the 'standard' normal distribution `N(0, 1)` 
+  and t-distributions with various degrees-of-freedom for comparison:
 
 ```
 rm(list=ls())
@@ -174,14 +203,22 @@ plot(x=range(x), y=range(c(t1, t3, t10, t30, t100)),
 lines(x=x, y=n, lty=1, col='black')
 lines(x=x, y=t1, lty=2, col='cyan')
 lines(x=x, y=t3, lty=3, col='orangered')
-lines(x=x, y=t10, lty=2, col='magenta')
+lines(x=x, y=t10, lty=4, col='magenta')
 lines(x=x, y=t30, lty=3, col='cyan')
 lines(x=x, y=t100, lty=2, col='orangered')
+
+cv95_n_left <- qnorm(0.025, mean=0, sd=1)
+cv95_n_right <- qnorm(0.975, mean=0, sd=1)
+cv95_t10_left <- qt(0.025, df=10)
+cv95_t10_right <- qt(0.975, df=10)
+
+abline(v=c(cv95_n_left, cv95_n_right), col='black', lty=1)
+abline(v=c(cv95_t10_left, cv95_t10_right), col='magenta', lty=4)
 
 legend(
   'topright',
   legend=c("N(0,1)", "t(1)", "t(3)", "t(10)", "t(30)", "t(100)"),
-  lty=c(1, 2, 3, 2, 3, 2),
+  lty=c(1, 2, 3, 4, 3, 2),
   col=c('black', 'cyan', 'orangered', 'magenta', 'cyan', 'orangered')
 )
 
@@ -196,26 +233,53 @@ The t-distribution is generally more 'dispersed' (more values tend to
 Fortunately for the non-specialist, R provides the `t.test()` function,
   which performs all the necessary computations we need in order to
   use a sample to estimate a population mean, and calculate theoretical
-  (based on the CLT and t-distribution) confidence intervals for the 
-  population mean.
+  (based on the CLT assumption and t-distribution) confidence intervals 
+  for the population mean.
+
+Unfortunately for the non-specialist, R provides the `t.test()` function, 
+  which allows one to very easily learn to perform a t-test without ever
+  investigating the assumptions and limitations behind the test.
 
 ```
 rm(list=ls())
 set.seed(3)
 
+## 'population' (naive) formula for sd of v; remember, R's 'sd()' 
+##   function uses the 'sample' formula, with Bessel's correction:
+
+f.sd.pop <- function(v) {
+  d <- v - mean(v)
+  s2 <- sum(d ^ 2) / length(v)      ## population variance
+  sqrt(s2)
+}
+
 x <- rnorm(30, mean=100, sd=10)     ## draw a sample of 10 from N(100, 10)
 
-(rslt <- t.test(x))                 ## one-sample t-test
+rslt <- t.test(x)                   ## THIS IS THE ONLY THING YOU NEED!!!
+rslt
 
-```
-
-Internal structure and access:
-
-```
 names(rslt)
-attributes(rslt)
-str(rslt)
+
+rslt$estimate
+(m <- mean(x))
+
+rslt$parameter
+(dof <- length(x) - 1)
+
+rslt$stderr
+(se <- f.sd.pop(x) / sqrt(dof))
+
 rslt$statistic
+(stat <- m / se)
+
+rslt$conf.int
+(ci.lo <- m + qt(0.025, dof) * se)
+(ci.hi <- m - qt(0.025, dof) * se)
+
+## what's under the hood:
+
+class(rslt)                        ## a h(ypothesis)test
+attributes(rslt)                   ## just 'names' + 'class'
 
 ```
 
@@ -223,8 +287,43 @@ rslt$statistic
 
 ---
 
+### Check your understanding 1
 
-### Comparing means with prior values
+Initialize your variables as follows (you can copy and paste, if you like):
+
+```
+rm(list=ls())
+set.seed(10)
+x <- rnorm(30, 0, 10)
+
+```
+
+1) Use a one-sample t-test to use `x` to estimate the mean and 95% confidence 
+   interval for the mean of the population from which `x` was drawn. 
+
+2) What is the standard error of the estimate of the mean? Hint: index the result 
+   of the t-test in (1). 
+
+3) About how large should a sample size be in order for you to be able to assume
+   that the distribution of sample means is normal? Assume you don't know 
+   anything about the shape of the population distribution.
+
+4) About what percentage of values fall within two standard deviations of the 
+   mean of a normal distribution?
+
+5) The dispersion of the t-distribution is [smaller or larger] than the N(0, 1) distribution?
+
+6) Increasing sample size [increases or decreases] degrees-of-freedom.
+
+7) Increasing degrees-of-freedom [increases or decreases] how precisely the sample
+   mean tends to estimate the population mean. 
+
+[Return to index](#index)
+
+---
+
+
+### Comparing means with hypothetical values
 
 Some stuff here.
 
@@ -237,7 +336,7 @@ some code here
 
 ---
 
-### Check your understanding 1
+### Check your understanding 2
 
 1) some question here
 
@@ -259,7 +358,7 @@ some code here
 
 ---
 
-### Comparing proportions with prior values
+### Comparing proportions with hypothetical values
 
 Some stuff here.
 
@@ -272,7 +371,7 @@ some code here
 
 ---
 
-### Check your understanding 2
+### Check your understanding 3
 
 1) some question here
 

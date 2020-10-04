@@ -283,6 +283,15 @@ attributes(rslt)                   ## just 'names' + 'class'
 
 ```
 
+The confidence interval constructed above was derived by considering the distribution
+  of the sample mean if samples were drawn from the population over and over 
+  (without affecting the composition of the population). The resulting 95% confidence
+  interval has a similarly structured interpretation: if many, many (approaching 
+  infinity) samples of the given size (above n=30 observations per sample) were drawn 
+  at random from the population, and used to estimate the confidence interval for 
+  that population, 95% of the time, the confidence intervals would contain the true 
+  population mean.
+
 [Return to index](#index)
 
 ---
@@ -322,10 +331,43 @@ x <- rnorm(30, 0, 10)
 
 ---
 
-
 ### Comparing means with hypothetical values
 
-Some stuff here.
+Above we used the `t.test()` function to estimate a confidence interval for a population 
+  mean based on a sample drawn from the population. You may have heard of the Student's 
+  t-test before, and know that it is used for testing hypotheses about means. This is 
+  in fact the case. Above, we were implicitly testing the 'null hypothesis' that the
+  population mean is not different from zero. In general, a null hypothesis 'h0' usually 
+  corresponds to a negative result of some type: no difference, no association, etc. We
+  'test' a null hypothesis about a population by seeing if the null hypothesis is 
+  consistent with our observations on a sample from that population. If our observations
+  would be very unlikely under the null hypothesis (signaled by a p-value below some
+  preselected cutoff, like 5%) we can 'reject' the null hypothesis. This would 
+  correspond to a positive result of some type. In the case above, if the null hypothesis 
+  were true (population mean really was `0`), only 5 out of 100 samples (on average) 
+  drawn from that population would result in 95% confidence intervals that did not 
+  include `0`. This allows to 'reject' the null hypothesis at a p-value (0.05) 
+  corresponding to the confidence interval (95%).
+
+Although that is a legitimate way to view the t-test, the actual p-value is calculated
+  backwards: instead of comparing the hypothetical value to the critical values for
+  a confidence interval with a well defined nominal coverage (e.g. 95%), it asks what 
+  is the percent coverage of an interval which ended at the hypothetical value. That is,
+  if the hypothetical mean fell exactly at the 95% confidence interval upper bound,
+  the p-value would be 0.05. If it fell exactly at the 99% confidence interval lower 
+  bound, the p-value would be 0.01. In fact, the p-value returned might be something
+  more extreme, like 0.00031. This would correspond to the hypothetical value falling
+  just outside a 99.97% confidence interval. The point here is that the p-value is 
+  calculated using the same rationale as the confidence interval, but the details 
+  differ in a way that allows the p-value to take on a continuum of values between
+  `0` and `1`.
+
+The interpretation of the p-value is very similar to the earlier interpretation of the
+  confidence interval. If the experiment were repeated many, many times, each time 
+  drawing a random sample of the given size from the same population (without
+  affecting the composition of the population) which had the hypothetical mean
+  (here `0`), the sample mean would only be as far from the hypothetical mean as was
+  observed with our experimental sample `p-value * 100` percent of the time.
 
 ```
 some code here

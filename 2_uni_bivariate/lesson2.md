@@ -530,7 +530,7 @@ table(i)
 rslt <- prop.test(table(i))
 rslt
 rslt$conf.int                ## 95% CI for proportion of tails (includes 0.5, so 'fair')
-rslt$estimate                ## the estimated proportion
+rslt$estimate                ## the estimated proportion of tails in the population
 sum(!i) / length(i)          ## is pretty easy to estimate directly
 
 ## beneath the hood:
@@ -607,7 +607,18 @@ The chi-square test in the previous example calculates p-values and confidence
   approach for deriving confidence intervals without making distributional 
   assumptions. However, when working with proportions, several simpler 
   non-parametric alternatives to the parametric chi-square test are frequently 
-  employed.
+  employed. 
+
+These non-parametric tests have the virtue of returning confidence intervals that 
+  are guaranteed to be correct regardless of sample size or cell counts. The 
+  downside of using these tests is that when the assumptions behind the 
+  chi-square test are met, the confidence intervals provided by the chi-square 
+  test are often shorter than the corresponding intervals from the 
+  non-parametric tests. This means that under those conditions the chi-square 
+  test is more powerful than its non-parametric counterparts. Also, the time 
+  required for calculations of the exact tests rises faster than geometrically 
+  with the size of the sample, which can be prohibitive for large (n > 100) 
+  samples. Here we demonstrate the popular binomial test:
 
 ```
 rm(list=ls())
@@ -649,52 +660,6 @@ sum(!i) / length(i)
 class(rslt.bin)                   ## h(ypothesis)test, like t.test() and prop.test()
 names(rslt.bin)                   ## lots of familiar (like t.test() and prop.test()) parameters
 attributes(rslt.bin)              ## same setup as for t.test() and prop.test()
-
-```
-
-These tests have the virtue of returning confidence intervals that 
-  are guaranteed to be correct regardless of sample size or cell counts. The 
-  downside of using these tests is that when the assumptions behind the 
-  chi-square test are met, the confidence intervals provided by the chi-square 
-  test are often shorter than the corresponding intervals from the 
-  non-parametric tests. This means that under those conditions the chi-square 
-  test is more powerful than its non-parametric counterparts. Also, the time 
-  required for calculations of the exact tests rises faster than geometrically 
-  with the size of the sample, which can be prohibitive for large (n > 100) 
-  samples.
-
-```
-
-rm(list=ls())
-set.seed(101)
-
-## set up a fair coin and flip it 30 times:
-
-n <- 30                           ## sample size: number of coin flips in experiment
-p <- 0.5                          ## the probability of heads (the coin is fair)
-
-(i <- rbinom(n, 1, p))            ## draw 0s (tails) and 1s (heads) from 'population'
-table(i)
-
-i[i]
-i[!i]
-
-## estimate a 95% confidence interval for the proportion of 
-##   'tails' in the population of potential flips of the coin 
-##   being tested.
-
-table(i)
-rslt.chi <- prop.test(table(i))   ## chi-square test (parametric, approximate)
-rslt.chi
-
-rslt.bin <- binom.test(table(i))  ## binomial test ('exact' non-parametric)
-rslt.bin
-
-ci.chi <- rslt.chi$conf.int
-ci.bin <- rslt.bin$conf.int
-ci.chi[2] - ci.chi[1]             ## a bit tighter (more powerful) than non-parametric
-ci.bin[2] - ci.bin[1]             ## a bit looser (less powerful) than parametric
-
 
 ```
 

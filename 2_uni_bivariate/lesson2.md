@@ -11,6 +11,7 @@
 - [Estimating means with a t-test](#estimating-means-with-a-t-test)
 - [Comparing means with hypothetical values](#comparing-means-with-hypothetical-values)
 - [Estimating proportions with a chi-square test](#estimating-proportions-with-a-chi-square-test)
+- [Estimating proportions with exact tests](#estimating-proportions-with-exact-tests)
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
@@ -450,7 +451,8 @@ rslt$p.value * 2
 
 ```
 
-How often does the population mean fall? That is, at a p-value 
+How often does the population mean fall outside of the confidence interval
+  calculated based on a random sample? That is, at a p-value 
   cutoff of 0.05, we expect that the null hypothesis will be 
   rejected, even if true, about 5% of the time.
 
@@ -496,7 +498,33 @@ for(i in 1 : 10) print(f(conf.level=0.90))
 
 ### Check your understanding 2
 
-1) T
+Set up your test data as follows:
+
+```
+rm(list=ls())
+set.seed(101)
+
+x.u <- runif(30, min=0, max=100)
+x.r <- rnorm(50, mean=40, sd=5)
+
+t.test(x.u)
+t.test(x.r)
+
+```
+
+1) Using the observations in sample `x.u`, generate a 95% two-sided confidence interval 
+   for the mean of the population from which sample `x.u` was randomly drawn. What 
+   is the estimate of the population mean? What is the standard error of that estimate?
+
+2) Using the observations in sample `x.r` generate a 95% two-sided confidence interval
+   for the mean of the population from which sample `x.r` was randomly drawn. What is
+   the estimate of the population mean? What is the standard error of that estimate?
+
+3) What is the p-value from the t-test of the null hypothesis that the mean of the 
+   population from which `x.r` was drawn is equal to 45?
+
+4) What is the p-value for the null hypothesis that the mean of the population from
+   which `x.r` was drawn is greater than 50?
 
 [Return to index](#index)
 
@@ -669,7 +697,38 @@ attributes(rslt.bin)              ## same setup as for t.test() and prop.test()
 
 ### Check your understanding 3
 
-1) some question here
+Set up your data as follows:
+
+```
+rm(list=ls())
+set.seed(101)
+
+x10a <- rbinom(30, 1, 0.1)
+x50a <- rbinom(30, 1, 0.5)
+x90a <- rbinom(30, 1, 0.9)
+
+x10b <- rbinom(300, 1, 0.1)
+x50b <- rbinom(300, 1, 0.5)
+x90b <- rbinom(300, 1, 0.9)
+
+```
+
+1) For each of the random samples `x10a`, `x50a`, `x90a`, `x10b`, `x50b`, and `x90b`:
+   use `prop.test()` to estimate a 95% confidence interval for the proportion of 
+   0s in the population from which the sample was randomly drawn. Retrieve the 
+   estimate and the standard error of the estimate as well.
+
+2) How does changing sample size change the corresponding confidence interval width?
+
+3) Are the estimates centered within their respective confidence intervals?
+
+4) Use the `prop.test()` to test the null hypothesis that the proportion of 1s 
+   (not 0s!!!)in the population from which x10a was drawn is equal to 0.4. What is 
+   the p-value?
+
+5) Use the `prop.test()` to test the null hypothesis that the proportion of 1s 
+   (not 0s!!!)in the population from which x10a was drawn is less than 0.4. What is 
+   the p-value?
 
 [Return to index](#index)
 

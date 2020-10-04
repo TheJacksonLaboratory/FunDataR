@@ -351,26 +351,64 @@ Above we used the `t.test()` function to estimate a confidence interval for a po
 
 Although that is a legitimate way to view the t-test, the actual p-value is calculated
   backwards: instead of comparing the hypothetical value to the critical values for
-  a confidence interval with a well defined nominal coverage (e.g. 95%), it asks what 
+  a confidence interval with a well defined nominal coverage (e.g. 95%), we ask what 
   is the percent coverage of an interval which ended at the hypothetical value. That is,
   if the hypothetical mean fell exactly at the 95% confidence interval upper bound,
   the p-value would be 0.05. If it fell exactly at the 99% confidence interval lower 
   bound, the p-value would be 0.01. In fact, the p-value returned might be something
   more extreme, like 0.00031. This would correspond to the hypothetical value falling
-  just outside a 99.97% confidence interval. The point here is that the p-value is 
-  calculated using the same rationale as the confidence interval, but the details 
-  differ in a way that allows the p-value to take on a continuum of values between
-  `0` and `1`.
+  just outside a 99.97% confidence interval, a cutoff that probably never occurred to
+  us when specifying nominal confidence interval coverage prior to commencing the 
+  experiment (you should select confidence interval coverage and p-value cutoffs for
+  rejecting null hypotheses prior to looking at the data). The point here is that 
+  the p-value is calculated using the same rationale as the confidence interval, but 
+  the details differ in a way that allows the p-value to take on a continuum of values 
+  between `0` and `1`, rather than simply being one of the two choices 'greater than 
+  or equal to 0.05' or 'less than 0.05'.
 
-The interpretation of the p-value is very similar to the earlier interpretation of the
+The interpretation of the p-value is similar to our earlier interpretation of the
   confidence interval. If the experiment were repeated many, many times, each time 
   drawing a random sample of the given size from the same population (without
   affecting the composition of the population) which had the hypothetical mean
-  (here `0`), the sample mean would only be as far from the hypothetical mean as was
-  observed with our experimental sample `p-value * 100` percent of the time.
+  (here `0`), the sample mean would only be as far from the hypothetical mean as 
+  was observed with our experimental sample `p-value * 100` percent of the time.
+
+The R `t.test()` function takes a parameter called `mu` (defaults to `0`), which can 
+  be used to set the hypothetical value for the null hypothesis to whatever value you 
+  want. It also takes the parameter `conf.level` (defaults to `0.95`) which can be
+  used to calculate confidence bounds at a user-selected level of nominal coverage:
 
 ```
-some code here
+rm(list=ls())
+set.seed(101)
+
+x <- rnorm(30, mean=10, sd=2)
+(rslt <- t.test(x, mu=10))
+rslt$conf.int
+rslt$p.value
+
+(rslt <- t.test(x, mu=rslt$conf.int[1]))
+rslt$conf.int
+rslt$p.value
+
+(rslt <- t.test(x, mu=rslt$conf.int[1]-0.01))
+rslt$conf.int
+rslt$p.value
+
+(rslt <- t.test(x, mu=rslt$conf.int[1]+0.01))
+rslt$conf.int
+rslt$p.value
+
+(rslt <- t.test(x, conf.level=0.99))
+rslt$conf.int
+rslt$p.value
+
+(rslt <- t.test(x, mu=rslt$conf.int[2]))
+rslt$conf.int
+rslt$p.value
+
+
+
 
 ```
 

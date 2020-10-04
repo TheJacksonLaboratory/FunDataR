@@ -9,9 +9,8 @@
 - [Lesson goals](#lesson-goals)
 - [The Central Limit Theorem](#the-central-limit-theorem)
 - [Estimating means with a t-test](#estimating-means-with-a-t-test)
-- [Comparing means with prior values](#comparing-means-with-hypothetical-values)
-- [Estimating proportions](#estimating-proportions)
-- [Comparing proportions with prior values](#comparing-proportions-with-hypothetical-values)
+- [Comparing means with hypothetical values](#comparing-means-with-hypothetical-values)
+- [Estimating proportions with a chi-square test](#estimating-proportions-with-a-chi-square-test)
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
@@ -407,8 +406,87 @@ rslt$p.value
 rslt$conf.int
 rslt$p.value
 
+```
 
+One-sided vs. two-sided t-test. Null hypothesis changes. hypothetical value or 
 
+```
+rm(list=ls())
+set.seed(101)
+
+x <- rnorm(30, mean=10, sd=2)
+
+## get two-sided 95% CI:
+(rslt <- t.test(x))
+rslt$conf.int
+(ci.lo <- rslt$conf.int[1])
+(ci.hi <- rslt$conf.int[2])
+
+## just inside lower bound of 2-sided:
+(rslt <- t.test(x, mu=ci.lo+0.01))
+rslt$conf.int
+rslt$p.value
+
+## 1-sided CI 'tighter' on 1 side, unconstrained on other;
+##   1-sided test p-value more 'powerful':
+
+(rslt <- t.test(x, mu=ci.lo+0.01, alternative='greater'))
+rslt$conf.int
+rslt$p.value
+rslt$p.value * 2
+
+## just inside upper bound of 2-sided:
+(rslt <- t.test(x, mu=ci.hi-0.01))
+rslt$conf.int
+rslt$p.value
+
+## 1-sided CI 'tighter' on 1 side, unconstrained on other;
+##   1-sided test p-value more 'powerful':
+
+(rslt <- t.test(x, mu=ci.hi-0.01, alternative='less'))
+rslt$conf.int
+rslt$p.value
+rslt$p.value * 2
+
+```
+
+How often does the population mean fall? That is, at a p-value 
+  cutoff of 0.05, we expect that the null hypothesis will be 
+  rejected, even if true, about 5% of the time.
+
+Remember `isTRUE(x)` is the same as:
+
+`is.logical(x) && length(x) == 1 && !is.na(x) && x`
+
+```
+rm(list=ls())
+set.seed(101)
+
+f <- function(n=30, m=0, s=1, conf.level=0.95, R=1e4) {
+
+  o <- numeric(0)
+
+  for(i in 1 : R) {
+    x.i <- rnorm(n, mean=m, sd=s)
+    rslt.i <- t.test(x.i, conf.level=conf.level)
+    ci.lo <- rslt.i$conf.int[1]
+    ci.hi <- rslt.i$conf.int[2]
+    
+    o.i <- F
+    if(isTRUE(m < ci.lo) || isTRUE(m > ci.hi)) o.i <- T
+    o <- c(o, o.i)
+  }
+
+  sum(o) / R
+}
+
+for(i in 1 : 10) print(f(n=3))
+for(i in 1 : 10) print(f(n=10))
+for(i in 1 : 10) print(f(n=30))
+for(i in 1 : 10) print(f(n=100))
+for(i in 1 : 10) print(f(m=-100))
+for(i in 1 : 10) print(f(s=1000))
+for(i in 1 : 10) print(f(conf.level=0.90))
 
 ```
 
@@ -418,19 +496,98 @@ rslt$p.value
 
 ### Check your understanding 2
 
-1) some question here
+1) T
 
 [Return to index](#index)
 
 ---
 
 
-### Estimating proportions
+### Estimating proportions with a chi-square test
 
-Some stuff here.
+Some stuff here, including what the population is for a coin flipping experiment.
 
 ```
-some code here
+rm(list=ls())
+set.seed(101)
+
+## set up a fair coin and flip it 30 times:
+
+n <- 30                      ## sample size: number of coin flips in experiment
+p <- 0.5                     ## the probability of heads (the coin is fair)
+
+(i <- rbinom(n, 1, p))       ## draw 0s (tails) and 1s (heads) from 'population'
+table(i)
+
+i[i]
+i[!i]
+
+## estimate a 95% confidence interval for the proportion of 
+##   'tails' in the population of potential flips of the coin 
+##   being tested.
+
+table(i)
+rslt <- prop.test(table(i))
+rslt
+rslt$conf.int                ## 95% CI for proportion of tails (includes 0.5, so 'fair')
+rslt$estimate                ## the estimated proportion
+sum(!i) / length(i)          ## is pretty easy to estimate directly
+
+## beneath the hood:
+
+class(rslt)                  ## h(ypothesis)test, just like value of t.test()
+names(rslt)                  ## lots of familiar (like t.test()) parameters
+attributes(rslt)             ## same setup as for t.test()
+
+```
+
+Comparing with hypothetical values. Works for categorical variables encoded as character 
+  or factor too.
+
+```
+rm(list=ls())
+set.seed(101)
+
+## set up and examine the dataset:
+
+n <- 30                      ## sample size
+p <- 0.25                    ## proportion of 'green' in the population
+
+(i <- rbinom(n, 1, p))       ## draw 0s (red) and 1s (green) from population
+table(i)
+
+(i <- as.logical(i))         ## 0 -> FALSE; 1 -> TRUE
+table(i)
+
+(x <- rep('red', n))         ## initialize all red sample of size n
+table(x)
+
+x[i] <- 'green'              ## 1 -> TRUE -> 'red'; 0 -> FALSE -> left 'green'
+x
+table(x)
+
+x[i]
+x[!i]
+
+## estimate a 95% confidence interval for the proportion of 
+##   'green' in the population, and test the null hypothesis that the 
+##   proportion of 'green' in the population is 0.75.
+
+table(x)
+rslt <- prop.test(table(x), p=0.75)
+rslt
+rslt$estimate                ## estimate of proportion of green in population
+rslt$conf.int                ## 95% CI does not include null hypothesis (0.75)
+rslt$p.value                 ## so p-value is very low (reject null hypothesis)
+
+
+## can also do a 1-sided tests, such as a test of the null hypothesis that the 
+##   proportion of 'green' in the population is less than 0.4:
+
+rslt <- prop.test(table(x), p=0.4, alternative='less')
+rslt
+rslt$conf.int                ## proportions constrained between 0 and 1 in any case
+rslt$p.value
 
 ```
 
@@ -438,12 +595,106 @@ some code here
 
 ---
 
-### Comparing proportions with hypothetical values
+### Estimating proportions with exact tests
 
-Some stuff here.
+The chi-square test in the previous example calculates p-values and confidence 
+  intervals based on the parametric chi-square distribution. This calculation 
+  makes several assumptions, including that sample sizes are large enough to
+  invoke the CLT and that cell counts are large enough (a rough rule of thumb 
+  is that your sample should be large enough to provide counts of at least five 
+  for each category) for other distributional assumptions to hold. As was 
+  mentioned in the context of the t-test, bootstrapping methods provide one 
+  approach for deriving confidence intervals without making distributional 
+  assumptions. However, when working with proportions, several simpler 
+  non-parametric alternatives to the parametric chi-square test are frequently 
+  employed.
 
 ```
-some code here
+rm(list=ls())
+set.seed(101)
+
+## set up a fair coin and flip it 30 times:
+
+n <- 30                      ## sample size: number of coin flips in experiment
+p <- 0.5                     ## the probability of heads (the coin is fair)
+
+(i <- rbinom(n, 1, p))       ## draw 0s (tails) and 1s (heads) from 'population'
+table(i)
+
+i[i]
+i[!i]
+
+## estimate a 95% confidence interval for the proportion of 
+##   'tails' in the population of potential flips of the coin 
+##   being tested.
+
+table(i)
+rslt.chi <- prop.test(table(i))   ## chi-square test (parametric, approximate)
+rslt.chi
+
+rslt.bin <- binom.test(table(i))  ## binomial test ('exact' non-parametric)
+rslt.bin
+
+ci.chi <- rslt.chi$conf.int
+ci.bin <- rslt.bin$conf.int
+ci.chi[2] - ci.chi[1]             ## a bit tighter (more powerful) than non-parametric
+ci.bin[2] - ci.bin[1]             ## a bit looser (less powerful) than parametric
+
+rslt.chi$estimate
+rslt.bin$estimate 
+sum(!i) / length(i) 
+
+## beneath the hood:
+
+class(rslt.bin)                   ## h(ypothesis)test, like t.test() and prop.test()
+names(rslt.bin)                   ## lots of familiar (like t.test() and prop.test()) parameters
+attributes(rslt.bin)              ## same setup as for t.test() and prop.test()
+
+```
+
+These tests have the virtue of returning confidence intervals that 
+  are guaranteed to be correct regardless of sample size or cell counts. The 
+  downside of using these tests is that when the assumptions behind the 
+  chi-square test are met, the confidence intervals provided by the chi-square 
+  test are often shorter than the corresponding intervals from the 
+  non-parametric tests. This means that under those conditions the chi-square 
+  test is more powerful than its non-parametric counterparts. Also, the time 
+  required for calculations of the exact tests rises faster than geometrically 
+  with the size of the sample, which can be prohibitive for large (n > 100) 
+  samples.
+
+```
+
+rm(list=ls())
+set.seed(101)
+
+## set up a fair coin and flip it 30 times:
+
+n <- 30                           ## sample size: number of coin flips in experiment
+p <- 0.5                          ## the probability of heads (the coin is fair)
+
+(i <- rbinom(n, 1, p))            ## draw 0s (tails) and 1s (heads) from 'population'
+table(i)
+
+i[i]
+i[!i]
+
+## estimate a 95% confidence interval for the proportion of 
+##   'tails' in the population of potential flips of the coin 
+##   being tested.
+
+table(i)
+rslt.chi <- prop.test(table(i))   ## chi-square test (parametric, approximate)
+rslt.chi
+
+rslt.bin <- binom.test(table(i))  ## binomial test ('exact' non-parametric)
+rslt.bin
+
+ci.chi <- rslt.chi$conf.int
+ci.bin <- rslt.bin$conf.int
+ci.chi[2] - ci.chi[1]             ## a bit tighter (more powerful) than non-parametric
+ci.bin[2] - ci.bin[1]             ## a bit looser (less powerful) than parametric
+
 
 ```
 

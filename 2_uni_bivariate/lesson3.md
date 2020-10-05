@@ -6,8 +6,8 @@
 
 ### Index
 
-- [Comparing two population means](#comparing-two-population-means)
 - [Comparing two population proportions](#comparing-two-population-proportions)
+- [Comparing two population means](#comparing-two-population-means)
 - [Comparing three or more means](#comparing-three-or-more-means)
 - [Association between two variables](#association-between-two-variables)
 
@@ -19,31 +19,84 @@
 
 ---
 
-### Comparing two population means
+### Comparing population proportions
 
 intro here
 
 ```
-code here
+rm(list=ls())
 
-```
+dat <- USArrests                    ## arrests per 100,000 in 1973; by state
+class(dat)                          ## data frame
+dim(dat)                            ## one row per state
+summary(dat)
+head(dat)
+tail(dat)
 
-[Return to index](#index)
+dat <- dat * 10                      ## convert to whole numbers; now arrests per 10,000
 
----
+## total up arrests:
+dat$Total <- apply(dat[, c(1, 2, 4)], 1, sum)
+summary(dat)
+head(dat)
 
-### Comparing two population proportions
+## set up comparison of Vermont to New York:
+x <- dat[c('Vermont', 'New York'), c('Murder', 'Total')]
+x
+x$Murder
+x$Total
 
-intro here
+## did arrest rates (proportion per 10,000 or 1e4) differ?
+(rslt <- prop.test(x=x$Total, n=c(1e4, 1e4)))
+rslt$conf.int                     ## confidence interval on difference in proportion
 
-```
-code here
+## did murders as a proportion of arrests differ?
+(rslt <- prop.test(x=x$Murder, n=x$Total))
+rslt$conf.int                     ## confidence interval on difference in proportion
+
+## how about when there are more than 2 groups?:
+
+x <- dat[c('Vermont', 'New York', 'California'), c('Murder', 'Total')]
+x
+x$Murder
+x$Total
+
+## did arrest rates (proportion per 10,000 or 1e4) differ AMONG ANY OF THE THREE?
+(rslt <- prop.test(x=x$Total, n=c(1e4, 1e4, 1e4)))
+str(rslt)                         ## no confidence interval when >2 groups
+
+## did murders as a proportion of arrests differ AMONG ANY OF THE THREE?
+(rslt <- prop.test(x=x$Murder, x$Total))
+str(rslt)                         ## no confidence interval when >2 groups
 
 ```
 
 ### Check your understanding 1
 
 1) question here
+
+[Return to index](#index)
+
+---
+
+### Comparing two population means
+
+intro here: also show repeated measures; power trade-off w/ repeated measures
+
+```
+rm(list=ls())
+
+dat <- mtcars
+dat
+table(dat$cyl)
+
+(x <- dat$mpg[dat$cyl == 4])
+(y <- dat$mpg[dat$cyl == 8])
+
+t.test(x=x, y=y)
+t.test(x=x, y=y, alternative='greater')
+
+```
 
 [Return to index](#index)
 

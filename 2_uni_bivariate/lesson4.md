@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: bivariate statistics
+## Univariate and bivariate statistics: linear regression
 #### Contact: mitch.kostich@jax.org
 
 ---

@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: bivariate statistics
+## Machine learning: some sub-title here
 #### Contact: mitch.kostich@jax.org
 
 ---

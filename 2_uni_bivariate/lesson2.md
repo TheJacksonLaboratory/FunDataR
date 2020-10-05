@@ -13,6 +13,8 @@
 - [Estimating proportions with a chi-square test](#estimating-proportions-with-a-chi-square-test)
 - [Estimating proportions with exact tests](#estimating-proportions-with-exact-tests)
 
+### Check your understanding
+
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
 - [Check 3](#check-your-understanding-3)
@@ -40,7 +42,7 @@
 
 6) Be able to use the `prop.test()` function to estimate a confidence interval for 
    a population proportion using a random sample. Be able to test null hypotheses
-   that the null proportion is the same as, above or below a hypothetical value.
+   that the population proportion is the same as, above or below a hypothetical value.
 
 [Return to index](#index)
 
@@ -69,7 +71,7 @@ Furthermore, we learned that regardless of the distribution of the
   distribution of sample estimates approaches a normal distribution with 
   a mean at the population mean and a standard deviation equal to the 
   standard error of the mean. That is, the distribution of sample estimates 
-  of the population mean approaches:
+  of the population mean approaches the normal distribution:
 
 `N(mean=population_mean, sd=standard_error_mean)`
 
@@ -156,23 +158,24 @@ Invoking the CLT allows us to use a 'parametric' distribution (a distribution
 How large a sample does one require in order to be able to invoke the CLT to 
   justify using parametric confidence intervals for a mean? The speed with 
   which the sample estimate distributions approach their theoretical parametric
-  values as sample size increases depends on the population distribution, so 
-  can depend from case-to-case. If the sample size is too low, the 'coverage' 
+  distribution as sample size increases depends on the population distribution, 
+  and therefore varies from case-to-case. If the sample size is too low, the 'coverage' 
   of confidence intervals will tend to be lower than 'nominal'. That is, a 
   parametric confidence interval that is supposed to be 95% (nominally 95%) 
   may actually correspond to only a 91.3% interval. So the right answer depends 
   both on the shape of the population (the closer to normal, the better the 
   parametric confidence intervals will tend to cover the nominal interval) and 
   how good you need the coverage to actually be. If the main focus of a study is
-  a particular mean, you should ensure you have robust sample sizes. If you
+  a particular mean, you should ensure you have robust sample sizes to ensure your
+  confidence intervals are very reliable. On the other hand, if you
   are using parametric estimates to filter very large numbers of largely redundant 
   variables into a smaller set to use in a machine learning procedure that can
   accommodate some extraneous variables, the exact coverage of the confidence 
-  interval might be less important than computationally efficiency of the filtering. 
-  With small samples, bootstrapping (a non-parametric 'resampling' procedure 
-  covered later in this course) can often provide confidence intervals with 
-  better coverage than those based on parametric methods. Bootstrapping also 
-  provides good opportunities to evaluate how well the CLT assumption holds in 
+  interval might be less important than the computationally efficiency of the 
+  filtering procedure. With small samples, bootstrapping (a non-parametric 
+  'resampling' procedure covered later in this course) can often provide confidence 
+  intervals with better coverage than those based on parametric methods. Bootstrapping 
+  also provides good opportunities to evaluate how well the CLT assumption holds in 
   a particular situation. 
 
 
@@ -190,12 +193,13 @@ However, in statistical inference we are usually interested in moving in the
   opposite direction: we want to take a **sample** mean, **sample** standard deviation 
   and **sample** size in order to calculate a confidence interval for the **population**
   mean. To do so, we plug in values of the sample mean and sample standard 
-  deviation in place of their population counterparts. But because these sample
-  parameters are inexact estimators of the corresponding population parameters,
-  this introduces additional variability. In order to calculate the correct
-  critical values for this situation, we need to use a 'relaxed' version of the 
-  normal distribution, called the Student's t-distribution. The t-distribution
-  describes the probability distribution of the statistic:
+  deviation in place of their population counterparts in the formulas we discussed
+  in the previous section. Because these sample parameters are inexact estimators 
+  of the corresponding population parameters, this introduces additional variability 
+  in our estimates. In order to calculate the correct critical values for this 
+  situation, we need to use a 'relaxed' version of the normal distribution, called 
+  the Student's t-distribution. The t-distribution describes the probability 
+  distribution of the statistic:
 
 `t = sample_mean / (sample_std_dev / sqrt(sample_size))`
 
@@ -207,9 +211,9 @@ The `sample_std_dev` is calculated using the sample for data, but the formula
   called the degrees-of-freedom `df`. The degrees-of-freedom is the difference 
   between the size of the sample `n` and the number of population parameters being 
   estimated. Here, we are estimating the mean of a single population, so one 
-  population parameter is being estimated, therefore `df <- n - 1`. Below we plot the 
-  'standard' normal distribution `N(0, 1)` and t-distributions with various 
-  degrees-of-freedom for comparison:
+  population parameter is being estimated, therefore `df == n - 1`. Below we 
+  graphically compare the 'standard' normal distribution `N(0, 1)` and 
+  t-distributions with various degrees-of-freedom:
 
 ```
 rm(list=ls())
@@ -263,14 +267,16 @@ Fortunately for the non-specialist, R provides the `t.test()` function,
 
 Unfortunately for the non-specialist, R provides the `t.test()` function, 
   which allows one to very easily learn to perform a t-test without ever
-  investigating the assumptions and limitations associated with the test.
+  investigating the proper interpretation, assumptions or limitations 
+  associated with the test.
 
 ```
 rm(list=ls())
 set.seed(3)
 
 ## 'population' (naive) formula for sd of v; remember, R's 'sd()' 
-##   function uses the 'sample' formula, with Bessel's correction:
+##   function uses the 'sample' formula, with Bessel's correction, 
+##   which is not what we want here:
 
 f.sd.pop <- function(v) {
   d <- v - mean(v)
@@ -311,7 +317,7 @@ attributes(rslt)                   ## just 'names' + 'class'
 The confidence interval constructed above was derived by considering the distribution
   of the sample mean if samples were drawn from the population over and over 
   (without affecting the composition of the population). The resulting 95% confidence
-  interval has a similarly structured interpretation: if many, many (approaching 
+  interval has a similarly flavored interpretation: if many, many (approaching 
   infinity) samples of the given size (above n=30 observations per sample) were drawn 
   at random from the population, and used to estimate the confidence interval for 
   that population, 95% of the time, the confidence intervals would contain the true 
@@ -391,7 +397,7 @@ Although that is a legitimate way to view the t-test, the actual p-value is calc
   if the hypothetical mean fell exactly at the 95% confidence interval upper bound,
   the p-value would be 0.05. If it fell exactly at the 99% confidence interval lower 
   bound, the p-value would be 0.01. In fact, the p-value returned might be something
-  more extreme, like 0.00031. This would correspond to the hypothetical value falling
+  more extreme, like 0.00029. This would correspond to the hypothetical value falling
   just outside a 99.97% confidence interval, a cutoff that probably never occurred to
   us when specifying nominal confidence interval coverage prior to commencing the 
   experiment (you should select confidence interval coverage, null hypotheses, and 
@@ -403,14 +409,13 @@ Although that is a legitimate way to view the t-test, the actual p-value is calc
 
 The interpretation of the p-value is similar to our earlier interpretation of the
   confidence interval. If the experiment were repeated many, many times, each time 
-  drawing a random sample of the given size from the same population (without
-  affecting the composition of the population) which had the hypothetical mean
-  (here `0`), the sample mean would only be as far from the hypothetical mean as 
-  was observed with our experimental sample `p-value * 100` percent of the time.
-  This way of deriving and interpreting p-values or confidence intervals in terms 
-  of the theoretical frequency with which statistics calculated on different 
-  random samples from a population would take on a particular range of values is 
-  called the 'frequentist' approach to statistics.
+  drawing a random sample of the given size from an infinite population with the 
+  hypothetical mean (here `0`), the sample mean would only be as far from the 
+  hypothetical mean as was observed with our experimental sample `p-value * 100` 
+  percent of the time. This way of deriving and interpreting p-values or confidence 
+  intervals in terms of the theoretical frequency with which statistics calculated 
+  on different random samples from a population would take on a particular range of 
+  values is called the 'frequentist' approach to statistics.
 
 The R `t.test()` function takes a parameter called `mu` (defaults to `0`), which can 
   be used to set the hypothetical value for the null hypothesis to whatever value you 
@@ -423,27 +428,27 @@ set.seed(101)
 
 x <- rnorm(30, mean=10, sd=2)
 
-(rslt <- t.test(x, mu=10))
+(rslt <- t.test(x, mu=10))                     ## null hypothesis (h0): pop mean == 10
 rslt$conf.int
 rslt$p.value
 
-(rslt <- t.test(x, mu=rslt$conf.int[1]))
+(rslt <- t.test(x, mu=rslt$conf.int[1]))       ## h0: pop mean == lower confidence bound
 rslt$conf.int
 rslt$p.value
 
-(rslt <- t.test(x, mu=rslt$conf.int[1]-0.01))
+(rslt <- t.test(x, mu=rslt$conf.int[1]-0.01))  ## h0: pop mean just inside lower bound
 rslt$conf.int
 rslt$p.value
 
-(rslt <- t.test(x, mu=rslt$conf.int[1]+0.01))
+(rslt <- t.test(x, mu=rslt$conf.int[1]+0.01))  ## h0: pop mean just outside lower bound
 rslt$conf.int
 rslt$p.value
 
-(rslt <- t.test(x, conf.level=0.99))
+(rslt <- t.test(x, conf.level=0.99))           ## esimate 99% confidence interval
 rslt$conf.int
 rslt$p.value
 
-(rslt <- t.test(x, mu=rslt$conf.int[2]))
+(rslt <- t.test(x, mu=rslt$conf.int[2]))       ## h0: pop mean at upper 99% CI bound
 rslt$conf.int
 rslt$p.value
 
@@ -455,13 +460,17 @@ When comparing a hypothetical value to a population mean with `t.test()`, we
   For instance, we may want to know if the average US adult would fit into
   a doorway 5'8" (68") tall. In order to answer this question, we could 
   use a random sample from the US population to test the null hypothesis
-  that the mean height of the US population was less than or equal to 
-  68". Rejecting this null hypothesis would suggest we need to construct
-  our doorways taller, but not tell us by how much. To reiterate the 
-  earlier vital point: the additional information provided by a 
-  confidence interval on the mean population height would give us a much 
-  better idea of how to adjust the door height. **Whenever possible, 
-  report confidence intervals in addition to or in place of p-values.**
+  that the mean height of the US population was equal to 68". Rejecting 
+  the null would not be very informative, as we would not know if our 
+  doorway height was greater or less than the average US height. By 
+  contrast if we tested the 'one-sided' null hypothesis that the average
+  US height is less than or equal to 68", rejecting the null hypothesis 
+  would suggest we need to construct our doorways taller, but not tell 
+  us by how much. To reiterate the earlier vital point: the additional 
+  information provided by a confidence interval on the mean population 
+  height would give us a much better idea of how to adjust the door height. 
+  **Whenever possible, report confidence intervals in addition to or in 
+  place of p-values.**
 
 The advantage of using a one-sided p-value instead of the default 
   two-sided p-value is that the one-side test is more powerful: it can
@@ -469,7 +478,6 @@ The advantage of using a one-sided p-value instead of the default
   hypothetical comparison value than the two-sided test. Therefore,
   if your interest really only lies in a 'greater' or 'less than' 
   comparison, you should use a one-sided test.
-  
 
 ```
 rm(list=ls())
@@ -514,11 +522,18 @@ rslt$p.value * 2
 The p-value tells us how often we expect the population mean to fall 
   outside of the confidence interval calculated based on a random sample.
   That is, at a p-value cutoff of 0.05, we expect that the null hypothesis 
-  will be rejected, even if true, about 5% of the time.
-
-In the example below, remember `isTRUE(x)` is the same as:
+  will be rejected, even if true, about 5% of the time. We can see this
+  for ourselves in the example below. Remember `isTRUE(x)` is the same as:
 
 `is.logical(x) && length(x) == 1 && !is.na(x) && x`
+
+Here we write a function that conducts R (default=10,000) experiments. In each 
+  experiment a random sample of size `n` is drawn from an infinite population,
+  a confidence interval for the mean of the population is estimated from 
+  the sample, and we determine whether the population mean (known in 
+  this case) falls outside the specified interval. Then we compare the proportion
+  of cases in which the population mean is outside the confidence interval with 
+  the nominal coverage of the interval:
 
 ```
 rm(list=ls())
@@ -574,11 +589,11 @@ t.test(x.r)
 
 1) Using the observations in sample `x.u`, generate a 95% two-sided confidence interval 
    for the mean of the population from which sample `x.u` was randomly drawn. What 
-   is the estimate of the population mean? What is the standard error of that estimate?
+   is the 'point' estimate of the population mean? What is the standard error of that estimate?
 
 2) Using the observations in sample `x.r` generate a 95% two-sided confidence interval
    for the mean of the population from which sample `x.r` was randomly drawn. What is
-   the estimate of the population mean? What is the standard error of that estimate?
+   the 'point' estimate of the population mean? What is the standard error of that estimate?
 
 3) What is the p-value from the t-test of the null hypothesis that the mean of the 
    population from which `x.r` was drawn is equal to 45?
@@ -600,21 +615,23 @@ In addition to making inferences about numeric data, we are often interested in
   population in each category. The most common and easily understood scenario
   is when a population is split between two categories. For instance, we might 
   be interested in the proportion of the population that bears a particular 
-  genetic allele ('carrier' vs 'non-carrier') or is affected by a viral disease 
+  genetic allele ('carrier' vs 'non-carrier') or is infected with a virus
   ('infected' vs 'not infected'), or has a sufficient titer of neutralizing 
   antibodies against a virus ('immune' vs 'not immune'). 
 
 A nice 'toy' example is determining if a coin is 'fair'. When flipping coins,
-  we expect a fair coin to have an equal probability of landing on a head 
-  or a tail with each flip. That is, the probability of getting heads on 
-  one flip should be 0.5. This can be restated in the frequentist manner as 
-  the expectation that if we started flipping the coin over and over again,
-  tabulating outcomes along the way, as the number of flips approaches infinity,
-  we expect the proportion of heads in our tally to get closer and closer to 
-  0.5. We can test if the coin is fair by using a sample of coin flips to 
-  generate a confidence interval on the proportion of heads in the population
-  of potential coin flips (including future flips, assuming the coin is not
-  tampered with):
+  each flip can be assigned to one of two mutually exclusive categories: 
+  heads or tails (ignoring for the moment the possibility of a coin landing
+  to rest on its edge). We expect a fair coin to have an equal probability 
+  of landing on a head or a tail with each flip. That is, the probability of 
+  getting heads on any one flip should be 0.5. This can be restated in the 
+  frequentist manner as the expectation that if we started flipping the coin 
+  over and over again, tabulating outcomes along the way, as the number of 
+  flips approaches infinity, we expect the proportion of heads in our tally 
+  to get closer and closer to 0.5. We can use the R `prop.test()` function to
+  test if the coin is fair by using a sample of coin flips to generate a 
+  confidence interval on the proportion of heads in the population of potential 
+  coin flips (including future flips, assuming the coin is not tampered with):
 
 ```
 rm(list=ls())
@@ -628,15 +645,15 @@ p <- 0.5                     ## the probability of heads (the coin is fair)
 (i <- rbinom(n, 1, p))       ## draw 0s (tails) and 1s (heads) from 'population'
 table(i)
 
-i[i]
-i[!i]
+i[as.logical(i)]
+i[!as.logical(i)]
 
 ## estimate a 95% confidence interval for the proportion of 
 ##   'tails' in the population of potential flips of the coin 
 ##   being tested.
 
 table(i)
-rslt <- prop.test(table(i))
+rslt <- prop.test(table(i))  ## ALL YOU NEED!!!
 rslt
 rslt$conf.int                ## 95% CI for proportion of tails (includes 0.5, so 'fair')
 rslt$estimate                ## the estimated proportion of tails in the population
@@ -658,13 +675,14 @@ As with the `t.test()`, function, the `prop.test()` function uses a parametric
   of heads in the population of potential flips is 0.5. If the sample data
   leads us to reject this hypothesis (p-value returned is less than
   a preselected cutoff like 0.05), we can conclude that the coin is not 
-  fair. We could also construct a one-sided test to see if the probability of 
-  a head exceeds 0.5 or a one-sided test to see if the probability of a head
-  is less than 0.5. Once again, reporting a confidence interval gives us even
-  more information about the probability of heads. Therefore, if the
-  probability of heads is really of interest, the confidence interval should
-  accompany, or be reported in place of, the p-value from the corresponding
-  hypothesis test.
+  fair. But we don't know if it is more likely to yield heads or tails, let
+  alone what the actual probabilities are. As with the t-test, we could also 
+  conduct a one-sided test to see if the probability of a head exceeds 0.5 or 
+  a one-sided test to see if the probability of a head is less than 0.5. Once 
+  again, reporting a confidence interval gives us even more information about 
+  the probability of heads. Therefore, if the probability of heads is really 
+  of interest, the confidence interval should accompany, or be reported in 
+  place of, the p-value from the corresponding hypothesis test.
 
 ```
 rm(list=ls())
@@ -688,8 +706,8 @@ x[i] <- 'green'              ## 1 -> TRUE -> 'red'; 0 -> FALSE -> left 'green'
 x
 table(x)
 
-x[i]
-x[!i]
+x[as.logical(i)]
+x[!as.logical(i)]
 
 ## estimate a 95% confidence interval for the proportion of 
 ##   'green' in the population, and test the null hypothesis that the 
@@ -729,14 +747,14 @@ The chi-square test in the previous example calculates p-values and confidence
   approach for deriving confidence intervals without making distributional 
   assumptions. However, when working with proportions, several simpler 
   non-parametric alternatives to the parametric chi-square test are frequently 
-  employed. 
+  employed when working with small sample sizes. 
 
 These non-parametric exact tests have the virtue of returning confidence intervals 
   guaranteed to be correct regardless of sample size or cell counts. The 
   downside of using these tests is that when the assumptions behind the 
   chi-square test are met, the confidence intervals provided by the chi-square 
   test are often shorter than the corresponding intervals from the 
-  non-parametric tests. This means that under those conditions the chi-square 
+  non-parametric tests. This means that when its assumptions hold, the chi-square 
   test is more powerful than its non-parametric counterparts. Also, the time 
   required for calculations of the exact tests rises with the size of 
   the sample, which can result in prohibitive computational costs for very 
@@ -749,14 +767,14 @@ set.seed(101)
 
 ## set up a fair coin and flip it 30 times:
 
-n <- 30                      ## sample size: number of coin flips in experiment
-p <- 0.5                     ## the probability of heads (the coin is fair)
+n <- 30                           ## sample size: number of coin flips in experiment
+p <- 0.5                          ## the probability of heads (the coin is fair)
 
-(i <- rbinom(n, 1, p))       ## draw 0s (tails) and 1s (heads) from 'population'
+(i <- rbinom(n, 1, p))            ## draw 0s (tails) and 1s (heads) from 'population'
 table(i)
 
-i[i]
-i[!i]
+i[as.logical(i)]
+i[!as.logical(i)]
 
 ## estimate a 95% confidence interval for the proportion of 
 ##   'tails' in the population of potential flips of the coin 
@@ -776,7 +794,7 @@ ci.bin[2] - ci.bin[1]             ## a bit looser (less powerful) than parametri
 
 rslt.chi$estimate
 rslt.bin$estimate 
-sum(!i) / length(i) 
+sum(!i) / length(i)               ## sample proportion is unbiased estimator of population proportion
 
 ## beneath the hood:
 

@@ -588,18 +588,15 @@ set.seed(101)
 x.u <- runif(30, min=0, max=100)
 x.r <- rnorm(50, mean=40, sd=5)
 
-t.test(x.u)
-t.test(x.r)
-
 ```
 
 1) Using the observations in sample `x.u`, generate a 95% two-sided confidence interval 
    for the mean of the population from which sample `x.u` was randomly drawn. What 
-   is the 'point' estimate of the population mean? What is the standard error of that estimate?
+   is the 'point' estimate of the population mean? 
 
 2) Using the observations in sample `x.r` generate a 95% two-sided confidence interval
    for the mean of the population from which sample `x.r` was randomly drawn. What is
-   the 'point' estimate of the population mean? What is the standard error of that estimate?
+   the 'point' estimate of the population mean?
 
 3) What is the p-value from the t-test of the null hypothesis that the mean of the 
    population from which `x.r` was drawn is equal to 45?

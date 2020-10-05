@@ -26,7 +26,7 @@
    uniform distribution. Know how to draw random samples from each.
 
 3) Learn how to do basic histograms and 2D plots; get a feel for how changing
-   the number of histogram bins affects the output.
+   the number of histogram breaks affects the output.
 
 3) Understand the difference between a population statistic (e.g. mean or 
    standard deviation) and the corresponding sample statistic.
@@ -282,7 +282,7 @@ As was mentioned earlier, if you could measure e.g. the height of every individu
 
 2) Draw 1000 samples from a normal distribution with mean `0` and standard deviation `2` 
      and store the samples in the variable `y`. Make a histogram of `y`. Try to fiddle 
-     with the number of histograms 'bins' (`bins` parameter to `hist()`). Trying values 
+     with the number of histograms 'bins' (`breaks` parameter to `hist()`). Trying values 
      in `c(3, 10, 30, 100, 300)` should provide a 'feel' for what happens when too
      many or too few.
 

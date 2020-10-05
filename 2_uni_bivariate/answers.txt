@@ -1,0 +1,79 @@
+###################################################################################################
+L1C1:
+
+1) Draw 1000 samples from a uniform distribution on the interval [-5, 5] and store them in the variable x. Make a histogram of x.
+
+rm(list=ls())
+set.seed(1)
+x <- runif(1000, min=-5, max=5)
+hist(x)
+
+2) Draw 1000 samples from a normal distribution with mean 0 and standard deviation 2 and store the samples in the variable y. Make a histogram of y. Try to fiddle with the number of histograms 'bins' (bins parameter to hist()). Trying values in c(3, 10, 30, 100, 300) should provide a 'feel' for what happens when too many or too few.
+
+y <- rnorm(1000, mean=0, sd=2)
+par(mfrow=c(2, 3))
+length(hist(y)$breaks)
+hist(y, breaks=3)
+hist(y, breaks=10)
+hist(y, breaks=30)
+hist(y, breaks=100)
+hist(y, breaks=300)
+par(mfrow=c(1, 1))
+
+3) Concatenate x and y into a single vector of length 2000. Generate a 2D plot of the result. From the plot, can you tell where one distribution (say the one from x) stops and the other (from y) starts?
+
+z <- c(x, y)
+plot(z)
+
+4) Add a horizontal line to the plot from question #3, at the mean of z. Hint: abline parameter h for 'horizontal'.
+
+abline(h=mean(z), lty=2, col='magenta')
+
+5) Add a vertical line to the plot at the 1000th position in the plot from question #4. Hint: abline parameter v for 'vertical'; note the bottom axis positions are the order (or index positions) of the values in z, so the 1000th position marks the boundary between the values from x (uniform) and those from y (normal). Are some differences in the distribution of points between the left side and right side of your horizontal line apparent to you?
+
+abline(v=1000, lty=3, col='cyan')
+
+###################################################################################################
+L1C2:
+
+1) Generate a loop that draws 10000 samples of size 10 from a uniform distribution on the interval [-1, 1].
+
+rm(list=ls())
+set.seed(1)
+
+for(i in 1 : 10000) {
+  smp <- runif(10, min=-1, max=1)
+}
+
+2) Add to your loop in order to create a vector (length == 10000) of the standard deviations for each sample.
+
+rm(list=ls())
+set.seed(1)
+
+rslt <- numeric(length=0)
+
+for(i in 1 : 10000) {
+  smp <- runif(10, min=-1, max=1)
+  rslt <- c(rslt, sd(smp))
+}
+
+3) Make a histogram of the distribution of standard deviations.
+
+hist(rslt)
+sd(runif(1e6, -1, 1))
+
+4) Repeat this process for a uniform distribution on the interval [-100, 100].
+
+rm(list=ls())
+set.seed(1)
+
+rslt <- numeric(length=0)
+
+for(i in 1 : 10000) {
+  smp <- runif(10, min=-100, max=100)
+  rslt <- c(rslt, sd(smp))
+}
+hist(rslt)
+sd(runif(1e6, -100, 100))
+
+

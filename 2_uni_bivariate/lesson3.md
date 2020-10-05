@@ -6,9 +6,10 @@
 
 ### Index
 
-- [Title 1](#title-1)
-- [Title 2](#title-2)
-- [Title 3](#title-3)
+- [Comparing two population means](#comparing-two-population-means)
+- [Comparing two population proportions](#comparing-two-population-proportions)
+- [Comparing three or more means](#comparing-three-or-more-means)
+- [Association between two variables](#association-between-two-variables)
 
 ### Check your understanding
 
@@ -18,7 +19,7 @@
 
 ---
 
-### title 1
+### Comparing two population means
 
 intro here
 
@@ -30,6 +31,15 @@ code here
 [Return to index](#index)
 
 ---
+
+### Comparing two population proportions
+
+intro here
+
+```
+code here
+
+```
 
 ### Check your understanding 1
 
@@ -39,7 +49,7 @@ code here
 
 ---
 
-### title 2
+### Comparing three or more means
 
 intro here
 
@@ -47,6 +57,10 @@ intro here
 code here
 
 ```
+
+[Return to index](#index)
+
+---
 
 ### Check your understanding 2
 
@@ -56,7 +70,7 @@ code here
 
 ---
 
-### title 3
+### Association between two variables
 
 intro here
 

@@ -21,7 +21,23 @@
 
 ### Lesson goals
 
-1) Know how to calculate the mean, variance and standard deviation of a sample.
+1) Follow the logic connecting the CLT assumption to confidence intervals for the 
+   population mean based on a random sample drawn from that population. 
+
+2) Be comfortable interpreting a 'frequentist' confidence interval or p-value.
+   
+3) Understand the concepts of a null hypothesis, the implications of rejecting
+   a null hypothesis, as well as the difference between a one-sided test and 
+   two-sided test.
+
+4) In R, be able to use the `t.test()` function to estimate a confidence interval
+   for the population mean using a random sample drawn from that population. Be
+   able to test null hypotheses that the population mean is the same as, above
+   or below a hypothetical value.
+
+5) Be able to use the `prop.test()` function to estimate a confidence interval for 
+   a population proportion using a random sample. Be able to test null hypotheses
+   that the null proportion is the same as, above or below a hypothetical value.
 
 [Return to index](#index)
 

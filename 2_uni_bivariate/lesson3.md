@@ -115,7 +115,9 @@ maybe some code here
 
 ### Comparing two population means
 
-intro here; what about doing repeated 2-way tests. Description of multiple
+intro here; comparing different groups; e.g. yields of different strains of wheat,
+  outcome of different drug treatments, output of different production lines.
+  what about doing repeated 2-way tests. Description of multiple
   testing issue. 
 
 h0 is difference in group means, `h0: (m1 - m2) == 0`. ci is on 
@@ -268,7 +270,7 @@ all.equal(r, r2)                  ## right way to test for equality here
 
 ```
 
-Some stuff about how summary is essential for this:
+Some stuff about how `summary()` is essential for this:
 
 ```
 smry <- summary(rslt)[[1]]        ## for 1-way anova, get first list element
@@ -315,25 +317,6 @@ Assumptions checked by looking at distributions of residuals. should be
   The related function `qqplot()` allows you to graphically compare the variable 
   against any distribution or another variable/dataset.
 
-```
-## plot residuals:
-
-nrow(dat)
-res <- residuals(rslt)
-summary(res)
-length(res)
-
-## some departure from N() in tails evident:
-
-qqnorm(res)                       ## quantiles of data vs. quantiles of N() w/ same mean and sd
-qqline(res)                       ## line thru 1st and 3d quantiles of corresponding N()
-
-## do a formal test for normality:
-
-shapiro.test(res)                 ## not normal, but how much does it matter?
-
-```
-
 If there appear to be worrisome departures from assumptions, one can opt to use the R 
   function `kruskall.test()` to perform a 'rank' test (or rank transform the data and do 
   a regular `aov()`) instead, but both of these approaches are also plagued by 
@@ -342,13 +325,67 @@ If there appear to be worrisome departures from assumptions, one can opt to use 
   Fortunately, as was mentioned earlier, the ANOVA is fairly robust to violations of
   assumptions. 
 
-In general, if the data within each group are symetrically distributed 
-  (can plot residuals of each group separately to look at this) and each group is
-  represented by a similar number of observations, results from ANOVA is usually fairly 
-  robust to minor departures from normality of residuals or even two-fold differences 
-  in variarnce between groups. The linear modeling framework and resampling methods that
-  will be introduced in the next two lessons provide ways to further examine the
-  robustness of our conclusions from ANOVA to deviations from the underlying assumptions.
+In general, if the data within each group are symmetrically distributed about the group 
+  mean (can plot residuals of each group separately to look at this) and each group is
+  represented by a very similar number of observations (ideally should design them to
+  be identical, but a missing value here or there should be ok), results from ANOVA is 
+  usually fairly robust to minor departures from normality of residuals or even two-fold 
+  differences in standard deviation (4-fold for the variance) within different groups. 
+  Outliers are a bigger worry. One simple way to look for outliers is in the residual 
+  distribution for observations more than 3-standard deviations away from the residual 
+  mean (the residual mean is always zero).
+
+The linear modeling framework and resampling methods that will be introduced in the next 
+  two lessons provide additional ways to examine the robustness of our conclusions from ANOVA 
+  to deviations from the underlying assumptions.
+
+Testing for normality and homogeneity: tests get more powerful as the number of samples
+  increases, which is when the assumptions matter least.
+
+```
+## plot residuals:
+
+nrow(dat)
+res <- residuals(rslt)
+summary(res)
+length(res)
+plot(res / sd(res))                    ## no residuals more than 3 * sd from 0
+
+par(mfrow=c(2, 2))
+
+## some departure from N() in tails evident:
+
+qqnorm(res, main='ANOVA residuals')    ## quantiles of res vs. quantiles of N() w/ same mean and sd
+qqline(res)                            ## line thru 1st and 3d quantiles of corresponding N()
+
+set.seed(1)
+tmp1 <- rnorm(length(res), 0, sd(res))
+qqnorm(tmp1, main='Normal distribution')
+qqline(tmp1)
+
+tmp2 <- rt(length(res), df=length(res) - 2)
+qqnorm(tmp2, main='t-distribution')
+qqline(tmp2)
+
+tmp3 <- rt(length(res), df=1)
+qqnorm(tmp3, main='t-distribution, df=1')
+qqline(tmp3)
+
+par(mfrow=c(1, 1))
+
+## do a formal test for normality:
+
+shapiro.test(res)                 ## not normal, but how much does it matter?
+shapiro.test(tmp1)                ## random sample from normal
+shapiro.test(tmp2)                ## random sample from t w/ df like for rslt
+shapiro.test(tmp3)                ## random sample from t w/ df=5
+
+## do a formal test for homogeneity of variances; can use the same 'formula' as
+##   was used when doing aov(); strongly rejects homogeneity, but so what?:
+
+bartlett.test(breaks ~ tension, data=dat)
+
+```
 
 If an ANOVA 'omnibus' F-test returns a significant p-value, it suggests that at least one 
   of the groups has a mean different from the others. However, it does not tell us which groups
@@ -356,15 +393,51 @@ If an ANOVA 'omnibus' F-test returns a significant p-value, it suggests that at 
   hypothesis that all group means are the same, we need to conduct a 'post-hoc' (after the fact)
   test to determine which means are different. We can use t-tests for this, comparing each pair
   of group means to one another. However, this introduces the issue of 'multiple testing' 
-  that we will show you how to explicitly address later in this course. The main thing to know
-  right now is when you conduct multiple hypothesis tests in a single experiment, you need to
-  'adjust' the p-values to account for Fortunately, there
-  are several purpose-built methods for conducting post-hoc tests that implicitly account for
-  multiple testing. One commonly used test is called Tukey's HSD (honest significant difference)
-  test. This compares all groups to one another. In the case of 3 groups, this would result
-  in (1v2, 1v3, 2v3). For Dunnett's test, only compare groups to a negative control (1v2, 1v3, 
-  assuming group 1 is the negative control). More powerful when those are the only contrasts 
-  of interest.
+  that we mentioned earlier. Fortunately, there are several purpose-built methods for conducting 
+  post-hoc tests that implicitly account for multiple testing. One commonly used test is called 
+  Tukey's HSD (honest significant difference) test. This compares all groups to one another, 
+  using the same approach used for constructing an equal-variance t-test, except adjusting the 
+  returned p-values to properly account (returning the FWER or 'family-wise error rate') for 
+  the multiplicity of tests performed. For instance,
+  in the case of 3 groups, Tukey's HSD will perform three comparisons, corresponding to each 
+  possible group pairing: 1v2, 1v3, and 2v3. The assumptions behind Tukey's HSD are essentially 
+  identical to those for the ANOVA itself. 
+
+```
+## the data:
+summary(dat)
+
+## the aov() fit:
+rslt
+summary(rslt)
+
+## Tukey's HSD:
+
+(hsd <- TukeyHSD(rslt))
+class(hsd)
+is.list(hsd)
+names(hsd)
+
+hsd$tension                       ## name depends on starting variable name (dat$tension)
+class(hsd$tension)                ## familiar; use [row, col] indexing
+is.list(hsd$tension)              ## do not try to use '$' to index!
+
+rownames(hsd$tension)             ## means being compared
+hsd$tension[, 'diff']             ## difference between respective means
+hsd$tension[, 'lwr']              ## 95% CI lower bound on difference
+hsd$tension[, 'upr']              ## 95% CI upper bound on difference
+hsd$tension[, 'p adj']            ## adjusted p-value (FWER) for difference
+
+plot(hsd)                         ## see results graphically (plot ci's vs. 0)
+
+```
+
+Another commonly employed post-hoc test, particularly 
+  in the sciences is Dunnett's test, which only compares groups to a negative control. This 
+  means that fewer tests are conducted, resulting in each test being more powerful to detect a
+  difference than if we had used Tukey's HSD. For instance, in the three group case, Dunnett's
+  test only conducts two tests, corresponding to all possible pairings of the negative control
+  group to each other group: 1v2 and 1v3, assuming group 1 is the negative control. 
 
 In order to identify the significant differences we
   need Only do if 'omnibus' F-test is significant.
@@ -372,7 +445,29 @@ In order to identify the significant differences we
   Dunnett's: all-vs-negative_control.
 
 ```
-## post-hoc test code here
+## Dunnett's test:
+
+libary()
+## install.packages('multcomp')   ## if you don't already have it
+library('multcomp')               ## load the library
+sessionInfo()                     ## see the version
+
+## sorry, this one is ugly:
+(dun <- glht(rslt, linfct=mcp(tension="Dunnett")))
+class(dun)
+is.list(dun)
+names(dun)
+(smry.dun <- summary(dun))
+class(smry.dun)
+is.list(smry.dun)                 ## can use '$' to index
+names(smry.dun)                   ## not clear e.g. where is p-value?
+str(smry.dun)
+smry.dun$test
+class(smry.dun$test)
+is.list(smry.dun$test)
+names(smry.dun$test)
+smry.dun$test$coefficients        ## numeric vector
+smry.dun$test$pvalues             ## numeric vector
 
 ```
 

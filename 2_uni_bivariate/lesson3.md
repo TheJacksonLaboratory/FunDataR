@@ -504,32 +504,41 @@ Observe two numeric variables on same subjects. For example, can measure the
 
 Pearson tests for (and assumes) a linear relationship between the two 
   variables. It further assumes that residuals (distances from the observations 
-  to the prediction line) are homoskedastic. Pearson's test is sensitive to 
-  outliers. For continuous variables without obvious outliers, and where the
+  to the prediction line) are homoskedastic. Pearson's test is defined in terms
+  of 'sums-of-squares' so the results are relatively sensitive to outliers. 
+  However, for continuous variables without obvious outliers, and where the
   assumptions hold, Pearson's test of correlation is the most powerful test of 
   association. For discontinuous variables, where outliers are suspected, or 
   where the assumptions are suspect, Spearman's rho test or Kendall's tau test 
-  are better choices than Pearson's correlation. Spearman's test amounts to 
-  taking a rank transformation of the data (for instance, substitute all the 
-  `ht` values with their ranks from smallest to largest; then do the same thing 
-  for the `wt` values), then conducting Pearson's test on the transformed data. 
+  are better choices than Pearson's correlation. Spearman's rho and Kendall's 
+  tau approaches make relatively few assumptions outside of random sampling
+  of populations and a monotonic relationship between variables. Non-monotonic
+  (as well as non-linear) relationships can often be discerned by plotting one 
+  variable against the other. If a non-monotonic relationship is discovered,
+  other methods should be used to characterize the association between the
+  variables.
 
-Kendall's tau test also ranks the data for each variable, but the theoretical 
-  approach and p-value calculation differs from Pearson's and Spearman's
-  correlations. Nevertheless, the p-values returned tend to be pretty similar
-  to those returned by Spearman's procedure, and neither method makes many 
-  assumptions outside of random sampling. Kendall's tau test may be more 
-  attractive than Spearman's rho in part because the tau statistic has a fairly 
-  straight-forward interpretation. Like the Pearson correlation (and therefore 
-  Spearman's rho), tau varies between -1 (perfect negative association) and 1 
-  (perfect positive association) with 0 indicating no association. However, tau 
-  actually represents a probability: the probability that if one variable goes 
-  up, the other variable will go up (for positive tau) or the probability that 
+Spearman's test amounts to taking a rank transformation of the data (for instance, 
+  substitute all the `ht` values with their ranks from smallest to largest; then 
+  do the same thing for the `wt` values), then conducting Pearson's test on the 
+  transformed data. Kendall's tau test also ranks the data for each variable, but 
+  the theoretical approach and p-value calculation differs from Pearson's and 
+  Spearman's correlations. Nevertheless, the p-values returned by Kendall's tau
+  test tend to be pretty similar to those returned by Spearman's procedure, and 
+  neither method makes many assumptions outside of random sampling and a 
+  monotonic association between variables (the plot of one variable against the 
+  other is always rising or always falling: it does not change directions). In 
+  cases where there is a non-monotonic association between variables, other 
+  methods should be considered for characterizing the relationship. Kendall's 
+  tau test is sometimes preferred over Spearman's rho because the tau statistic 
+  has a fairly straight-forward interpretation. Like the Pearson correlation 
+  (and therefore Spearman's rho), tau varies between -1 (perfect negative 
+  association) and 1 (perfect positive association) with 0 indicating no 
+  association. However, for intermediate values, tau actually represents a 
+  readily interpretable probability, while Spearman's rho statistic is not. 
+  Kendall's tau estimates the probability that if one variable goes up, the 
+  other variable will go up as well (for positive tau), or the probability that 
   if one variable goes up, the other will go down (for negative tau).
-
-All three of these methods assume a monotonic association between your variables.
-  If your variables follow a non-monotonic association (can be discovered by 
-  plotting them together) other methods should be used to analyze the relationship.
 
 
 ```
@@ -537,7 +546,7 @@ rm(list=ls())
 set.seed(3)
 n <- 100
 
-## strong positive linear:
+## strong positive linear association:
 
 x <- runif(n, 0, 10)
 e <- rnorm(n, 0, 1)
@@ -545,12 +554,12 @@ y <- 3 * x + e
 
 plot(x, y)
 cor.test(x, y, method='pearson')
-cor.test(x, y, method='pearson', alternative='greater')
-cor.test(x, y, method='spearman')
-cor.test(rank(x), rank(y), method='pearson')
-cor.test(x, y, method='kendall')
+cor.test(x, y, method='pearson', alternative='greater') ## h0: r <= 0
+cor.test(x, y, method='spearman')                       ## pearson on ranked data
+cor.test(rank(x), rank(y), method='pearson')            ## equivalent to spearman
+cor.test(x, y, method='kendall')                        ## different rank-based
 
-## weak negative linear:
+## weak negative linear association:
 
 e <- rnorm(n, 0, 10)
 y <- -3 * x + e
@@ -578,19 +587,19 @@ x[n] <- 10
 y[n] <- 10
 
 plot(x, y)
-cor.test(x, y, method='pearson')
-cor.test(x, y, method='spearman')
-cor.test(x, y, method='kendall')
+cor.test(x, y, method='pearson')    ## pearson very sensitive
+cor.test(x, y, method='spearman')   ## spearman only slightly sensitive
+cor.test(x, y, method='kendall')    ## kendall only slightly sensitive
 
 ## perfect (x 100% predicts y) non-monotonic association:
 
 x <- runif(n, -1, 1)
 y <- x ^ 2
 
-plot(x, y)
-cor.test(x, y, method='pearson')
-cor.test(x, y, method='spearman')
-cor.test(x, y, method='kendall')
+plot(x, y)                          ## very strong interdependence
+cor.test(x, y, method='pearson')    ## undetectable
+cor.test(x, y, method='spearman')   ## undetectable
+cor.test(x, y, method='kendall')    ## undetectable
 
 ```
 

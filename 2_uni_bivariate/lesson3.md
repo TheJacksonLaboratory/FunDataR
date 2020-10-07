@@ -23,6 +23,8 @@
 
 intro here
 
+brief description of dataset
+
 ```
 ## prep our data for analysis:
 rm(list=ls())
@@ -82,7 +84,20 @@ str(rslt)                         ## no confidence interval when >2 groups
 
 ```
 
-Some mention of chisq.test().
+Mention the chisq.test() for contingency tables and goodness-of-fit. Conceptual
+  difference from prop.test(). In R, prop.test() calls chisq.test() then prints
+  the results differently.
+
+Binomial test not right for >1 groups. Can use Fisher's Exact Test `fisher.test()`
+  to do non-parametric test. Some object to an implicit assumption of the test
+  that marginal totals are fixed. Creates some issues defining the population
+  the estimates apply to. Calculation of an exact p-value can  become computationally 
+  very costly for more than two groups.
+
+```
+maybe some code here
+
+```
 
 [Return to index](#index)
 
@@ -98,7 +113,11 @@ Some mention of chisq.test().
 
 ### Comparing two population means
 
-intro here: also show repeated measures; power trade-off w/ repeated measures
+intro here; h0 is difference in group means, `h0: (m1 - m2) == 0`. ci is on 
+  the difference in group means, so if 95% CI does not include 0, h0 will be 
+  rejected w/ p < 0.05. One-sided h0s: `(m1 - m2) >= 0` or `(m1 - m2) <= 0`
+
+Brief description of dataset.
 
 ```
 ## prep our data for analysis:
@@ -113,12 +132,18 @@ table(dat$cyl)
 (y <- dat$mpg[dat$cyl == 8])
 
 ## two-sided test: confidence interval is on difference in group means;
-##   p-value is of h0: difference is zero.
+##   default version: upaired, Welch's (no assumption of group variances
+##   being equal). p-value is of h0: difference between group means is zero.
 
-t.test(x=x, y=y)
+(rslt <- t.test(x=x, y=y))
 
 ## one-sided test: h0: difference is less than or equal to zero:
-rslt <- t.test(x=x, y=y, alternative='greater')
+(rslt <- t.test(x=x, y=y, alternative='greater'))
+
+## test assuming both groups have same variance:
+(rslt <- t.test(x=x, y=y, var.equal=T))
+
+(rslt <- t.test(x=x, y=y, var.equal=T, alternative='greater'))
 
 class(rslt)                       ## h(ypothesis)test
 is.list(rslt)                     ## why we can use '$' to index elements
@@ -126,6 +151,8 @@ names(rslt)                       ## same old same old
 attributes(rslt)
 
 ```
+
+A note on picking tests before examining the data.
 
 Background on repeated measures. Trade-off between degrees of freedom and effect size.
 
@@ -156,8 +183,6 @@ c(p1=rslt1$p.value, p2=rslt2$p.value, p3=rslt3$p.value)
 cbind(ci1=rslt1$conf.int, ci2=rslt2$conf.int, ci3=rslt3$conf.int)
 
 ```
-
-A note on picking tests before examining the data.
 
 [Return to index](#index)
 

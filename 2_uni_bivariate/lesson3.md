@@ -315,7 +315,7 @@ Assumptions checked by looking at distributions of residuals. should be
   a variable (here the residuals from the ANOVA fit) against the expected
   percentile values from a normal distribution with the same mean and sd.
   The related function `qqplot()` allows you to graphically compare the variable 
-  against any distribution or another variable/dataset.
+  against any distribution or against another dataset.
 
 If there appear to be worrisome departures from assumptions, one can opt to use the R 
   function `kruskall.test()` to perform a 'rank' test (or rank transform the data and do 
@@ -529,7 +529,7 @@ Kendall's tau test also first ranks the data for each variable, but then the
   go down (for negative tau).
 
 All three of these methods assume a monotonic association between your variables.
-  If you variables follow a non-monotonic association (can be discovered by 
+  If your variables follow a non-monotonic association (can be discovered by 
   plotting them together) other methods should be used to analyze the relationship.
 
 Here we will set up three synthetic datasets. The first will have a strong linear
@@ -538,10 +538,58 @@ Here we will set up three synthetic datasets. The first will have a strong linea
   and the fifth a non-monotonic association.
 
 ```
-## Pearson's correlation:
-## Spearman's correlation (rho):
-## Kendall's correlation (tau):
+rm(list=ls())
+set.seed(1)
+n <- 100
 
+## strong positive linear:
+
+x <- runif(n, 0, 10)
+e <- rnorm(n, 0, 1)
+y <- 3 * x + e
+
+plot(x, y)
+cor.test(x, y, method='pearson')
+cor.test(x, y, method='pearson', alternative='greater')
+cor.test(x, y, method='spearman')
+cor.test(rank(x), rank(y), method='pearson')
+cor.test(x, y, method='kendall')
+
+## weak negative linear:
+
+e <- rnorm(n, 0, 10)
+y <- -3 * x + e
+
+plot(x, y)
+cor.test(x, y, method='pearson')
+cor.test(x, y, method='pearson', alternative='greater')
+cor.test(x, y, method='spearman')
+cor.test(rank(x), rank(y), method='pearson')
+cor.test(x, y, method='kendall')
+
+## no association:
+
+x <- rnorm(n, 0, 1)
+y <- rnorm(n, 0, 1)
+
+plot(x, y)
+cor.test(x, y, method='pearson')
+cor.test(x, y, method='pearson', alternative='greater')
+cor.test(x, y, method='spearman')
+cor.test(rank(x), rank(y), method='pearson')
+cor.test(x, y, method='kendall')
+
+## non-monotonic association:
+
+x <- runif(n, -1, 1)
+y <- x ^ 2
+
+plot(x, y)
+cor.test(x, y, method='pearson')
+cor.test(x, y, method='pearson', alternative='greater')
+cor.test(x, y, method='spearman')
+cor.test(rank(x), rank(y), method='pearson')
+cor.test(x, y, method='kendall')
 
 ```
 

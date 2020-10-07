@@ -485,10 +485,63 @@ smry.dun$test$pvalues             ## numeric vector
 
 ### Association between two variables
 
-intro here
+intro here; prop.test() already can test for categorical associations. Give
+  example or interpret past problem in this light.
+
+Observe two numeric variables on same subjects. For example, can measure the
+  both height and weight of N individuals, resulting in two vectors of the 
+  same lengths (say `ht` and `wt`) with measurements for a given individual at 
+  the same index position (so the height for the i-th individual would be 
+  `ht[i]` and that person's weight would be `wt[i]`). We may think that there
+  may be a relationship between height and weight (e.g. that the taller someone
+  is, the heavier they tend to be), and wish to test this idea. To do so,
+  we could look for a 'correlation' between our variables. The best known 
+  measure of correlation is Pearson's correlation. This is a value ranging 
+  between 1 (signaling a perfect positive correlation: whenever `ht` goes up, 
+  `wt` goes up) and -1 (signaling perfect negative correlation: whenever `ht` 
+  goes up, `wt` goes down). For two variables that are not associated with one
+  another, Pearson's correlation will be near zero.
+
+Pearson tests for (and assumes) a linear relationship between the two 
+  variables. It further assumes that residuals (distances from the observations 
+  to the prediction line) are homoskedastic. Results of the test are sensitive to outliers.
+  For continuous variables without outliers and where the assumptions hold, 
+  Pearson's test of correlation is the most powerful test of association. For discontinuous 
+  variables, cases where the relationship between variables is unlikely to
+  be linear, where heteroskedasticity of residuals is present, or where outliers
+  are suspected, Spearman's rho test or Kendall's tau test are better choices. 
+  Spearman's test amounts to taking a rank transformation of the data (for 
+  instance, take all the `ht` values and substitute their ranks from smallest 
+  to largest; then do the same thing for the `wt` values), then conducting 
+  Pearson's test on the transformed data. 
+
+Kendall's tau test also first ranks the data for each variable, but then the 
+  theoretical approach and p-value calculation differs from Pearson's and Spearman's
+  correlations. Nevertheless, the p-values returned tend to be pretty similar
+  to those returned by Spearman's procedure, and neither method makes many 
+  assumptions. Kendall's tau test may be more attractive than Spearman's rho in 
+  part because the tau statistic has a fairly straight-forward interpretation. 
+  Like the Pearson correlation (and therefore Spearman's rho), tau varies between 
+  -1 (perfect negative association) and 1 (perfect positive association) with 0
+  indicating no association. However, tau actually represents a probability: the
+  probability that if one variable goes up, the other variable will go up (for 
+  positive tau) or the probability that if one variable goes up, the other will
+  go down (for negative tau).
+
+All three of these methods assume a monotonic association between your variables.
+  If you variables follow a non-monotonic association (can be discovered by 
+  plotting them together) other methods should be used to analyze the relationship.
+
+Here we will set up three synthetic datasets. The first will have a strong linear
+  positive association, the second a strong non-linear positive association, 
+  the third a weak linear negative association, the fourth no association, 
+  and the fifth a non-monotonic association.
 
 ```
-code here
+## Pearson's correlation:
+## Spearman's correlation (rho):
+## Kendall's correlation (tau):
+
 
 ```
 

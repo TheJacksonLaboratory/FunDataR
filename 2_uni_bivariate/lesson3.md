@@ -97,7 +97,7 @@ Binomial test not right for >1 groups. Can use Fisher's Exact Test `fisher.test(
   very costly for more than two groups.
 
 ```
-maybe some code here
+maybe some fisher.test() code here?
 
 ```
 
@@ -107,7 +107,14 @@ maybe some code here
 
 ### Check your understanding 1
 
-1) question here
+1) Compare the arrest rates for assault in Alaska and Maine using `prop.test()`.
+
+2) Compare the arrest rates for assault in Alaska, Maine, and North Dakota using
+   `prop.test()`.
+
+3) Repeat #1, but using `fisher.test()`.
+
+4) What is the null hypothesis of these tests?
 
 [Return to index](#index)
 
@@ -403,6 +410,12 @@ If an ANOVA 'omnibus' F-test returns a significant p-value, it suggests that at 
   possible group pairing: 1v2, 1v3, and 2v3. The assumptions behind Tukey's HSD are essentially 
   identical to those for the ANOVA itself. 
 
+What if a particular contrast of prior interest: jump to post-hoc test. Why use the omnibus at 
+  all? Conduct fewer overall tests. Less 'adjustment' required, more powerful individual tests.
+  Non-significant omnibus does not rule out significant post-hoc. Similarly, significant omnibus
+  does not guarantee you will have a significant post-hoc. You might be able to assert that some
+  of the means are different without being able to assert which ones are different.
+
 ```
 ## the data:
 summary(dat)
@@ -477,7 +490,15 @@ smry.dun$test$pvalues             ## numeric vector
 
 ### Check your understanding 2
 
-1) question here
+1) ANOVA
+
+2) TukeyHSD
+
+) What is the null hypothesis of a 2-sample t-test?
+
+) What is the null hypothesis of a 1-factor ANOVA?
+
+) Should you try post-hoc tests without conducting an omnibus test first?
 
 [Return to index](#index)
 
@@ -552,8 +573,13 @@ x <- runif(n, 0, 10)
 e <- rnorm(n, 0, 1)
 y <- 3 * x + e
 
-plot(x, y)
-cor.test(x, y, method='pearson')
+plot(y ~ x)                                             ## can use formula notation here too
+rslt <- cor.test(x, y)                                  ## method='pearson' by default
+class(rslt)                                             ## our old friend, htest
+is.list(rslt)                                           ## can use '$' indexing
+names(rslt)                                             ## many familiar faces
+
+cor.test(x, y, method='pearson')                        ## same thing, explicit method
 cor.test(x, y, method='pearson', alternative='greater') ## h0: r <= 0
 cor.test(x, y, method='spearman')                       ## pearson on ranked data
 cor.test(rank(x), rank(y), method='pearson')            ## equivalent to spearman
@@ -564,7 +590,7 @@ cor.test(x, y, method='kendall')                        ## different rank-based
 e <- rnorm(n, 0, 10)
 y <- -3 * x + e
 
-plot(x, y)
+plot(y ~ x)
 cor.test(x, y, method='pearson')
 cor.test(x, y, method='spearman')
 cor.test(x, y, method='kendall')
@@ -609,7 +635,23 @@ cor.test(x, y, method='kendall')    ## undetectable
 
 ### Check your understanding 3
 
-1) question here
+Using the `mtcars` dataset:
+
+1) In a 1 row, 3 column layout (use `par(mfrow=c(?, ?))`, substituting the right
+   values for the ?s), plot the relationship between `mpg` (miles per gallon) and `disp` 
+   (engine displacement in cubic inches); do the same between `mpg` and `wt` (car weight 
+   in 1000s of lbs); finally, plot `disp` vs `wt`.
+
+2) What is the Pearson's correlation between `mpg` and `disp`. Is it significant? What 
+   is the confidence interval?
+
+3) Conduct a Kendall's test on the correlation between `mpg` and `wt`. What is the p-value?
+    Is there a confidence interval?
+
+4) Conduct a one-sided Spearman's test on the correlation between `mpg` and `wt`. What is
+   the p-value? Is there a confidence interval?
+
+5) What is the null hypothesis for all three of these correlation tests?
 
 [Return to index](#index)
 

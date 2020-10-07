@@ -504,42 +504,37 @@ Observe two numeric variables on same subjects. For example, can measure the
 
 Pearson tests for (and assumes) a linear relationship between the two 
   variables. It further assumes that residuals (distances from the observations 
-  to the prediction line) are homoskedastic. Results of the test are sensitive to outliers.
-  For continuous variables without outliers and where the assumptions hold, 
-  Pearson's test of correlation is the most powerful test of association. For discontinuous 
-  variables, cases where the relationship between variables is unlikely to
-  be linear, where heteroskedasticity of residuals is present, or where outliers
-  are suspected, Spearman's rho test or Kendall's tau test are better choices. 
-  Spearman's test amounts to taking a rank transformation of the data (for 
-  instance, take all the `ht` values and substitute their ranks from smallest 
-  to largest; then do the same thing for the `wt` values), then conducting 
-  Pearson's test on the transformed data. 
+  to the prediction line) are homoskedastic. Pearson's test is sensitive to 
+  outliers. For continuous variables without obvious outliers, and where the
+  assumptions hold, Pearson's test of correlation is the most powerful test of 
+  association. For discontinuous variables, where outliers are suspected, or 
+  where the assumptions are suspect, Spearman's rho test or Kendall's tau test 
+  are better choices than Pearson's correlation. Spearman's test amounts to 
+  taking a rank transformation of the data (for instance, substitute all the 
+  `ht` values with their ranks from smallest to largest; then do the same thing 
+  for the `wt` values), then conducting Pearson's test on the transformed data. 
 
-Kendall's tau test also first ranks the data for each variable, but then the 
-  theoretical approach and p-value calculation differs from Pearson's and Spearman's
+Kendall's tau test also ranks the data for each variable, but the theoretical 
+  approach and p-value calculation differs from Pearson's and Spearman's
   correlations. Nevertheless, the p-values returned tend to be pretty similar
   to those returned by Spearman's procedure, and neither method makes many 
-  assumptions. Kendall's tau test may be more attractive than Spearman's rho in 
-  part because the tau statistic has a fairly straight-forward interpretation. 
-  Like the Pearson correlation (and therefore Spearman's rho), tau varies between 
-  -1 (perfect negative association) and 1 (perfect positive association) with 0
-  indicating no association. However, tau actually represents a probability: the
-  probability that if one variable goes up, the other variable will go up (for 
-  positive tau) or the probability that if one variable goes up, the other will
-  go down (for negative tau).
+  assumptions outside of random sampling. Kendall's tau test may be more 
+  attractive than Spearman's rho in part because the tau statistic has a fairly 
+  straight-forward interpretation. Like the Pearson correlation (and therefore 
+  Spearman's rho), tau varies between -1 (perfect negative association) and 1 
+  (perfect positive association) with 0 indicating no association. However, tau 
+  actually represents a probability: the probability that if one variable goes 
+  up, the other variable will go up (for positive tau) or the probability that 
+  if one variable goes up, the other will go down (for negative tau).
 
 All three of these methods assume a monotonic association between your variables.
   If your variables follow a non-monotonic association (can be discovered by 
   plotting them together) other methods should be used to analyze the relationship.
 
-Here we will set up three synthetic datasets. The first will have a strong linear
-  positive association, the second a strong non-linear positive association, 
-  the third a weak linear negative association, the fourth no association, 
-  and the fifth a non-monotonic association.
 
 ```
 rm(list=ls())
-set.seed(1)
+set.seed(3)
 n <- 100
 
 ## strong positive linear:
@@ -562,9 +557,7 @@ y <- -3 * x + e
 
 plot(x, y)
 cor.test(x, y, method='pearson')
-cor.test(x, y, method='pearson', alternative='greater')
 cor.test(x, y, method='spearman')
-cor.test(rank(x), rank(y), method='pearson')
 cor.test(x, y, method='kendall')
 
 ## no association:
@@ -574,21 +567,29 @@ y <- rnorm(n, 0, 1)
 
 plot(x, y)
 cor.test(x, y, method='pearson')
-cor.test(x, y, method='pearson', alternative='greater')
 cor.test(x, y, method='spearman')
-cor.test(rank(x), rank(y), method='pearson')
 cor.test(x, y, method='kendall')
 
-## non-monotonic association:
+## no association, with one big outlier:
+
+x <- rnorm(n, 0, 1)
+y <- rnorm(n, 0, 1)
+x[n] <- 10
+y[n] <- 10
+
+plot(x, y)
+cor.test(x, y, method='pearson')
+cor.test(x, y, method='spearman')
+cor.test(x, y, method='kendall')
+
+## perfect (x 100% predicts y) non-monotonic association:
 
 x <- runif(n, -1, 1)
 y <- x ^ 2
 
 plot(x, y)
 cor.test(x, y, method='pearson')
-cor.test(x, y, method='pearson', alternative='greater')
 cor.test(x, y, method='spearman')
-cor.test(rank(x), rank(y), method='pearson')
 cor.test(x, y, method='kendall')
 
 ```

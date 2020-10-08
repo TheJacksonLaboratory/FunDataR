@@ -21,11 +21,37 @@
 
 ### Comparing population proportions
 
-intro here
+In the previous lesson we estimated the proportion of two mutually exclusive 
+  groups in a population based on a random sample of observations drawn from 
+  that population. We used the R `prop.test()` function to generate a confidence 
+  interval for the population proportion and test the hypothesis that the 
+  proportion was 0.5. We also learned that we could test against other 
+  hypothetical proportions by including those proportions as the value for the 
+  `p` parameter in our call to `prop.test()`.
 
-assumption: random sampling implies independence of observations; 
+Now we will look at how to use the same `prop.test()` function to compare group 
+  proportions between two populations. The underlying chi-square test assumes 
+  that each sample is randomly drawn from its respective population. This ensures 
+  that each observation is independently distributed from other observations in 
+  either sample. This means that prior observation have no effect on the value 
+  of subsequent observations. P-values and confidence intervals are calculated 
+  using the normal distribution (in practice, R uses the chi-square distribution 
+  with one degree of freedom, which is equivalent), which is justified by 
+  invoking the CLT. For proportions, we usually want a count of at least 5 in 
+  each group in order to invoke the CLT without provoking complaints from 
+  manuscript reviewers.
 
-brief description of dataset
+The null hypothesis in this case is that the group proportions in first 
+  population being sampled are the same as the group proportions in the
+  second population. The confidence intervals returned by the R `prop.test()`
+  is a confidence interval on the difference in the proportions in the 
+  two populations.
+
+Here we will use a dataset built into R in order to demonstrate. R has many
+  different datasets included in the base distribution. They can typically
+  be loaded by simply invoking their name. Descriptions of the datasets
+  can be found in the same way as for function or operators, but using
+  the '?' prefix operator:
 
 ```
 ## prep our data for analysis:
@@ -55,7 +81,9 @@ x$Total
 
 ```
 
-Now we can do the actual test (easy part):
+As is often the case in data analysis, setting up this dataset for analysis is 
+  more work than actually performing the statistical tests:
+
 
 ```
 ## did arrest rates (proportion per 10,000 or 1e4) differ?
@@ -68,7 +96,9 @@ rslt$conf.int                     ## confidence interval on difference in propor
 
 ```
 
-Extend the proportion test to more than 2 groups:
+The `prop.test()` function can be used to extend the proportion test to more than 
+  2 populations. The null hypothesis in this case is that all of the population
+  proportions are equal. No confidence intervals are returned in this case:
 
 ```
 x <- dat[c('Vermont', 'New York', 'California'), c('Murder', 'Total')]
@@ -86,15 +116,15 @@ str(rslt)                         ## no confidence interval when >2 groups
 
 ```
 
-Mention the chisq.test() for contingency tables and goodness-of-fit. Conceptual
-  difference from prop.test(). In R, prop.test() calls chisq.test() then prints
-  the results differently.
+In addition to the `prop.test()` function, R has a `chisq.test()` function for
+  performing more general chi-square tests. At least some versions of `prop.test()`
+  work by calling `chisq.test()` on the data and simply reformat the output.
 
-Binomial test not right for >1 groups. Can use Fisher's Exact Test `fisher.test()`
-  to do non-parametric test. Some object to an implicit assumption of the test
-  that marginal totals are fixed. Creates some issues defining the population
-  the estimates apply to. Calculation of an exact p-value can  become computationally 
-  very costly for more than two groups.
+In the single sample case, we saw that we could use the binomial exact test when
+  group counts were too low to justify invoking the CLT and using `prop.test()`. 
+  However, the binomial test is not suitable for use with more than one sample.
+  Instead, you can consider using Fisher's Exact Test, which is implemented by
+  the `fisher.test()` function in R.
 
 ```
 maybe some fisher.test() code here?

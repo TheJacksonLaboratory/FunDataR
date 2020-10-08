@@ -57,7 +57,10 @@ Here we will use a dataset built into R in order to demonstrate. R has many
 ## prep our data for analysis:
 rm(list=ls())
 
+data()                              ## view available datasets
+help(package='datasets')            ## another view
 ?USArrests                          ## find out about a built-in dataset
+
 dat <- USArrests                    ## arrests per 100,000 in 1973; by state
 class(dat)                          ## data frame
 dim(dat)                            ## one row per state
@@ -83,7 +86,6 @@ x$Total
 
 As is often the case in data analysis, setting up this dataset for analysis is 
   more work than actually performing the statistical tests:
-
 
 ```
 ## did arrest rates (proportion per 10,000 or 1e4) differ?
@@ -170,8 +172,6 @@ assumption: random sampling implies independence of observations, except for
   intervals. Sensitive to outliers because of squared-error 'penalty' function 
   minimized by mean. Plot data to detect outliers.
 
-Brief description of dataset.
-
 ```
 ## prep our data for analysis:
 
@@ -252,7 +252,7 @@ assumptions: random sampling w/i groups implies independence of observations,
   except for optional 'pairing'. Assumes variance of data within each group 
   is the same (homogenous variances), and that the data is normally distributed
   within each group. In practice, as long as counts are fairly high (degrees 
-  of freedom of 30 or more) the model is robust to fairly dramatic departures
+  of freedom of 30 or more) the model is robust to fairly large departures
   from these assumptions. Like t-test, sensitive to outliers. Outliers best
   detected by plotting residuals from model. Formal tests for normality are
   sometimes recommended or seen in the literature, but these tests can detect
@@ -363,7 +363,7 @@ If there appear to be worrisome departures from assumptions, one can opt to use 
   assumptions. 
 
 In general, if the data within each group are symmetrically distributed about the group 
-  mean (can plot residuals of each group separately to look at this) and each group is
+  mean (you can plot residuals of each group separately to look at this) and each group is
   represented by a very similar number of observations (ideally should design them to
   be identical, but a missing value here or there should be ok), results from ANOVA is 
   usually fairly robust to minor departures from normality of residuals or even two-fold 
@@ -495,7 +495,7 @@ libary()
 library('multcomp')               ## load the library
 sessionInfo()                     ## see the version
 
-## sorry, this one is ugly:
+## sorry, multcomp can be ugly:
 (dun <- glht(rslt, linfct=mcp(tension="Dunnett")))
 class(dun)
 is.list(dun)
@@ -591,7 +591,6 @@ Spearman's test amounts to taking a rank transformation of the data (for instanc
   other variable will go up as well (for positive tau), or the probability that 
   if one variable goes up, the other will go down (for negative tau).
 
-
 ```
 rm(list=ls())
 set.seed(3)
@@ -667,7 +666,7 @@ cor.test(x, y, method='kendall')    ## undetectable
 
 Using the `mtcars` dataset:
 
-1) In a 1 row, 3 column layout (use `par(mfrow=c(?, ?))`, substituting the right
+1) In a 1 row, 3 column plot layout (use `par(mfrow=c(?, ?))`, substituting the right
    values for the ?s), plot the relationship between `mpg` (miles per gallon) and `disp` 
    (engine displacement in cubic inches); do the same between `mpg` and `wt` (car weight 
    in 1000s of lbs); finally, plot `disp` vs `wt`.

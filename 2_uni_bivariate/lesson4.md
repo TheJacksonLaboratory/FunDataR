@@ -47,7 +47,7 @@ y.i = b0 + b1 * x.i + e.i
 e.i ~ N(0, s)
 
 With e.i independent (reflects random sampling) and come from the 
-  same normal distribution N(0, s).
+  same normal distribution N(0, s). Fitting sensitive to outliers.
 
 ```
 rm(list=ls())
@@ -164,10 +164,60 @@ coef(smry8)
 
 ### Equivalence to t-test and ANOVA
 
-intro here
+intro here; `x` can be a categorical variable.
+
+one-sample t-test
 
 ```
-code here
+rm(list=ls())
+
+dat <- mtcars
+dat
+table(dat$cyl)
+
+(x <- dat$mpg[dat$cyl == 4])
+
+fit1 <- t.test(x=x)
+fit2 <- lm(y ~ x)
+
+fit1
+summary(fit2)
+
+```
+
+two-sample t-test
+
+```
+rm(list=ls())
+
+dat <- mtcars
+dat
+table(dat$cyl)
+
+(x <- dat$mpg[dat$cyl == 4])
+(y <- dat$mpg[dat$cyl == 8])
+
+## test assuming both groups have same variance:
+fit1 <- t.test(x=x, y=y, var.equal=T)
+fit2 <- lm(y ~ x)
+
+fit1
+summary(fit2)
+
+```
+
+anova
+
+```
+rm(list=ls())
+(dat <- warpbreaks)
+boxplot(breaks ~ tension, data=dat)
+
+fit1 <- aov(breaks ~ tension, data=dat)
+smry1 <- summary(rslt)[[1]]
+
+fit2 <- lm(breaks ~ tension, data=dat)
+smry2 <- summary(rslt2)
 
 ```
 
@@ -185,12 +235,16 @@ code here
 
 ### Analysis of residuals
 
-intro here
+intro here; review assumptions; sensitivity to outliers.
 
 ```
 code here
 
 ```
+
+[Return to index](#index)
+
+---
 
 ### Check your understanding 2
 

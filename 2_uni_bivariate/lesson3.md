@@ -22,7 +22,7 @@
 ### Comparing population proportions
 
 In the previous lesson we estimated the proportion of two mutually exclusive 
-  groups in a population based on a random sample of observations drawn from 
+  groups within a population based on a random sample of observations drawn from 
   that population. We used the R `prop.test()` function to generate a confidence 
   interval for the population proportion and test the hypothesis that the 
   proportion was 0.5. We also learned that we could test against other 
@@ -30,20 +30,25 @@ In the previous lesson we estimated the proportion of two mutually exclusive
   `p` parameter in our call to `prop.test()`.
 
 Now we will look at how to use the same `prop.test()` function to compare group 
-  proportions between two populations. The underlying chi-square test assumes 
-  that each sample is randomly drawn from its respective population. This ensures 
-  that each observation is independently distributed from other observations in 
-  either sample. This means that prior observation have no effect on the value 
-  of subsequent observations. P-values and confidence intervals are calculated 
-  using the normal distribution (in practice, R uses the chi-square distribution 
-  with one degree of freedom, which is equivalent), which is justified by 
-  invoking the CLT. For proportions, we usually want a count of at least 5 in 
-  each group in order to invoke the CLT without provoking complaints from 
-  manuscript reviewers.
+  proportions between two populations. This is different than the case in which 
+  we compare a single population to a hypothetical value because a hypothetical
+  value can be specified precisely, while population means are only approximately
+  estimated by sample means. This extra uncertainty is reflected in wider intervals
+  and higher p-values. As usual, we assume that each sample is randomly drawn 
+  from its respective population. This ensures that each observation is 
+  independently distributed from other observations in either sample. The values 
+  of prior observations have no effect on the value of subsequent observations. 
+  In most textbooks, you will see that the p-values and confidence intervals 
+  for the 'z-test of proportion' is base on the standard normal distribution 
+  N(0, 1), but for two-sided tests, R uses the chi-square distribution with one 
+  degree of freedom, which is equivalent. In any case, the use of either 
+  parametric distribution to describe uncertainty is justified by invoking the 
+  CLT. As mentioned in the one-sample case, for proportions, we usually want a 
+  count of at least 5 in each group in order to invoke the CLT with confidence.
 
-The null hypothesis in this case is that the group proportions in first 
-  population being sampled are the same as the group proportions in the
-  second population. The confidence intervals returned by the R `prop.test()`
+The p-value returned is for the null hypothesis that the group proportions in 
+  the first population being sampled are the same as the group proportions in 
+  the second population. The confidence intervals returned by the R `prop.test()`
   is a confidence interval on the difference in the proportions in the 
   two populations.
 
@@ -99,8 +104,9 @@ rslt$conf.int                     ## confidence interval on difference in propor
 ```
 
 The `prop.test()` function can be used to extend the proportion test to more than 
-  2 populations. The null hypothesis in this case is that all of the population
-  proportions are equal. No confidence intervals are returned in this case:
+  2 populations (or more than 2 groups). The null hypothesis in this case is that 
+  all of the population proportions are equal. No confidence intervals are 
+  returned in this case:
 
 ```
 x <- dat[c('Vermont', 'New York', 'California'), c('Murder', 'Total')]
@@ -118,18 +124,40 @@ str(rslt)                         ## no confidence interval when >2 groups
 
 ```
 
-In addition to the `prop.test()` function, R has a `chisq.test()` function for
-  performing more general chi-square tests. At least some versions of `prop.test()`
-  work by calling `chisq.test()` on the data and simply reformat the output.
-
 In the single sample case, we saw that we could use the binomial exact test when
   group counts were too low to justify invoking the CLT and using `prop.test()`. 
   However, the binomial test is not suitable for use with more than one sample.
   Instead, you can consider using Fisher's Exact Test, which is implemented by
-  the `fisher.test()` function in R.
+  the `fisher.test()` function in R. The null hypothesis is once again that all
+  group proportions are the same. It is expressed in terms of 'odds ratios'. An
+  odds ratio of an event is the probability that the event will occur divided by
+  the probability it will not occur: `odds <- p / (1 - p)`. In the case of 
+  group proportions, the odds are the odds that a random observation drawn from
+  the population will belong to a particular group. The null hypothesis is 
+  stated in terms of the 'odds ratios' for group membership being the same for
+  all groups and all populations tested. If the odds in both groups are the same,
+  the odds ratio should be one. Confidence intervals for the actual odds ratio
+  are only returned for 2x2 tables (where there is only one ratio to consider).
+  In addition, the test is only 'exact' for 2x2 tables and an approximation is
+  used for larger tables. Fisher's exact test has an unusual assumption (not 
+  made by `prop.test()` that the marginal totals (the column sums and row sums for 
+  the table being analyzed) are 'fixed'. That is, the p-value returned is 
+  conditioned on the marginal total: if the experiment yielded the observed 
+  marginal totals, the chance you would see this distribution of group counts
+  among your two samples given the null hypothesis is p. This assumption has
+  led to a number of controversies over application, but you will often see 
+  published work where the Fisher's test was used and interpreted without 
+  regard to marginal totals.
 
 ```
-maybe some fisher.test() code here?
+(x <- dat[c('Vermont', 'New York'), c('Murder', 'Total')])
+t(x)
+fisher.test(x)
+fisher.test(t(x))                 ## orientation of your table irrelevant
+
+(x <- dat[c('Vermont', 'New York', 'California'), c('Murder', 'Total')])
+fisher.test(x)
+fisher.test(t(x))
 
 ```
 
@@ -144,7 +172,7 @@ maybe some fisher.test() code here?
 2) Compare the arrest rates for assault in Alaska, Maine, and North Dakota using
    `prop.test()`.
 
-3) Repeat #1, but using `fisher.test()`.
+3) Repeat #1, but using `fisher.test()`. Are the results similar?
 
 4) What is the null hypothesis of these tests?
 

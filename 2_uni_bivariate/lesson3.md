@@ -378,17 +378,6 @@ The assumptions of this test includes that each sample is randomly drawn
   as sample sizes are around 30 or more and the design is nearly 'balanced' 
   (the number of observations from each population are equal).
 
-Formal tests for population normality and equal population variances are 
-  often recommended. These are particularly relevant if your sample sizes
-  are well below 30. When sample sizes are larger, it is likely that the
-  tests for departures from normality or equal variances will be powerful
-  enough to detect even small departures, which at these sample sizes are
-  likely to be irrelevant. In this case more cursory checks for dramatic
-  departures are more appropriate.
-
-Like the t-test, the ANOVA test is sensitive to outliers, which are most
-  easily detected by plotting residuals (see below) from the model.
-
 Technically, the ANOVA test compares the variances within each group (assumed
   to be the same in each group, so a 'pooled' estimate is made) to the
   variance between groups. The two-sample unpaired t-test with common 
@@ -441,11 +430,11 @@ fit$xlevels
 fit$df.residual
 
 ## but best practice is to use accessor functions when available:
-coef(rslt)
-f <- fitted(rslt)
+coef(fit)
+f <- fitted(fit)
 table(round(f, 5))                ## three means
-r <- residuals(rslt)
-r2 <- dat$breaks - fitted(rslt)   ## where residuals came from
+r <- residuals(fit)
+r2 <- dat$breaks - fitted(fit)    ## where residuals came from
 table(r == r2)                    ## exact equality is often NOT what you want
 all.equal(r, r2)                  ## right way to test for equality here
 
@@ -455,7 +444,7 @@ Here we show how to use `summary()` to get the confidence intervals and p-value
   we are interested in:
 
 ```
-smry <- summary(rslt)[[1]]        ## for 1-way anova, get first list element
+smry <- summary(fit)[[1]]         ## for 1-way anova, get first list element
 class(smry)
 is.list(smry)
 names(smry)
@@ -474,13 +463,15 @@ smry$P                            ## omnibus F-test p-value: h0: all group means
 
 ```
 
-How means are represented:
+Here we show how to get the 'predicted' or 'fitted' values from the 'coefficients'.
+  The key is that one of the groups is represented as the baseline, and other 
+  groups are represented by their difference from this baseline:
 
 ```
-## so unmentioned group 'L' mean is 'intercept'; add 'M' or 'H' values to 
-##   intercept in order to get respective group means:
+## so unmentioned group 'L' mean is 'baseline'; add 'M' or 'H' values to 
+##   baseline in order to get respective group means:
 
-(cf <- coef(rslt))
+(cf <- coef(fit))
 table(dat$tension)
 cf[1]                             ## mean of group L
 cf[1] + cf[2]                     ## mean of group M
@@ -491,44 +482,49 @@ tapply(dat$breaks, dat$tension, mean)
 
 ```
 
-Assumptions checked by looking at distributions of residuals. should be 
-  normally distributed with similar variance within each group. Quantile-
-  quantile normal plot `qqnorm()` plots the corresponding percentile values from
-  a variable (here the residuals from the ANOVA fit) against the expected
-  percentile values from a normal distribution with the same mean and sd.
-  The related function `qqplot()` allows you to graphically compare the variable 
-  against any distribution or against another dataset.
+Formal tests for population normality and equal population variances are 
+  often recommended in conjunction with ANOVA testing. These checks of
+  departures from assumptions are particularly relevant if your sample sizes
+  are well below 30. When sample sizes are larger than 30, it is likely that 
+  the tests for departures from normality or equal variances will be powerful
+  enough to detect even small departures, which at these sample sizes are
+  irrelevant. When using larger sample size, more cursory checks for dramatic
+  departures from assumptions are more appropriate.
+
+Like the t-test, the ANOVA test is sensitive to outliers, which are most
+  easily detected by plotting residuals (differences between observed values 
+  and values predicted from the model). One simple way to look for outliers is 
+  by looking in the residual distribution for observations more than 3-standard 
+  deviations away from the mean (this mean is always zero for ANOVA residuals).
+
+Other assumptions can also be checked by looking at the distribution of residuals 
+  Residuals should be normally distributed with a common variance (corresponding to
+  equal variances within each population). Quantile-quantile normal plot function 
+  `qqnorm()` plots the corresponding percentile values from a variable (here the 
+  residuals from the ANOVA fit) against the expected percentile values from a 
+  matched normal distribution. In the default case, the variable values are matched 
+  to a normal distribution whose 25th percentile value and 75th percentile value 
+  match those of the observations on the variable. If the residuals are normally 
+  distributed, they should fall along a straight line drawn by the `qqline()` 
+  function.
 
 If there appear to be worrisome departures from assumptions, one can opt to use the R 
   function `kruskall.test()` to perform a 'rank' test (or rank transform the data and do 
-  a regular `aov()`) instead, but both of these approaches are also plagued by 
+  a regular `aov()`) instead of ANOVA. But both of these approaches are also plagued by 
   assumptions that can be hard to strictly meet. Furthermore, the Kruskall test null 
   hypothesis is about medians, not means, so is not strictly comparable with ANOVA. 
-  Fortunately, as was mentioned earlier, the ANOVA is fairly robust to violations of
-  assumptions. 
-
-In general, if the data within each group are symmetrically distributed about the group 
-  mean (you can plot residuals of each group separately to look at this) and each group is
-  represented by a very similar number of observations (ideally should design them to
-  be identical, but a missing value here or there should be ok), results from ANOVA is 
-  usually fairly robust to minor departures from normality of residuals or even two-fold 
-  differences in standard deviation (4-fold for the variance) within different groups. 
-  Outliers are a bigger worry. One simple way to look for outliers is in the residual 
-  distribution for observations more than 3-standard deviations away from the residual 
-  mean (the residual mean is always zero).
+  Fortunately, as was mentioned earlier, as long as sample sizes are large and
+  nearly equal, the ANOVA is fairly robust to violations of assumptions. 
 
 The linear modeling framework and resampling methods that will be introduced in the next 
   two lessons provide additional ways to examine the robustness of our conclusions from ANOVA 
   to deviations from the underlying assumptions.
 
-Testing for normality and homogeneity: tests get more powerful as the number of samples
-  increases, which is when the assumptions matter least.
-
 ```
 ## plot residuals:
 
 nrow(dat)
-res <- residuals(rslt)
+res <- residuals(fit)
 summary(res)
 length(res)
 plot(res / sd(res))                    ## no residuals more than 3 * sd from 0
@@ -559,7 +555,7 @@ par(mfrow=c(1, 1))
 
 shapiro.test(res)                 ## not normal, but how much does it matter?
 shapiro.test(tmp1)                ## random sample from normal
-shapiro.test(tmp2)                ## random sample from t w/ df like for rslt
+shapiro.test(tmp2)                ## random sample from t w/ df like for fit
 shapiro.test(tmp3)                ## random sample from t w/ df=5
 
 ## do a formal test for homogeneity of variances; can use the same 'formula' as
@@ -576,32 +572,35 @@ If an ANOVA 'omnibus' F-test returns a significant p-value, it suggests that at 
   test to determine which means are different. We can use t-tests for this, comparing each pair
   of group means to one another. However, this introduces the issue of 'multiple testing' 
   that we mentioned earlier. Fortunately, there are several purpose-built methods for conducting 
-  post-hoc tests that implicitly account for multiple testing. One commonly used test is called 
+  post-hoc tests that properly account for multiple testing. One commonly used test is called 
   Tukey's HSD (honest significant difference) test. This compares all groups to one another, 
   using the same approach used for constructing an equal-variance t-test, except adjusting the 
-  returned p-values to properly account (returning the FWER or 'family-wise error rate') for 
-  the multiplicity of tests performed. For instance,
-  in the case of 3 groups, Tukey's HSD will perform three comparisons, corresponding to each 
-  possible group pairing: 1v2, 1v3, and 2v3. The assumptions behind Tukey's HSD are essentially 
-  identical to those for the ANOVA itself. 
+  returned p-values to properly account (returning the FWER or 'family-wise error rate', which
+  we will discuss in more detail in a later lesson) for the multiplicity of tests performed. For 
+  instance, in the case of 3 groups, Tukey's HSD will perform three comparisons, corresponding 
+  to each possible group pairing: 1v2, 1v3, and 2v3. The assumptions behind Tukey's HSD are 
+  essentially identical to those for the ANOVA itself.
 
-What if a particular contrast of prior interest: jump to post-hoc test. Why use the omnibus at 
-  all? Conduct fewer overall tests. Less 'adjustment' required, more powerful individual tests.
-  Non-significant omnibus does not rule out significant post-hoc. Similarly, significant omnibus
-  does not guarantee you will have a significant post-hoc. You might be able to assert that some
-  of the means are different without being able to assert which ones are different.
+It is important to note that a significant ANOVA omnibus F-test does not guarantee that a post-hoc
+  test will return a signficant pairwise difference. This means that you may be able to assert
+  that at least one group mean is different, but not be able to assert which one. Similarly, a 
+  dataset for which the ANOVA omnibus test is not significant may still yield signficant post-hoc 
+  tests. Therefore, if a particular comparison is a priori interesting, you may wish to bypass 
+  the ANOVA F-test and use the post-hoc test directly. In other circumstances (for instance when 
+  filtering variables for inclusion in a machine learning model) the individual pairwise 
+  differences may not be important, and you may want to only do the ANOVA omnibus test.
 
 ```
 ## the data:
 summary(dat)
 
 ## the aov() fit:
-rslt
-summary(rslt)
+fit
+summary(fit)
 
 ## Tukey's HSD:
 
-(hsd <- TukeyHSD(rslt))
+(hsd <- TukeyHSD(fit))
 class(hsd)
 is.list(hsd)
 names(hsd)
@@ -620,17 +619,12 @@ plot(hsd)                         ## see results graphically (plot ci's vs. 0)
 
 ```
 
-Another commonly employed post-hoc test, particularly 
-  in the sciences is Dunnett's test, which only compares groups to a negative control. This 
-  means that fewer tests are conducted, resulting in each test being more powerful to detect a
-  difference than if we had used Tukey's HSD. For instance, in the three group case, Dunnett's
-  test only conducts two tests, corresponding to all possible pairings of the negative control
-  group to each other group: 1v2 and 1v3, assuming group 1 is the negative control. 
-
-In order to identify the significant differences we
-  need Only do if 'omnibus' F-test is significant.
-  Tukey: all-vs-all. Same assumptions as ANOVA, plus equal-sample sizes;
-  Dunnett's: all-vs-negative_control.
+Another commonly employed post-hoc test, particularly in the sciences is Dunnett's test, which 
+  only compares groups to a negative control. This means that fewer tests are conducted, 
+  resulting in each test being more powerful to detect a difference than if we had used 
+  Tukey's HSD. For instance, in the three group case, Dunnett's test only conducts two tests, 
+  corresponding to all possible pairings of the negative control group to each other group: 
+  1v2 and 1v3, assuming group 1 is the negative control. 
 
 ```
 ## Dunnett's test:
@@ -641,7 +635,7 @@ library('multcomp')               ## load the library
 sessionInfo()                     ## see the version
 
 ## sorry, multcomp can be ugly:
-(dun <- glht(rslt, linfct=mcp(tension="Dunnett")))
+(dun <- glht(fit, linfct=mcp(tension="Dunnett")))
 class(dun)
 is.list(dun)
 names(dun)
@@ -665,15 +659,20 @@ smry.dun$test$pvalues             ## numeric vector
 
 ### Check your understanding 2
 
-1) ANOVA
+Using the `mtcars` built-in dataset:
 
-2) TukeyHSD
+1) Conduct an ANOVA omnibus F-test on the null hypothesis that the
+   mean gas efficiency (`mtcars$mpg`) for cars with different numbers of
+   cylinders (`mtcars$cyl`) are all equal. What is the p-value?
 
-3) What is the null hypothesis of a 2-sample t-test?
+2) Conduct the TukeyHSD to look for pairwise differences in group means.
+   What are the p-values for individual comparisons? 
 
-4) What is the null hypothesis of a 1-factor ANOVA?
+3) Do a `qqnorm()` and `qqline()` plot of the residuals from the model.
 
-5) Should you try post-hoc tests without conducting an omnibus test first?
+4) Perform a Shapiro test for normality of residuals.
+
+5) Perform a Bartlett test for equal variances within groups.
 
 [Return to index](#index)
 
@@ -681,22 +680,25 @@ smry.dun$test$pvalues             ## numeric vector
 
 ### Association between two variables
 
-intro here; prop.test() already can test for categorical associations. Give
-  example or interpret past problem in this light.
-
-Observe two numeric variables on same subjects. For example, can measure the
-  both height and weight of N individuals, resulting in two vectors of the 
-  same lengths (say `ht` and `wt`) with measurements for a given individual at 
-  the same index position (so the height for the i-th individual would be 
-  `ht[i]` and that person's weight would be `wt[i]`). We may think that there
-  may be a relationship between height and weight (e.g. that the taller someone
-  is, the heavier they tend to be), and wish to test this idea. To do so,
-  we could look for a 'correlation' between our variables. The best known 
-  measure of correlation is Pearson's correlation. This is a value ranging 
-  between 1 (signaling a perfect positive correlation: whenever `ht` goes up, 
-  `wt` goes up) and -1 (signaling perfect negative correlation: whenever `ht` 
-  goes up, `wt` goes down). For two variables that are not associated with one
-  another, Pearson's correlation will be near zero.
+The `prop.test()` we already introduced tests for associations between 
+  categorical variables. We often want to look for associations between
+  continuous variables as well. In the typical case, we observe two numeric 
+  variables on same subjects randomly selected from the population of interest. 
+  For example, can measure the both height and weight of N individuals, 
+  resulting in two vectors of the same lengths (say `ht` and `wt`) with 
+  measurements for a given individual at the same index position (so the height 
+  for the i-th individual would be `ht[i]` and that person's weight would be 
+  `wt[i]`). We may think that there may be a relationship between height and 
+  weight (e.g. that the taller someone is, perhaps the heavier they tend to be), 
+  and wish to test this idea. To do so, we could look for a 'correlation' 
+  between our variables. The best known measure of correlation is Pearson's 
+  correlation. This is a value ranging between 1 (signaling a perfect positive 
+  correlation: whenever `ht` goes up, `wt` is guaranteed to go up) and -1 
+  (signaling perfect negative correlation: whenever `ht` goes up, `wt` goes 
+  down). For two variables that are not associated with one another, 
+  Pearson's correlation within samples from the population will tend towards
+  zero (may not be zero due to random fluctuation in the dataset due to random
+  sampling). 
 
 Pearson tests for (and assumes) a linear relationship between the two 
   variables. It further assumes that residuals (distances from the observations 
@@ -710,7 +712,7 @@ Pearson tests for (and assumes) a linear relationship between the two
   tau approaches make relatively few assumptions outside of random sampling
   of populations and a monotonic relationship between variables. Non-monotonic
   (as well as non-linear) relationships can often be discerned by plotting one 
-  variable against the other. If a non-monotonic relationship is discovered,
+  variable against the other. If a non-monotonic relationship is suggested,
   other methods should be used to characterize the association between the
   variables.
 
@@ -723,15 +725,13 @@ Spearman's test amounts to taking a rank transformation of the data (for instanc
   test tend to be pretty similar to those returned by Spearman's procedure, and 
   neither method makes many assumptions outside of random sampling and a 
   monotonic association between variables (the plot of one variable against the 
-  other is always rising or always falling: it does not change directions). In 
-  cases where there is a non-monotonic association between variables, other 
-  methods should be considered for characterizing the relationship. Kendall's 
-  tau test is sometimes preferred over Spearman's rho because the tau statistic 
-  has a fairly straight-forward interpretation. Like the Pearson correlation 
-  (and therefore Spearman's rho), tau varies between -1 (perfect negative 
-  association) and 1 (perfect positive association) with 0 indicating no 
-  association. However, for intermediate values, tau actually represents a 
-  readily interpretable probability, while Spearman's rho statistic is not. 
+  other is always rising or always falling: it does not change directions). 
+  Kendall's tau test is sometimes preferred over Spearman's rho because the tau 
+  statistic has a fairly straight-forward interpretation. Like the Pearson 
+  correlation (and therefore Spearman's rho), tau varies between -1 (perfect 
+  negative association) and 1 (perfect positive association) with 0 indicating 
+  no association. However, for intermediate values, tau actually represents a 
+  readily interpretable probability, while Spearman's rho statistic does not. 
   Kendall's tau estimates the probability that if one variable goes up, the 
   other variable will go up as well (for positive tau), or the probability that 
   if one variable goes up, the other will go down (for negative tau).

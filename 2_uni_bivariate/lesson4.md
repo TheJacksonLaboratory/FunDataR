@@ -37,12 +37,15 @@ In the previous lesson we saw how when two variables are correlated,
 
 The model:
 
-y = m * x + b
-y = b1 * x + b0
-y = b0 + b1 * x
+```
+y = m * x + b                ## notation you may have seen in high school
+y = b1 * x + b0              ## use 'b#' for 'constant coefficients'
+y = b0 + b1 * x              ## for bivariate case: b0 (intercept) and b1 (slope)
 
+## sneak peak at multivariate case:
 y = b0 + b1 * x1 + b2 * x2 + b3 * x3 + ...
 
+## the statistical model:
 y.i = b0 + b1 * x.i + e.i
 e.i ~ N(0, s)
 
@@ -126,7 +129,8 @@ all(residuals(smry1) == residuals(fit1))
 ## no 'fitted(smry1)'
 
 smry1$adj.r.squared
-smry1$fstatistic
+(fstat <- smry1$fstatistic)
+pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ```
 
@@ -166,7 +170,7 @@ coef(smry8)
 
 intro here; `x` can be a categorical variable.
 
-one-sample t-test
+Two-sample t-test, ANOVA and linear model:
 
 ```
 rm(list=ls())
@@ -174,50 +178,63 @@ rm(list=ls())
 dat <- mtcars
 dat
 table(dat$cyl)
-
-(x <- dat$mpg[dat$cyl == 4])
-
-fit1 <- t.test(x=x)
-fit2 <- lm(y ~ x)
-
-fit1
-summary(fit2)
-
-```
-
-two-sample t-test
-
-```
-rm(list=ls())
-
-dat <- mtcars
+dat <- dat[dat$cyl %in% c(4, 8), c('mpg', 'cyl')]
 dat
-table(dat$cyl)
 
 (x <- dat$mpg[dat$cyl == 4])
 (y <- dat$mpg[dat$cyl == 8])
 
-## test assuming both groups have same variance:
-fit1 <- t.test(x=x, y=y, var.equal=T)
-fit2 <- lm(y ~ x)
+dat$cyl <- factor(dat$cyl)
 
-fit1
-summary(fit2)
+fit1 <- t.test(x=x, y=y, var.equal=T)  ## must be var.equal=T for equivalence
+fit2 <- aov(mpg ~ cyl, data=dat)
+fit3 <- lm(mpg ~ cyl, data=dat)
+
+smry2 <- summary(fit2)[[1]]
+smry3 <- summary(fit3)
+
+round(fit1$estimate, 6)
+table(round(fitted(fit2), 6))
+table(round(fitted(fit3), 6))
+
+coef(smry3)
+
+fit1$p.value
+smry2$Pr
+coef(smry3)['cyl8', 'Pr(>|t|)']
 
 ```
 
-anova
+3-level ANOVA and linear model:
 
 ```
 rm(list=ls())
-(dat <- warpbreaks)
-boxplot(breaks ~ tension, data=dat)
 
-fit1 <- aov(breaks ~ tension, data=dat)
-smry1 <- summary(rslt)[[1]]
+dat <- mtcars
+sapply(dat, class)
+dat$cyl <- factor(dat$cyl)
+sapply(dat, class)
+summary(dat)
 
-fit2 <- lm(breaks ~ tension, data=dat)
-smry2 <- summary(rslt2)
+fit1 <- aov(mpg ~ cyl, data=dat)
+fit2 <- lm(mpg ~ cyl, data=dat)
+
+smry1 <- summary(fit1)[[1]]
+smry2 <- summary(fit2)
+
+coef(fit1)
+coef(fit2)
+
+(stat <- smry2$fstatistic[1])
+(df1 <- smry2$fstatistic[2])
+(df2 <- smry2$fstatistic[3])
+
+## p-value for h0: all population means are same:
+smry1$Pr
+pf(stat, df1, df2, lower.tail=FALSE)
+
+## p-value for h0: intercept is 0; and h0: slope is 0:
+coef(smry2)
 
 ```
 
@@ -256,7 +273,8 @@ code here
 
 ### Prediction
 
-Text here
+Text here; fitted are predicted for 'training data'. More interested
+  in accuracy of predictions for future data.
 
 ```
 code here

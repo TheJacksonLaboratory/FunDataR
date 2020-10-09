@@ -1,13 +1,17 @@
 # Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: lesson 4
+## Univariate and bivariate statistics: linear regression
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Simple plotting](#simple-plotting)
-- [Formulas for plotting and fitting](#formulas-for-plotting-and-fitting)
+- [The linear model](#the-linear-model)
+- [Equivalence to t-test and ANOVA](#equivalence-to-t-test-and-ANOVA)
+- [Analysis of residuals](#analysis-of-residuals)
+- [Prediction](#prediction)
+
+### Check your understanding
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
@@ -15,112 +19,257 @@
 
 ---
 
-### Check your understanding 1:
+### The linear model
 
-1) what is the third-root of 5
+In the previous lesson we saw how when two variables are correlated,
+  if you know something about the values of one variable, it tells
+  you something about the values of the other variable. For instance,
+  if two variables `x` and `y` are positively correlated, if `x` goes
+  up, you know that chances of `y` going up are increased. But we 
+  don't really have a way of making a more precise prediction about 
+  the behavior of `y`. Previously we also learned that if we know 
+  the population mean for `y` and are asked to predict the `y` value 
+  of a single observation randomly drawn from that population, the 
+  population mean would be our best predictor, in the least-squares
+  sense. That is, the mean has a lower **average** squared deviation 
+  (difference) to to the `y` values of the population members than 
+  any other value.
 
-2) what is the sum of 500,726 and 324,781, divided by 67?
+The model:
 
-3) what is 3.14 to the 3.14 power?
+y = m * x + b
+y = b1 * x + b0
+y = b0 + b1 * x
+
+y = b0 + b1 * x1 + b2 * x2 + b3 * x3 + ...
+
+y.i = b0 + b1 * x.i + e.i
+e.i ~ N(0, s)
+
+With e.i independent (reflects random sampling) and come from the 
+  same normal distribution N(0, s). Fitting sensitive to outliers.
+
+```
+rm(list=ls())
+set.seed(1)
+
+n <- 100
+b0 <- 5                           ## intercept (where line hits vertical y-axis)
+b1 <- 3                           ## slope
+
+x <- runif(n, -10, 10)
+
+e1 <- rnorm(n, 0, 1)
+e2 <- rnorm(n, 0, 2)
+e4 <- rnorm(n, 0, 4)
+e8 <- rnorm(n, 0, 8)
+
+y1 <- b0 + b1 * x + e1
+y2 <- b0 + b1 * x + e2
+y4 <- b0 + b1 * x + e4
+y8 <- b0 + b1 * x + e8
+
+par(mfrow=c(2, 2))
+
+plot(x=x, y=y1, main="s == 1")
+abline(a=b0, b=b1, col='cyan', lty=2)
+
+plot(x=x, y=y2, main="s == 2")
+abline(a=b0, b=b1, col='cyan', lty=2)
+
+plot(x=x, y=y4, main="s == 4")
+abline(a=b0, b=b1, col='cyan', lty=2)
+
+plot(x=x, y=y8, main="s == 8")
+abline(a=b0, b=b1, col='cyan', lty=2)
+
+par(mfrow=c(1, 1))
+
+```
+
+Now fit first model and see what it yields. 
+
+```
+(fit1 <- lm(y1 ~ x))
+class(fit1)
+is.list(fit1)
+names(fit1)
+attributes(fit1)
+str(fit1)
+
+coef(fit1)
+fitted(fit1)
+residuals(fit1)
+fit1$df.residual
+fit1$call
+
+```
+
+But typically work with the summary, which adds confidence intervals and p-values.
+  The confidence intervals are for the model estimates of the two coefficients 
+  `b0` and `b1`. The null hypothesis for all the coefficients is that they are 
+  zero. For `b0`, this means the hypothesis that the line passes through the 
+  origin instead of hitting 
+
+```
+(smry1 <- summary(fit1))
+class(smry1)
+is.list(smry1)
+names(smry1)
+attributes(smry1)
+str(smry1)
+
+(coefs <- coef(smry1))            ## much more detail than coef(fit1)
+class(coefs)
+
+all(residuals(smry1) == residuals(fit1))
+## no 'fitted(smry1)'
+
+smry1$adj.r.squared
+smry1$fstatistic
+
+```
+
+Let's see how changing the error distribution changes results:
+
+```
+fit2 <- lm(y2 ~ x)
+fit4 <- lm(y4 ~ x)
+fit8 <- lm(y8 ~ x)
+
+smry2 <- summary(fit2)
+smry4 <- summary(fit4)
+smry8 <- summary(fit8)
+
+smry1$fstatistic
+smry2$fstatistic
+smry4$fstatistic
+smry8$fstatistic
+
+smry1$adj.r.squared
+smry2$adj.r.squared
+smry4$adj.r.squared
+smry8$adj.r.squared
+
+coef(smry1)
+coef(smry2)
+coef(smry4)
+coef(smry8)
+
+```
 
 [Return to index](#index)
 
 ---
 
-### Simple plotting
+### Equivalence to t-test and ANOVA
 
-An extremely important element of data analysis is data visualization. Let's take what you've
-  learned thus far and make some simple plots.
+intro here; `x` can be a categorical variable.
 
-```
-tm <- 1:100                            ## time
-dst <- tm ^ 2                          ## distance, assuming a constant force
-tm
-dst
-
-plot(x=tm, y=dst)                      ## minimal plot
-
-plot(                                  ## not a complete expression yet
-  x=tm,                                ## x positions
-  y=dst,                               ## corresponding y positions
-  main="My default plot",              ## title for plot
-  xlab="time (s)",                     ## how you want the x-axis labeled
-  ylab="distance (m)"                  ## how you want the y-axis labeled
-)                                      ## finally a complete statement
-
-plot(
-  x=tm, 
-  y=dst, 
-  main="My dot plot", 
-  type="p",                            ## specify you want points plotted
-  xlab="time (s)", 
-  ylab="distance (m)", 
-  col="cyan"
-)
-
-## now add some dashed lines:
-lines(x=tm, y=dst, col='orangered', lty=3)  
-
-plot(
-  x=tm, 
-  y=dst, 
-  main="My line plot", 
-  type="l",                            ## specify you want a line plot
-  xlab="time (s)", 
-  ylab="distance (m)", 
-  col="cyan"
-)
-
-## now add some '+' points:
-points(x=tm, y=dst, col='orangered', pch='+')
+one-sample t-test
 
 ```
+rm(list=ls())
 
-[Return to index](#index)
-
----
-
-### Formulas for plotting and fitting
-
-Here we give an example of a common notation used to express functional
-  relationships between variables. This notation is widely used when 
-  specifying statistical models in R. A basic example would be 
-  `weight ~ operator`, which means that `weight` is conidered to be 
-  a function of `operator`. For plotting purposes, this means that 
-  `weight` ends up plotted on the 'y' (vertical) axis and `operator` 
-  ends up plotted on the 'x' (horizontal) axis. This notation is often
-  used along with a `data` parameter that specifies a data.frame in 
-  which the variables can be found. Simply plotting a data.frame 
-  (without a formula) results in a grid of plots in which each 
-  variable is plotted against every other variable. This can be 
-  useful for exploring a new dataset for potential relationships 
-  between variables:
-
-```
-dat <- data.frame(
-  treatment=factor(c(rep('ctl', 10), rep('trt', 10))),
-  weight=c(rnorm(10, mean=10, sd=3), rnorm(10, mean=20, sd=5)),
-  operator=factor(rep(c('weichun', 'mitch'), 10))
-)
-rownames(dat) <- letters[1 : nrow(dat)]
+dat <- mtcars
 dat
+table(dat$cyl)
 
-plot(dat)                            ## what do you see?
-plot(rock)                           ## 'rock' is a data set included with R
+(x <- dat$mpg[dat$cyl == 4])
 
-par(mfrow=c(1, 2))                   ## make a plot layout with 1 row and 2 columns
-plot(weight ~ operator, data=dat)    ## plot this in first slot (row 1, column 1)
-plot(weight ~ treatment, data=dat)   ## plot this in second slot (row 1, column 2)
+fit1 <- t.test(x=x)
+fit2 <- lm(y ~ x)
+
+fit1
+summary(fit2)
+
+```
+
+two-sample t-test
+
+```
+rm(list=ls())
+
+dat <- mtcars
+dat
+table(dat$cyl)
+
+(x <- dat$mpg[dat$cyl == 4])
+(y <- dat$mpg[dat$cyl == 8])
+
+## test assuming both groups have same variance:
+fit1 <- t.test(x=x, y=y, var.equal=T)
+fit2 <- lm(y ~ x)
+
+fit1
+summary(fit2)
 
 ```
 
-The same type of notation is commonly used to fit a statistical model to a data.frame:
+anova
 
 ```
-fit1 <- lm(weight ~ treatment, data=dat)
-summary(fit1)
+rm(list=ls())
+(dat <- warpbreaks)
+boxplot(breaks ~ tension, data=dat)
+
+fit1 <- aov(breaks ~ tension, data=dat)
+smry1 <- summary(rslt)[[1]]
+
+fit2 <- lm(breaks ~ tension, data=dat)
+smry2 <- summary(rslt2)
 
 ```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 1
+
+1) question here
+
+[Return to index](#index)
+
+---
+
+### Analysis of residuals
+
+intro here; review assumptions; sensitivity to outliers.
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 2
+
+1) question here
+
+[Return to index](#index)
+
+---
+
+### Prediction
+
+Text here
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 3
+
+1) question here
 
 [Return to index](#index)
 

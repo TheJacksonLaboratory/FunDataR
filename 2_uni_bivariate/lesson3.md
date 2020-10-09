@@ -623,7 +623,7 @@ Another commonly employed post-hoc test, particularly in the sciences is Dunnett
 ```
 ## Dunnett's test:
 
-libary()
+libary()                          ## see what packages are installed
 ## install.packages('multcomp')   ## if you don't already have it
 library('multcomp')               ## load the library
 sessionInfo()                     ## see the version

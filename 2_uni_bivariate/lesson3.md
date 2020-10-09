@@ -220,8 +220,8 @@ As for the one-sample t-test, we assume both samples were randomly drawn from
   the time). For this reason, the unpooled choice is considered 'safer' and
   is set as the default option in R.
 
-Once again, confidence intervals and p-values are based on the parametric
-  t-distribution. Usage of this parametric distribution is once again
+As in the one-sample case, confidence intervals and p-values are based on the 
+  parametric t-distribution. Usage of this parametric distribution is again
   justified based on the CLT. In the two-sample case, the 'rule-of-thumb' is
   that each sample should have a size of at least 30. In practice, if the
   populations being sampled are roughly normally distributed, the parametric
@@ -230,11 +230,13 @@ Once again, confidence intervals and p-values are based on the parametric
   very skewed (unsymmetric) population distributions, even a sample size of
   30 may not be enough for the returned p-values to be accurate. The test
   is more resistant to departures from assumptions when the group sizes are
-  equal or nearly so. This test is quite sensitive to outliers, due to 
-  the implied square-error penalty function being minimized by the mean.
-  We can plot the data to detect outliers (a simple 'heuristic' approach 
-  is to look for values more than 3 standard deviations from the mean) and
-  then remove them prior to conducting the test.. 
+  equal or nearly so. 
+
+This test is quite sensitive to outliers, due to the implied square-error 
+  penalty function being minimized by the means being compared. We can plot 
+  the data to detect outliers (a simple 'heuristic' approach is to look for 
+  values more than 3 standard deviations from the mean) and then remove 
+  them prior to conducting the test.
 
 ```
 ## prep our data for analysis:
@@ -248,6 +250,20 @@ table(dat$cyl)
 (x <- dat$mpg[dat$cyl == 4])
 (y <- dat$mpg[dat$cyl == 8])
 
+## look for outliers (none evident):
+
+par(mfrow=c(1, 2))                          ## figure area: 1 row, 2 columns (1x2)
+(c.x <- sd(x) * c(-3, 3) + mean(x))         ## 3 sd outside of mean
+plot(x, ylim=range(x, c.x), main='x')       ## make sure ylim accommodates data and cutoffs
+abline(h=mean(x), lty=2, col='orangered')   ## horizontal line at mean
+abline(h=c.x, lty=3, col='cyan')            ## horizontal lines at mean +/- 3 * sd
+
+(c.y <- sd(y) * c(-3, 3) + mean(y))
+plot(y, ylim=range(y, c.y), main='y')
+abline(h=mean(y), lty=2, col='orangered')
+abline(h=c.y, lty=3, col='cyan')
+par(mfrow=c(1, 1))                          ## switch back to 1x1 figure area
+
 ## two-sided test: confidence interval is on difference in group means;
 ##   default version: upaired, Welch's (no assumption of group variances
 ##   being equal). p-value is of h0: difference between group means is zero.
@@ -260,6 +276,7 @@ table(dat$cyl)
 ## test assuming both groups have same variance:
 (rslt <- t.test(x=x, y=y, var.equal=T))
 
+## one-sided, equal variances:
 (rslt <- t.test(x=x, y=y, var.equal=T, alternative='greater'))
 
 class(rslt)                       ## h(ypothesis)test
@@ -269,9 +286,34 @@ attributes(rslt)
 
 ```
 
-A note on picking tests before examining the data.
+Above we tried several 'flavors' of the t-test and compared their results. When you
+  are conducting a real experiment, you should not fish for a method that gives you
+  the result you are looking for, as it will severely affect the legitimacy of your
+  conclusions. You should always decide on which tests you will conduct (including
+  specifying particulars, such as whether the common variances assumption will 
+  be made), nominal coverage for confidence intervals and p-value cutoffs prior to
+  looking at your data. After the main analysis is complete, it is legitimate to 
+  conduct a 'post-hoc' analysis looking for better approaches to try 'next time', 
+  but should not be mixed in with the main results of the study.
 
-Background on repeated measures. Trade-off between degrees of freedom and effect size.
+Sometimes the two samples you are comparing are not really independent, but observations
+  in one sample are logically 'paired' with observations in the other sample. An
+  example of this is a before-and-after study. You may take a sample of individuals
+  and make measurements on a continuous variable of interest before subjecting the
+  individuals to a treatment. You are interested in seeing if the variable is affected
+  by the treatment. For instance, we might want to see if vitamin B12 supplements 
+  affect GPA of college students. As you might suspect, at the start of the study, 
+  a randomly selected sample of college students will have a higher GPA coming into
+  the study than other students. You might also suspect that students who had 
+  higher GPAs than average before the study might tend to have higher than average
+  GPAs after the treatment. Therefore, the 'after' value for the variable of interest
+  after treatment will tend to be higher if the 'before' value for that individual
+  was higher. The observations in the two samples are not independent of one another,
+  so the original assumption of random sampling will not hold. Under these 
+  circumstances, we can use the 'paired' version of the two-sample t-test, which
+  tests the null hypothesis that the average difference between before and after
+  values for each individual is zero. The confidence interval returned is for the
+  average size of this before vs. after difference for each individual.
 
 ```
 ## set up data:
@@ -292,7 +334,7 @@ rslt1 <- t.test(x=x, y=y)
 
 rslt2 <- t.test(x=x, y=y, paired=T)
 
-## can do one-sided as well:
+## can make this test one-sided as well:
 
 rslt3 <- t.test(x=x, y=y, paired=T, alternative='less')
 

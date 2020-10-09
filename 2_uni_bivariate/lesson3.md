@@ -19,7 +19,7 @@
 
 ---
 
-### Comparing population proportions
+### Comparing two population proportions
 
 In the previous lesson we estimated the proportion of two mutually exclusive 
   groups within a population based on a random sample of observations drawn from 
@@ -36,7 +36,7 @@ Now we will look at how to use the same `prop.test()` function to compare group
   estimated by sample means. This extra uncertainty is reflected in wider intervals
   and higher p-values. As usual, we assume that each sample is randomly drawn 
   from its respective population. This ensures that each observation is 
-  independently distributed from other observations in either sample. The values 
+  independently distributed from other observations in either sample. It means the values 
   of prior observations have no effect on the value of subsequent observations. 
   In most textbooks, you will see that the p-values and confidence intervals 
   for the 'z-test of proportion' is base on the standard normal distribution 
@@ -105,8 +105,8 @@ rslt$conf.int                     ## confidence interval on difference in propor
 
 The `prop.test()` function can be used to extend the proportion test to more than 
   2 populations (or more than 2 groups). The null hypothesis in this case is that 
-  all of the population proportions are equal. No confidence intervals are 
-  returned in this case:
+  all of the population proportions are equal, but unlike the 2 population case, 
+  no confidence intervals are returned:
 
 ```
 x <- dat[c('Vermont', 'New York', 'California'), c('Murder', 'Total')]
@@ -129,8 +129,8 @@ In the single sample case, we saw that we could use the binomial exact test when
   However, the binomial test is not suitable for use with more than one sample.
   Instead, you can consider using Fisher's Exact Test, which is implemented by
   the `fisher.test()` function in R. The null hypothesis is once again that all
-  group proportions are the same. It is expressed in terms of 'odds ratios'. An
-  odds ratio of an event is the probability that the event will occur divided by
+  group proportions are the same, but is expressed in terms of 'odds ratios'. The
+  'odds' of an event is the probability that the event will occur divided by
   the probability it will not occur: `odds <- p / (1 - p)`. In the case of 
   group proportions, the odds are the odds that a random observation drawn from
   the population will belong to a particular group. The null hypothesis is 
@@ -138,7 +138,7 @@ In the single sample case, we saw that we could use the binomial exact test when
   all groups and all populations tested. If the odds in both groups are the same,
   the odds ratio should be one. Confidence intervals for the actual odds ratio
   are only returned for 2x2 tables (where there is only one ratio to consider).
-  In addition, the test is only 'exact' for 2x2 tables and an approximation is
+  In addition, the Fisher's test is only 'exact' for 2x2 tables and an approximation is
   used for larger tables. Fisher's exact test has an unusual assumption (not 
   made by `prop.test()` that the marginal totals (the column sums and row sums for 
   the table being analyzed) are 'fixed'. That is, the p-value returned is 
@@ -193,7 +193,7 @@ Similar to the proportion test, we can extend the t-test to comparison of a
   One can also construct one-sided tests as in the one-sample case.
 
 As for the one-sample t-test, we assume both samples were randomly drawn from
-  their respective population (except in the 'paired' case described below). 
+  their respective populations (except in the 'paired' case described below). 
   By default, the `t.test()` function assumes that the variance in each 
   population can be different, so estimates a separate variance for each. 
   This implies that under the null group membership may have an effect on the 
@@ -225,12 +225,12 @@ As in the one-sample case, confidence intervals and p-values are based on the
   justified based on the CLT. In the two-sample case, the 'rule-of-thumb' is
   that each sample should have a size of at least 30. In practice, if the
   populations being sampled are roughly normally distributed, the parametric
-  approximation will be 'close enough' at sample sizes considerably smaller
-  than 30 (on the order of 10 will usually be sufficient). Conversely, for
-  very skewed (unsymmetric) population distributions, even a sample size of
-  30 may not be enough for the returned p-values to be accurate. The test
-  is more resistant to departures from assumptions when the group sizes are
-  equal or nearly so. 
+  approximation will be 'close enough' even at small sample size (on the 
+  order of 5-10 will usually be sufficient). Conversely, for very skewed 
+  (unsymmetric) population distributions, even a sample size of 30 may not 
+  be enough for the returned p-values to be accurate. The test is more 
+  resistant to departures from assumptions when the group sizes are equal or 
+  nearly so. 
 
 This test is quite sensitive to outliers, due to the implied square-error 
   penalty function being minimized by the means being compared. We can plot 
@@ -312,7 +312,9 @@ Sometimes the two samples you are comparing are not really independent, but obse
   so the original assumption of random sampling will not hold. Under these 
   circumstances, we can use the 'paired' version of the two-sample t-test, which
   tests the null hypothesis that the average difference between before and after
-  values for each individual is zero. The confidence interval returned is for the
+  values for each individual is zero. That is, it essentially conducts a one-sample
+  t-test on the differences in scores for individuals before and after treatment,
+  comparing to the hypothetical value of zero. The confidence interval returned is for the
   average size of this before vs. after difference for each individual. It is worth
   noting that even in the 'paired' sampling design, the individuals tested are
   drawn at random from the population to which you want to make inferences about
@@ -332,17 +334,15 @@ table(dat$group)
 (y <- dat$extra[dat$group == 2])
 
 ## do an unpaired test for comparison:
-
 rslt1 <- t.test(x=x, y=y)
 
 ## conduct the paired test:
-
 rslt2 <- t.test(x=x, y=y, paired=T)
 
 ## can make this test one-sided as well:
-
 rslt3 <- t.test(x=x, y=y, paired=T, alternative='less')
 
+## note that the paired test is much more powerful than unpaired here:
 c(p1=rslt1$p.value, p2=rslt2$p.value, p3=rslt3$p.value)
 cbind(ci1=rslt1$conf.int, ci2=rslt2$conf.int, ci3=rslt3$conf.int)
 
@@ -378,13 +378,6 @@ The assumptions of this test includes that each sample is randomly drawn
   as sample sizes are around 30 or more and the design is nearly 'balanced' 
   (the number of observations from each population are equal).
 
-Technically, the ANOVA test compares the variances within each group (assumed
-  to be the same in each group, so a 'pooled' estimate is made) to the
-  variance between groups. The two-sample unpaired t-test with common 
-  population variances can be shown to be making an equivalent comparison,
-  and in fact applying the ANOVA to the two-sample case yields exactly the
-  same results as this t-test.
-
 ```
 ## load data:
 
@@ -407,11 +400,12 @@ Some components of the result can be retrieved using purpose built functions,
   (described below), `fitted()` for getting the fitted values (the sample 
   means in this case), and `residuals()` which returns the residuals from the 
   fit, which is the difference in the value of the observations from their 
-  respective fitted values (the sample means). Whenever accessing a component 
-  for which there is a specialized retrieval function, you should get into the 
-  habit of using the specialized retrieval function instead of directly indexing 
-  the element, since the raw element may need to be transformed in some way to 
-  yield a readily interpretable result.
+  respective fitted values (the sample means, in the case of ANOVA). Whenever 
+  accessing a component for which there is a specialized retrieval function, 
+  you should get into the habit of using the specialized retrieval function 
+  instead of directly indexing the element, since for some modeling functions,
+  the raw element may need to be transformed in some way to yield a readily 
+  interpretable result.
 
 ```
 ## F-test h0: all group means are equal;
@@ -497,7 +491,7 @@ Like the t-test, the ANOVA test is sensitive to outliers, which are most
   by looking in the residual distribution for observations more than 3-standard 
   deviations away from the mean (this mean is always zero for ANOVA residuals).
 
-Other assumptions can also be checked by looking at the distribution of residuals 
+Other assumptions can also be checked by looking at the distribution of residuals. 
   Residuals should be normally distributed with a common variance (corresponding to
   equal variances within each population). Quantile-quantile normal plot function 
   `qqnorm()` plots the corresponding percentile values from a variable (here the 
@@ -702,7 +696,8 @@ The `prop.test()` we already introduced tests for associations between
 
 Pearson tests for (and assumes) a linear relationship between the two 
   variables. It further assumes that residuals (distances from the observations 
-  to the prediction line) are homoskedastic. Pearson's test is defined in terms
+  to the prediction line) are homoskedastic (share a common variance). Pearson's 
+  test is defined in terms
   of 'sums-of-squares' so the results are relatively sensitive to outliers. 
   However, for continuous variables without obvious outliers, and where the
   assumptions hold, Pearson's test of correlation is the most powerful test of 

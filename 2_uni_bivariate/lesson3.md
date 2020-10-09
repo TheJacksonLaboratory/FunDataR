@@ -182,23 +182,59 @@ fisher.test(t(x))
 
 ### Comparing two population means
 
-intro here; comparing different groups; e.g. yields of different strains of wheat,
-  outcome of different drug treatments, output of different production lines.
-  what about doing repeated 2-way tests. Description of multiple
-  testing issue. 
+Similar to the proportion test, we can extend the t-test to comparison of a
+  continuous variable based on random samples from two different populations.
+  This is often used to test for the effect of group status (e.g. treated or
+  untreated; strain one vs strain two; etc) on a continuous outcome variable
+  (like height, weight, or gene expression level). The two-sample t-test
+  conducted with `t.test()` tests the null hypothesis that the two population
+  means are identical. The confidence interval returned is for the difference
+  in group means, so if the CI includes 0, the p-value will not be significant.
+  One can also construct one-sided tests as in the one-sample case.
 
-h0 is difference in group means, `h0: (m1 - m2) == 0`. ci is on 
-  the difference in group means, so if 95% CI does not include 0, h0 will be 
-  rejected w/ p < 0.05. One-sided h0s: `(m1 - m2) >= 0` or `(m1 - m2) <= 0`
+As for the one-sample t-test, we assume both samples were randomly drawn from
+  their respective population (except in the 'paired' case described below). 
+  By default, the `t.test()` function assumes that the variance in each 
+  population can be different, so estimates a separate variance for each. 
+  This implies that under the null group membership may have an effect on the 
+  variance of the variable of interest, without affecting the mean. In that
+  case a non-signifant p-value should be expected. We can also assume that 
+  under the null hypothesis, group membership has no effect whatsoever on the 
+  variable of interest, in which case we can instruct `t.test()` to use a 
+  single 'pooled' estimate of the variances of both populations. If the 
+  common variances assumption truly holds, using the single pooled variance 
+  estimate for both populations will tend to produce a more powerful test 
+  than using two unpooled variance estimates. However, if the pooling 
+  assumption does not hold, using the pooled estimate can result in false 
+  positive results (rejection of the null hypothesis when it is in fact true) 
+  at a higher rate than the p-value cutoff implies. That is, you may only
+  call results significant if the p-value is below 0.05, implying that 
+  there is only a 5% chance of a false positive for any single test, but
+  because the common variances assumption did not hold, the chances of a 
+  false positive test result are actually 8%. On the other hand, if 
+  one uses the unpooled estimate when the common variances assumption does 
+  hold, the resulting test may result in some borderline cases being 
+  negative when the pooled test would have called them positive, but false 
+  positive rates will be no higher than their nominal level (e.g. a p-value 
+  of 0.05 means that a false positive really will only occur at most 5% of 
+  the time). For this reason, the unpooled choice is considered 'safer' and
+  is set as the default option in R.
 
-assumption: random sampling implies independence of observations, except for
-  optional 'pairing'. Can assume a homogeneous variance, which can improve power
-  if the assumption is met. Technically, also assumes normal distribution of data
-  w/i groups, but actually ok as long as counts are large enough (>30) to 
-  invoke CLT: means of different samples of same group will be normally 
-  distributed, which is what actually matters for construction of confidence 
-  intervals. Sensitive to outliers because of squared-error 'penalty' function 
-  minimized by mean. Plot data to detect outliers.
+Once again, confidence intervals and p-values are based on the parametric
+  t-distribution. Usage of this parametric distribution is once again
+  justified based on the CLT. In the two-sample case, the 'rule-of-thumb' is
+  that each sample should have a size of at least 30. In practice, if the
+  populations being sampled are roughly normally distributed, the parametric
+  approximation will be 'close enough' at sample sizes considerably smaller
+  than 30 (on the order of 10 will usually be sufficient). Conversely, for
+  very skewed (unsymmetric) population distributions, even a sample size of
+  30 may not be enough for the returned p-values to be accurate. The test
+  is more resistant to departures from assumptions when the group sizes are
+  equal or nearly so. This test is quite sensitive to outliers, due to 
+  the implied square-error penalty function being minimized by the mean.
+  We can plot the data to detect outliers (a simple 'heuristic' approach 
+  is to look for values more than 3 standard deviations from the mean) and
+  then remove them prior to conducting the test.. 
 
 ```
 ## prep our data for analysis:

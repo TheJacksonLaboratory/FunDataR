@@ -313,7 +313,12 @@ Sometimes the two samples you are comparing are not really independent, but obse
   circumstances, we can use the 'paired' version of the two-sample t-test, which
   tests the null hypothesis that the average difference between before and after
   values for each individual is zero. The confidence interval returned is for the
-  average size of this before vs. after difference for each individual.
+  average size of this before vs. after difference for each individual. It is worth
+  noting that even in the 'paired' sampling design, the individuals tested are
+  drawn at random from the population to which you want to make inferences about
+  treatment effects, like all college students, in the example above. Random 
+  sampling is always a necessary step in any statistical inference about populations
+  based on samples.
 
 ```
 ## set up data:
@@ -349,22 +354,47 @@ cbind(ci1=rslt1$conf.int, ci2=rslt2$conf.int, ci3=rslt3$conf.int)
 
 ### Comparing three or more means
 
-intro here. compares w/i group variance to between group variance, which is 
-  implicitly what the t-test does as well. F-test hypothesis. If you do an
-  ANOVA on two groups, the 2-sample unpaired t-test w/ homogenous variances 
-  and ANOVA will give exactly the same p-value. 
+Often we are interested in comparing a continuous variable across more than 
+  two populations. For instance in a single experiment, we may wish to 
+  compare untreated individuals with those treated with drug 1 and those 
+  treated with drug 2. To do so, we can do an 'analysis of variance' (ANOVA) 
+  test. The null hypothesis for this test is that all the group means are
+  equal. If the null hypothesis is rejected, a follow-on 'post-hoc' test
+  is needed in order to determine which population means are different.
 
-assumptions: random sampling w/i groups implies independence of observations, 
-  except for optional 'pairing'. Assumes variance of data within each group 
-  is the same (homogenous variances), and that the data is normally distributed
-  within each group. In practice, as long as counts are fairly high (degrees 
-  of freedom of 30 or more) the model is robust to fairly large departures
-  from these assumptions. Like t-test, sensitive to outliers. Outliers best
-  detected by plotting residuals from model. Formal tests for normality are
-  sometimes recommended or seen in the literature, but these tests can detect
-  very small departures from normality that are unlikely to substantively 
-  affect the reliability of ANOVA results. The `aov()` function assumes a 
-  'balanced' design (equal numbers in each group).
+The assumptions of this test includes that each sample is randomly drawn
+  from its respective population. In addition, it is assumed that under the 
+  null hypothesis, each population has the same variance (like 
+  `t.test(x, y, var.equal=T)`). The parametric F-distribution is used to 
+  generate p-values and calculate confidence intervals. This is justified
+  by invoking the CLT, which will be valid if values are normally distributed
+  within each population, or for non-normally distributed populations when
+  the sample size is 'large enough'. A sample size of 30 for each population
+  is typically considered adequate, but then again, this may be more than
+  what is needed for nearly normal populations and not enough for heavily 
+  skewed population distributions. In practice, it has been found that the
+  ANOVA test is fairly robust to departures from normality as well as 
+  differences in population standard deviations of two-fold or more as long
+  as sample sizes are around 30 or more and the design is nearly 'balanced' 
+  (the number of observations from each population are equal).
+
+Formal tests for population normality and equal population variances are 
+  often recommended. These are particularly relevant if your sample sizes
+  are well below 30. When sample sizes are larger, it is likely that the
+  tests for departures from normality or equal variances will be powerful
+  enough to detect even small departures, which at these sample sizes are
+  likely to be irrelevant. In this case more cursory checks for dramatic
+  departures are more appropriate.
+
+Like the t-test, the ANOVA test is sensitive to outliers, which are most
+  easily detected by plotting residuals (see below) from the model.
+
+Technically, the ANOVA test compares the variances within each group (assumed
+  to be the same in each group, so a 'pooled' estimate is made) to the
+  variance between groups. The two-sample unpaired t-test with common 
+  population variances can be shown to be making an equivalent comparison,
+  and in fact applying the ANOVA to the two-sample case yields exactly the
+  same results as this t-test.
 
 ```
 ## load data:
@@ -375,34 +405,42 @@ class(dat)
 sapply(dat, class)
 summary(dat)                      ## tabulates factors (nicer than for character)
 
-## make a box-plot:
+## make a box-plot using formula notation: dat$breaks is a function of dat$tension.
 boxplot(breaks ~ tension, data=dat)
 
 ```
+The ANOVA test can be performed using the R `aov()` function. The result from 
+  the call to `aov()` then fed to `summary()` which does the calculation of
+  confidence intervals and p-values. 
 
-Something about how do test, then mostly work with output of `summary()`. 
-  Can access elements of result of `aov()` using either '$' or purpose-built
-  functions. Better practice to use the functions than to directly access,
-  as sometimes what is under the hood needs to be transformed before it yields
-  what you might expect. The accessor functions take care of that. Common
-  accessor functions for getting residuals `residuals()`, fitted values
-  `fitted()`, coefficients `coef()`.
+Some components of the result can be retrieved using purpose built functions, 
+  particularly the `coef()` function for getting the model coefficients 
+  (described below), `fitted()` for getting the fitted values (the sample 
+  means in this case), and `residuals()` which returns the residuals from the 
+  fit, which is the difference in the value of the observations from their 
+  respective fitted values (the sample means). Whenever accessing a component 
+  for which there is a specialized retrieval function, you should get into the 
+  habit of using the specialized retrieval function instead of directly indexing 
+  the element, since the raw element may need to be transformed in some way to 
+  yield a readily interpretable result.
 
 ```
-## F-test h0: all group means are equal:
-rslt <- aov(breaks ~ tension, data=dat)
-class(rslt)
-is.list(rslt)
-names(rslt)
-attributes(rslt)
-rslt
+## F-test h0: all group means are equal;
+##   dat$tension is group; dat$breaks is variable of interest:
 
-## can access directly: BUT DON'T UNLESS YOU UNDERSTAND (per docs) WHAT YOU WILL GET
-rslt$coeffients
-rslt$xlevels
-rslt$df.residual
+fit <- aov(breaks ~ tension, data=dat)
+class(fit)
+is.list(fit)
+names(fit)
+attributes(fit)
+fit
 
-## HOWEVER: best practice to use accessor functions or summary object:
+## can access directly:
+fit$coeffients
+fit$xlevels
+fit$df.residual
+
+## but best practice is to use accessor functions when available:
 coef(rslt)
 f <- fitted(rslt)
 table(round(f, 5))                ## three means
@@ -413,7 +451,8 @@ all.equal(r, r2)                  ## right way to test for equality here
 
 ```
 
-Some stuff about how `summary()` is essential for this:
+Here we show how to use `summary()` to get the confidence intervals and p-value
+  we are interested in:
 
 ```
 smry <- summary(rslt)[[1]]        ## for 1-way anova, get first list element
@@ -630,11 +669,11 @@ smry.dun$test$pvalues             ## numeric vector
 
 2) TukeyHSD
 
-) What is the null hypothesis of a 2-sample t-test?
+3) What is the null hypothesis of a 2-sample t-test?
 
-) What is the null hypothesis of a 1-factor ANOVA?
+4) What is the null hypothesis of a 1-factor ANOVA?
 
-) Should you try post-hoc tests without conducting an omnibus test first?
+5) Should you try post-hoc tests without conducting an omnibus test first?
 
 [Return to index](#index)
 

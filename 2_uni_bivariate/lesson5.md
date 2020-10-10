@@ -6,19 +6,21 @@
 
 ### Index
 
-- [Title 1](#title-1)
-- [Title 2](#title-2)
-- [Title 3](#title-3)
+- [Multiple testing](#multiple-testing)
+- [Permutation testing](#permutation-testing)
+- [Empirical bootstrap](#empirical-bootstrap)
+- [Cross validation](#cross-validation)
 
 ### Check your understanding
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
 - [Check 3](#check-your-understanding-3)
+- [Check 4](#check-your-understanding-4)
 
 ---
 
-### title 1
+### Multiple testing
 
 intro here
 
@@ -39,7 +41,7 @@ code here
 
 ---
 
-### title 2
+### Permutation testing
 
 intro here
 
@@ -56,7 +58,7 @@ code here
 
 ---
 
-### title 3
+### Empirical bootstrap
 
 intro here
 
@@ -70,6 +72,27 @@ code here
 ---
 
 ### Check your understanding 3
+
+1) question here
+
+[Return to index](#index)
+
+---
+
+### Cross validation
+
+intro here
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 4
 
 1) question here
 

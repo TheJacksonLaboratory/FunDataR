@@ -72,6 +72,8 @@ y = b0 + b1 * x1 + b2 * x2 + b3 * x3 + ...
 y.i = b0 + b1 * x.i + e.i
 e.i ~ N(0, s)
 
+```
+
 With e.i independent (reflects random sampling) and come from the 
   same normal distribution N(0, s). Fitting sensitive to outliers.
 

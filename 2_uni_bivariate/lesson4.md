@@ -35,12 +35,35 @@ In the previous lesson we saw how when two variables are correlated,
   (difference) to to the `y` values of the population members than 
   any other value.
 
+Independent and dependent variable. Typically used to model a causal
+  relationship, which means that changing the 'independent' variable
+  `x` would cause the 'dependent' variable `y` to tend to change as
+  well. This is a type of 'mechanistic' model. But we 
+  can also use a linear model to predict `y` based on 
+  the values of `x`, even when changing `x` directly might have no
+  effect on `y`. For instance, perhaps changes in `z` drive changes
+  in both `x` and `y`. Then the data might suggest a linear 
+  relationship between `x` and `y`, even though though one is not
+  strictly dependent on the other. Nevertheless, predicting `y` based
+  on `x` might work quite well as long as there were no other 
+  substantial influences on `x` and `y` other than `z`. This latter
+  type of model might arise as an 'empirical' model, where we observe
+  an association between `x` and `y` without really understanding 
+  why the relationship exists. Perhaps we don't even know `z` exists.
+  It is generally considered far better to have a mechanistic model
+  than an empirical model, since mechanistic models impart understanding
+  about the system being studied and are usually more reliable than
+  empirical models. Nevertheless, mechanistic modeling is not always
+  possible given our current understanding of a system, but we may 
+  nevertheless be able to predict the system behavior to a useful 
+  extent using empirical models.
+
 The model:
 
 ```
-y = m * x + b                ## notation you may have seen in high school
-y = b1 * x + b0              ## use 'b#' for 'constant coefficients'
-y = b0 + b1 * x              ## for bivariate case: b0 (intercept) and b1 (slope)
+y = m * x + b                     ## notation you may have seen in high school
+y = b1 * x + b0                   ## use 'b#' for 'constant coefficients'
+y = b0 + b1 * x                   ## for bivariate case: b0 (intercept) and b1 (slope)
 
 ## sneak peak at multivariate case:
 y = b0 + b1 * x1 + b2 * x2 + b3 * x3 + ...
@@ -90,6 +113,11 @@ par(mfrow=c(1, 1))
 
 ```
 
+Fitting, coeficients, fitted values, residuals, coefficient of 
+  determination. F-statistic. After fitting, we are often in looking at the distribution of 
+  'residuals' to ensure assumptions are met. Residuals are the 
+  difference between the 'fitted' (predicted) value of the 
+
 Now fit first model and see what it yields. 
 
 ```
@@ -111,11 +139,17 @@ fit1$call
 But typically work with the summary, which adds confidence intervals and p-values.
   The confidence intervals are for the model estimates of the two coefficients 
   `b0` and `b1`. The null hypothesis for all the coefficients is that they are 
-  zero. For `b0`, this means the hypothesis that the line passes through the 
-  origin instead of hitting 
+  zero. For `b0`, this is equivalent to the hypothesis that the line passes 
+  through the origin (x=0, y=0) of the plot. Test uses the t-distribution, like 
+  the t-test. Also get the F-statistic for the entire model, just like for ANOVA. 
+  We will further discuss the close relationship between all three of these 
+  procedures shortly. For the F-test, the null hypothesis is that the overall
+  slope of the line is not zero. In the case of a single
+  'independent' variable `x` we are looking at now, this is equivalent to the
+  test on `b1`. 
 
 ```
-(smry1 <- summary(fit1))
+(smry1 <- summary(fit1))          ## this is the main output you are interested in
 class(smry1)
 is.list(smry1)
 names(smry1)
@@ -124,12 +158,13 @@ str(smry1)
 
 (coefs <- coef(smry1))            ## much more detail than coef(fit1)
 class(coefs)
+coefs['x', 'Pr(>|t|)']
 
 all(residuals(smry1) == residuals(fit1))
 ## no 'fitted(smry1)'
 
 smry1$adj.r.squared
-(fstat <- smry1$fstatistic)
+(fstat <- smry1$fstatistic)       ## F-statistic + F-distrib params: numerator df, denominator df
 pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ```
@@ -162,15 +197,40 @@ coef(smry8)
 
 ```
 
+Let's try this on some real data:
+
+```
+rm(list=ls())
+
+dat <- mtcars
+
+fit <- lm(mpg ~ wt, data=dat)     ## do the initial fit
+smry <- summary(fit)              ## compute p-values and CIs on b#
+coef(smry)                        ## the main table of interest
+smry$adj.r.squared                ## coefficient of determination
+
+## p-value for overall model; usually less interesting 
+##   than p-values on coefficients:
+
+fstat <- smry$fstatistic          ## F-statistic
+pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
+
+```
+
 [Return to index](#index)
 
 ---
 
 ### Equivalence to t-test and ANOVA
 
-intro here; `x` can be a categorical variable.
+Intro here. Dependent can be a categorical variable.
+  In this case, null hypothesis becomes that the group
+  means are all the same, just like t-test and ANOVA.
+  Coefficients same as for ANOVA. Encode group means the
+  same way too. 
 
-Two-sample t-test, ANOVA and linear model:
+Here we will look at the equivalency of all three procedures 
+  in the two-samples case:
 
 ```
 rm(list=ls())
@@ -184,7 +244,7 @@ dat
 (x <- dat$mpg[dat$cyl == 4])
 (y <- dat$mpg[dat$cyl == 8])
 
-dat$cyl <- factor(dat$cyl)
+dat$cyl <- factor(dat$cyl)             ## make sure interpreted as category, not number!!!
 
 fit1 <- t.test(x=x, y=y, var.equal=T)  ## must be var.equal=T for equivalence
 fit2 <- aov(mpg ~ cyl, data=dat)
@@ -193,15 +253,21 @@ fit3 <- lm(mpg ~ cyl, data=dat)
 smry2 <- summary(fit2)[[1]]
 smry3 <- summary(fit3)
 
-round(fit1$estimate, 6)
-table(round(fitted(fit2), 6))
-table(round(fitted(fit3), 6))
+## equivalent estimates; note same coef encoding for aov() and lm():
 
-coef(smry3)
+fit1$estimate
+coef(fit2)
+coef(fit3)
+
+coef(fit3)[1]                     ## mean of first group
+coef(fit3)[1] + coef(fit3)[2]     ## mean of second group
+
+## equivalent p-values:
 
 fit1$p.value
 smry2$Pr
-coef(smry3)['cyl8', 'Pr(>|t|)']
+fstat <- smry3$fstatistic          ## F-statistic
+pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ```
 
@@ -222,19 +288,23 @@ fit2 <- lm(mpg ~ cyl, data=dat)
 smry1 <- summary(fit1)[[1]]
 smry2 <- summary(fit2)
 
+## same coefficients:
 coef(fit1)
 coef(fit2)
 
-(stat <- smry2$fstatistic[1])
-(df1 <- smry2$fstatistic[2])
-(df2 <- smry2$fstatistic[3])
-
-## p-value for h0: all population means are same:
+## same p-value from F-test for h0: all population means are same:
 smry1$Pr
-pf(stat, df1, df2, lower.tail=FALSE)
+fstat <- smry2$fstatistic          ## F-statistic
+pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
-## p-value for h0: intercept is 0; and h0: slope is 0:
+## p-values for t-tests for h0s: b# is zero.
 coef(smry2)
+
+## displays are different, but can make lm() output sums-of-squares, etc:
+
+smry2
+smry1
+summary(aov(fit2))                ## print aov() summary for lm() fit
 
 ```
 
@@ -252,10 +322,124 @@ coef(smry2)
 
 ### Analysis of residuals
 
-intro here; review assumptions; sensitivity to outliers.
+intro here; review assumptions; sensitivity to outliers. 
+
+What is an 'outlier': something that does not seem to fit the current 
+  model well. When looking at using a t-test to generate a confidence 
+  interval for a population mean based on a sample, we might look for 
+  data points that are more than 3 standard deviations from the mean.
+  In this case, the equivalent linear model is an 'intercept-only' model,
+  and we are looking for 'residuals' from the model that are unusually
+  large, indicating the model fit is relatively poor for these data points.
+  We can extend this idea to more complicated models. If a data point does
+  not fit the model well, it may indicate that the data point represents
+  an error of some sort: a measurement error perhaps, or maybe a sampling
+  error (like you meant to sample maple tree circumference, but accidentally
+  included an oak tree in your sample of measurements). In this case, 
+  it makes good sense to remove the offending observation from the 
+  sample and repeat the analysis. However, the fault may well lie in the
+  model, rather than the observation. In particular, perhaps the model
+  lacks an important explanatory term that would greatly improve the 
+  correspondence between the expanded model and the observation. When
+  outliers are identified, these possibilities need to be carefully 
+  distinguished.
+
+When `plot()` called on the fit returned by `lm()` (which is an object of 
+  class `lm`), the call is redirected to the specialized function 
+  `plot.lm()`, that knows how to generate a variety of diagnostic plots
+  for a linear fit. Just like calling `summary()` on an object of class
+  `lm` will redirect the call to the specialized function `summary.lm()`
+  that knows how to calculate summary statistics for a linear fit. In 
+  general, code writers developing classes of their own can specify 
+  class-specific versions for a number of 'generic' functions, perhaps
+  most notably 'plot()' and 'summary()'.
+
+Leverage: based solely on the explanatory/independent variables (the single
+  variable `x` here). It is a measure of how far the `x` value for an 
+  observation is from the mean `x` value for the sample, normalized by the
+  variability of `x` in the sample. In general, leverage greater than twice 
+  the average leverage of `(p + 1) / n` is considered 'high', where `p` is 
+  the number of coeffients other than the intercept (here, `p == 2`, since there
+  are 3 groups and one is modeled as the coefficient) and `n` is sample size. 
+  Therefore, in the present case, leverage more than twice the expected average 
+  of `3 / n` would be considered high leverage.
+
+Influence: influential observations are those which, if removed from the sample,
+  would result in a large change in the fitted values for the remaining
+  observations. That means that if you dropped the influential observation, 
+  the coefficients of the fit would change to a relatively large degree. 
+  Influence reflects both leverage (how far explanatory variables are from 
+  their respective means) but also how far the `y` value for the observation is 
+  from the regression line you would get by dropping this observation. The 
+  further the `y` value of the omitted observation is from the regression line, 
+  and the larger the influence of the observation, the higher the observations 
+  influence will be. Cook's distance is a measure of influence which reflects 
+  the average sum-of-squared changes in fitted values for the remaining 
+  observations after dropping the observation of interest, normalized by the
+  variability of residuals from the original model. Cook's distance values 
+  greater than `0.5` are considered large and distances greater than `1.0` 
+  are considered very large.
+
+Leverages constant for balanced ANOVA design (lm() w/ categorical x).
 
 ```
-code here
+rm(list=ls())
+
+dat <- mtcars
+3 / nrow(dat)                     ## expected average leverage
+
+fit <- lm(mpg ~ wt, data=dat)     ## do the initial fit
+smry <- summary(fit)              ## compute p-values and CIs on b#
+coef(smry)                        ## the main table of interest
+
+par(mfrow=c(2, 3))                ## split figure area into 2 rows, 3 cols
+
+plot(fit, which=1:6)              ## default plot.lm() only plots c(1, 2, 3, 5)
+
+par(mfrow=c(1, 1))                ## reset figure area to 1x1
+
+```
+
+Residuals vs. fitted: trend may suggest relationship not linear. 
+
+Normal Q-Q: are the residuals normally distributed, per error term assumption.
+  Potential outliers.
+
+Scale-location: are residuals homoskedastic? or does residual magnitude depend  
+  on fitted value. Potential outliers. sqrt(abs(residuals)) less skewed than 
+  abs(residuals) for normally distributed. Should bounce around 1.
+
+Cook's distance: identifies 'influential outliers': identified by jackknifing:
+  how much do fitted values for other points change when this point is dropped from 
+  the fitting procedure? Average sum-of-squared change in fitted values,
+  normalized by dividing by original residual standard deviation.
+
+Residuals vs. leverage: outliers with large leverage; disassembles Cook's distance
+  into residual (`y` component) and leverage (`x` component). Look for points outside
+  dashed line where Cook's distance > `0.5`. Spread should not
+  change with leverage: suggests heteroskedasticity. 
+
+Cook's distance vs. leverage: another way of projecting these properties.
+
+Here we will try with some categorical data. Since the design is exactly balanced
+  (equal number of observations in each group) each data point has exactly the
+  same leverage. Three categories, so `p` (number of returned coefficients, not
+  counting the intercept) is once again '2':
+
+```
+dat <- iris
+summary(dat)
+head(dat)
+3 / nrow(dat)                     ## expected mean leverage
+
+fit <- lm(Sepal.Length ~ Species, data=dat)
+smry <- summary(fit)              ## compute p-values and CIs on b#
+coef(smry)                        ## the main table of interest
+summary(aov(fit))
+
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
+par(mfrow=c(1, 1))
 
 ```
 
@@ -273,11 +457,87 @@ code here
 
 ### Prediction
 
-Text here; fitted are predicted for 'training data'. More interested
-  in accuracy of predictions for future data.
+Text here; fitted are predicted for 'training set'. Here just return the
+  corresponding `y` value for the fitted line at the input value `x`.
+
+More interested
+  in accuracy of predictions for future data. Different evaluation 
+  sets of varying worth.
+
+Continuous prediction:
 
 ```
-code here
+rm(list=ls())
+
+## How DNase known DNase concentrations translate into ELISA optical density:
+
+dat <- DNase
+summary(dat)
+head(dat)
+
+## split the data into a training set and test set:
+
+i.train <- dat$Run %in% c(8, 9)
+i.test <- ! i.train
+
+dat.trn <- dat[i.train, ]
+dat.tst <- dat[i.test, ]
+
+## fit the model with the training data:
+
+fit <- lm(density ~ conc, data=dat.trn)
+
+## 'predicted' values for the training data:
+
+## are just the fitted values:
+
+## how good are the 'predictions' of training data?:
+
+## predicted values for the test data:
+
+## how good are the 'predictions' for test data?:
+
+```
+
+Prediction with a categorical model: just the corresponding group mean
+  in the training se.
+
+```
+rm(list=ls())
+
+## flower phenotypic measurements by straing:
+
+(dat <- iris)                     ## Species clumped into blocks
+summary(dat)                      ## 50 of each of 3 species
+head(dat)
+
+## split 4/5 (N=120) for training, 1/5 (N=30) for testing:
+
+(idx.trn <- seq(from=1, to=nrow(dat), by=5))
+i.trn <- rep(T, nrow(dat))
+i.trn[idx.trn] <- F
+i.tst <- ! i.trn
+cbind(i.tst, i.trn)
+
+dat.trn <- dat[i.trn, ]
+dat.tst <- dat[i.tst, ]
+
+summary(dat.trn)
+summary(dat.tst)
+
+## fit the model with the training data:
+
+fit <- lm(Sepal.Length ~ Species, data=dat.trn)
+
+## 'predicted' values for the training data:
+
+## are just the fitted values:
+
+## how good are the 'predictions' of training data?:
+
+## predicted values for the test data:
+
+## how good are the 'predictions' for test data?:
 
 ```
 

@@ -659,6 +659,7 @@ summary(dat.tst)
 ## fit the model with the training data:
 
 fit <- lm(Sepal.Length ~ Species, data=dat.trn)
+summary(fit)
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
 
@@ -677,13 +678,19 @@ f.mse <- function(y, y.hat) {
   mean((y - y.hat) ^ 2)
 }
 
-f.mse(y=dat.trn$Sepal.Length, y.hat=fitted(fit))
+y.hat.trn <- fitted(fit)
+y.hat.tst <- predict(fit, newdata=dat.tst)
+y.hat.mu <- rep(mean(dat.trn$Sepal.Length), nrow(dat.tst))
 
-y.hat <- predict(fit, newdata=dat.tst)
-f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat)
+## for categorical explanatory variable, predicted values are group means:
+tapply(dat.trn$Sepal.Length, dat.trn$Species, mean)
+table(round(y.hat.trn, 6))
+table(round(y.hat.tst, 6))
+table(round(y.hat.mu, 6))
 
-y.hat <- rep(mean(dat.trn$Sepal.Length), nrow(dat.tst))
-f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat)
+f.mse(y=dat.trn$Sepal.Length, y.hat=y.hat.trn)   ## evaluate fit w/ training data
+f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat.tst)   ## evaluate fit w/ hold-out test data
+f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat.mu)    ## compare to global mean prediction
 
 ```
 

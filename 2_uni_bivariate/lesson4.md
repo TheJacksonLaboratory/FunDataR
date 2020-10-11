@@ -469,35 +469,161 @@ More interested
 Continuous prediction:
 
 ```
+###########################################################
+## Cars: speed vs. stopping distance:
+
 rm(list=ls())
+set.seed(1)                       ## random seed; for 'sample()'
 
-## How DNase known DNase concentrations translate into ELISA optical density:
-
-dat <- DNase
+dat <- cars                       ## speed vs. stopping distance
+class(dat)
+nrow(dat)                         ## how many observations
 summary(dat)
 head(dat)
 
+###########################################################
 ## split the data into a training set and test set:
 
-i.train <- dat$Run %in% c(8, 9)
-i.test <- ! i.train
+## 1/5th for testing; 4/5ths for training:
+n.test <- round(nrow(cars) / 5)
 
+## sample n.test unique integers from 1 to nrow(cars):
+idx.test <- sample(1 : nrow(dat), size=n.test, replace=F)
+nrow(dat)
+length(idx.test)
+
+## make logical index from integer index:
+i.test <- rep(F, nrow(dat))
+i.test[idx.test] <- T
+i.train <- ! i.test
+cbind(i.train, i.test)            ## i.train is T when i.test is F & vice versa
+
+## split the data into traning (trn) and test (tst) set:
 dat.trn <- dat[i.train, ]
 dat.tst <- dat[i.test, ]
+nrow(dat.trn)
+nrow(dat.tst)
 
+###########################################################
 ## fit the model with the training data:
 
-fit <- lm(density ~ conc, data=dat.trn)
+fit <- lm(dist ~ speed, data=dat.trn)
+summary(fit)
+
+## since intercept is non-significant, refit w/o intercept:
+
+fit <- lm(dist ~ speed - 1, data=dat.trn)
+summary(fit)                      ## note improved R-squared
+ 
+## check residual plots:
+
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
+
+## look at the fit directly:
+
+par(mfrow=c(1, 1))
+plot(dist ~ speed - 1, data=dat.trn)
+abline(fit)
+
+```
+
+Some stuff about prediction of trn is fitted; mse as an error 
+  function.
+
+```
+###########################################################
+## predict values:
 
 ## 'predicted' values for the training data:
+y.hat.trn <- predict(fit, newdata=dat.trn)
 
 ## are just the fitted values:
+all.equal(y.hat.trn, fitted(fit))
+
+## predict stopping distances for the test data:
+y.hat.tst <- predict(fit, newdata=dat.tst)
+
+###########################################################
+## evaluate the predictions:
+
+## mean-squared error:
+
+f.mse <- function(y, y.hat) {
+
+  if(! (is.numeric(y) && is.numeric(y.hat)) )
+    stop("y and y.hat must be numeric")
+
+  if(length(y) != length(y.hat))
+    stop("y and y.hat must be same length")
+
+  if(length(y) == 0) return(NaN)
+
+  mean((y - y.hat) ^ 2)
+}
 
 ## how good are the 'predictions' of training data?:
-
-## predicted values for the test data:
+f.mse(y=dat.trn$dist, y.hat=y.hat.trn)
 
 ## how good are the 'predictions' for test data?:
+f.mse(y=dat.tst$dist, y.hat=y.hat.tst)
+
+## what if we just used the unconditional mean to predict?:
+mu <- mean(dat.trn$dist)
+y.hat.mu <- rep(mu, nrow(dat.tst))
+f.mse(y=dat.tst$dist, y.hat=y.hat.mu)
+
+```
+
+Confidence intervals capture the uncertainty in the prediction line
+  (the conditional mean). Since we have no intercept in the current model,
+  only the slope can change, and the confidence interval captures the
+  uncertainty in the slope. If there were an intercept term in the model,
+  the model would not be constrained to pass thru the origin, and the 
+  confidence interval would be expected to be two parallel lines, rather than
+  tapering to a point at the origin. If you want to know how far off the
+  prediction line calculated using your training data sample is from the 'true'
+  prediction line for the population, use the confidence interval.
+
+Prediction intervals capture the uncertainty in the predicted values for new
+  observations. They include the uncertainty of the conditional mean expressed by
+  the confidence interval, but add to it the uncertainty due to the variation
+  represented by the error term in the model. As a reminder: this error term 
+  captures the (assumed) random, independent, normally distributed 'noise' in 
+  the dependent variable that cannot be accounted for by a linear relationship 
+  with the independent/explanatory variable. Therefore, prediction intervals are
+  always at least as large as confidence intervals. If you want to know how
+  far new observations are likely to fall from the prediction line, use the 
+  prediction interval.
+
+```
+## needs same type (numeric) and name 'speed' as origin independent:
+dat.new <- data.frame(speed=seq(from=0, to=30, by=0.01))
+
+## corresponding predictions: fits will be same, prediction intervals wider:
+y.hat.ci <- predict(fit, newdata=dat.new, interval='confidence')
+y.hat.pi <- predict(fit, newdata=dat.new, interval='prediction')
+head(y.hat.ci)
+head(y.hat.pi)
+all.equal(y.hat.ci[, 'fit'], y.hat.pi[, 'fit'])
+
+(xlim <- range(dat.new$speed))
+(ylim <- range(c(y.hat.ci, y.hat.pi)))
+
+plot(x=xlim, y=ylim, type='n', xlab='speed', ylab='stopping distance')
+lines(x=dat.new$speed, y.hat.ci[, 'fit'], col='orangered', lty=1)
+lines(x=dat.new$speed, y.hat.ci[, 'lwr'], col='cyan', lty=2)
+lines(x=dat.new$speed, y.hat.ci[, 'upr'], col='cyan', lty=2)
+lines(x=dat.new$speed, y.hat.pi[, 'lwr'], col='magenta', lty=3)
+lines(x=dat.new$speed, y.hat.pi[, 'upr'], col='magenta', lty=3)
+points(x=dat.tst$speed, y=dat.tst$dist)
+
+legend(
+  'topleft',
+  legend=c('Fit line', 'Confidence interval', 'Prediction interval'),
+  lty=c(1, 2, 3),
+  col=c('orangered', 'cyan', 'magenta')
+)
 
 ```
 
@@ -507,7 +633,7 @@ Prediction with a categorical model: just the corresponding group mean
 ```
 rm(list=ls())
 
-## flower phenotypic measurements by straing:
+## flower phenotypic measurements by strain:
 
 (dat <- iris)                     ## Species clumped into blocks
 summary(dat)                      ## 50 of each of 3 species

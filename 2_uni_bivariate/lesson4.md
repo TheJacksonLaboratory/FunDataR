@@ -639,7 +639,10 @@ rm(list=ls())
 summary(dat)                      ## 50 of each of 3 species
 head(dat)
 
-## split 4/5 (N=120) for training, 1/5 (N=30) for testing:
+## split 4/5 (N=120) for training, 1/5 (N=30) for testing; since balanced
+##   experiment, and blocks in order, can systematically sample to not 
+##   disrupt balance (would probably sample randomly within blocks to
+##   accomplish the same if we were intending to publish):
 
 (idx.trn <- seq(from=1, to=nrow(dat), by=5))
 i.trn <- rep(T, nrow(dat))
@@ -656,16 +659,31 @@ summary(dat.tst)
 ## fit the model with the training data:
 
 fit <- lm(Sepal.Length ~ Species, data=dat.trn)
-
-## 'predicted' values for the training data:
-
-## are just the fitted values:
-
-## how good are the 'predictions' of training data?:
-
-## predicted values for the test data:
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
 
 ## how good are the 'predictions' for test data?:
+
+f.mse <- function(y, y.hat) {
+
+  if(! (is.numeric(y) && is.numeric(y.hat)) )
+    stop("y and y.hat must be numeric")
+
+  if(length(y) != length(y.hat))
+    stop("y and y.hat must be same length")
+
+  if(length(y) == 0) return(NaN)
+
+  mean((y - y.hat) ^ 2)
+}
+
+f.mse(y=dat.trn$Sepal.Length, y.hat=fitted(fit))
+
+y.hat <- predict(fit, newdata=dat.tst)
+f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat)
+
+y.hat <- rep(mean(dat.trn$Sepal.Length), nrow(dat.tst))
+f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat)
 
 ```
 

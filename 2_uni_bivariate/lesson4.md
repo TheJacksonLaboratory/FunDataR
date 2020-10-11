@@ -7,6 +7,7 @@
 ### Index
 
 - [The linear model](#the-linear-model)
+- [Fitting a simple linear regression](#fitting-a-simple-linear-regression)
 - [Equivalence to t-test and ANOVA](#equivalence-to-t-test-and-ANOVA)
 - [Analysis of residuals](#analysis-of-residuals)
 - [Prediction](#prediction)
@@ -26,56 +27,106 @@ In the previous lesson we saw how when two variables are correlated,
   you something about the values of the other variable. For instance,
   if two variables `x` and `y` are positively correlated, if `x` goes
   up, you know that chances of `y` going up are increased. But we 
-  don't really have a way of making a more precise prediction about 
+  don't yet know how to make a more precise prediction about 
   the behavior of `y`. Previously we also learned that if we know 
   the population mean for `y` and are asked to predict the `y` value 
   of a single observation randomly drawn from that population, the 
   population mean would be our best predictor, in the least-squares
   sense. That is, the mean has a lower **average** squared deviation 
   (difference) to to the `y` values of the population members than 
-  any other value.
+  any other value. 
 
-Independent and dependent variable. Typically used to model a causal
-  relationship, which means that changing the 'independent' variable
-  `x` would cause the 'dependent' variable `y` to tend to change as
-  well. This is a type of 'mechanistic' model. But we 
-  can also use a linear model to predict `y` based on 
-  the values of `x`, even when changing `x` directly might have no
-  effect on `y`. For instance, perhaps changes in `z` drive changes
-  in both `x` and `y`. Then the data might suggest a linear 
-  relationship between `x` and `y`, even though though one is not
-  strictly dependent on the other. Nevertheless, predicting `y` based
-  on `x` might work quite well as long as there were no other 
-  substantial influences on `x` and `y` other than `z`. This latter
-  type of model might arise as an 'empirical' model, where we observe
-  an association between `x` and `y` without really understanding 
-  why the relationship exists. Perhaps we don't even know `z` exists.
-  It is generally considered far better to have a mechanistic model
-  than an empirical model, since mechanistic models impart understanding
-  about the system being studied and are usually more reliable than
-  empirical models. Nevertheless, mechanistic modeling is not always
-  possible given our current understanding of a system, but we may 
-  nevertheless be able to predict the system behavior to a useful 
-  extent using empirical models.
+Here we will put these two ideas together: we will model the mean value
+  of `y` as being conditional on `x`. That is, the mean of `y` at 
+  one value of `x` is different than at another value of `x`. The 
+  'conditional' mean of `y` in this case will be represented as a 
+  straight line on the plot of `x` vs. `y`. This is the model assumed
+  by Pearson's correlation. If `x` and `y` are positively
+  correlated, this line will rise from left to right. Conversely,
+  if they are negatively correlated, this line will decline from left
+  to right. If there is no correlation between the variables, the
+  line will be level (slope of zero) and pass through the mean of the
+  `y` values (since in this case, the mean is not 'conditional' on
+  `x`, so the global mean is the best 'fit' to the data). 
 
-The model:
+We will need to estimate the two parameters of a straight line: the 
+  intercept (where the line crosses the `y` axis, which corresponds to 
+  the value of `y` at `x == 0`), and the slope (representing the rate
+  at which `y` changes with changing `x`). We will estimate these 
+  parameters of our conditional mean linear equation in a way to 
+  minimize a sum-of-squared deviations penalty, just like we 
+  implicitly do when calculating a global mean. That is, the line we
+  come up with will reduce the average squared vertical `y` distances
+  (NOT necessarily perpendicular to the fitted line, but perpendicular 
+  to the `x` horizontal/bottom axis) from the observations to the 
+  line. This is conceptually very similar to working with the mean, 
+  except now the 'conditional mean' of `y` changes with changing `x`.
+
+You will often hear the terms 'independent variable' and 'dependent 
+  variable', especially in the context of regression. Typically, we
+  try to use regression to model a causal mechanistic relationship, 
+  which means that changing the 'independent' variable `x` would cause 
+  the 'dependent' variable `y` to tend to change as well. The choice
+  of `x` in a 'mechanistic model' should be based on an existing theory 
+  about the mechanistic connection between `y` and `x`.
+
+But sometimes we know very little about how the entity behind our 
+  measurements (the `x`) are mechanistically related to our 'dependent' 
+  variable of interest `y`. Nevertheless, we may discover an association
+  between `x` and `y` based on empirical measurements of both variables
+  in a random sample. We could look into whether `x` causes `y` 
+  (either directly or indirectly -- we won't necessarily know) by 
+  altering `x` and measuring the resulting effect on `y`. But in many 
+  cases, that experiment is not practical, either because of technological 
+  limits or because of cost. We may nevertheless be interested in trying 
+  to 'predict' the value of `y` based on measurements of `x`. An example
+  is linking genetic polymorphisms (differences) to phenotypes (measurements
+  in the organism bearing the polymorphism). Here, we may have no idea
+  how a polymorphism in a non-coding region far from any known gene 
+  is mechanistically linked with e.g. eye color, but can nevertheless 
+  discover a fairly reliable empirical relationship between the two. It
+  would not be unethical or impractical to experimentally alter 
+  human genomes simply to test whether the polymorphism actually causes
+  the phenotype, or whether both have a common antecedent. So demonstrating
+  that `y` mechanistically depends on `x` is not practical. In this
+  type of situation, you may well see the terms 'independent' and 
+  'dependent' variable are still often used, but only with the meaning
+  that the 'dependent' variable `y` is being predicted from the 
+  'independent' variable. In these cases, it is often clearer if you refer 
+  to `x` the 'explanatory variable' and `y` the 'response variable'.
+
+Here, we will build up the linear model from the formula for a line that may
+  be familiar from high-school. Here, `m` is the slope of line, and `b` is the
+  intercept. As we build up to a more general case where there may be more than
+  one explanatory variable, it will be convenient to refer to all the constant
+  variable coefficients using the series `b0, b1, b2, b3, ...`, and the 
+  explanatory variables as `x1, x2, x3, ...`. In that case, the old intercept
+  `b` becomes `b0`, and the old slope `m` becomes `b1`, which is the coefficient
+  for the first variable `x1`. The formula for the line defines the variation in
+  `y` that we can explain by a linear relationship with `x`. We also need an
+  expression for the variation in `y` that is not captured by that linear 
+  relationship. This is the 'random error' term in the model, which for a regular
+  linear model is assumed to have a normal distribution with a mean of zero and 
+  a standard deviation estimated from the dispersion of the model residuals. The 
+  model residuals are the distances from the `y` values of the observations to 
+  the corresponding `y` values of the line that best fits the sample.
 
 ```
 y = m * x + b                     ## notation you may have seen in high school
-y = b1 * x + b0                   ## use 'b#' for 'constant coefficients'
-y = b0 + b1 * x                   ## for bivariate case: b0 (intercept) and b1 (slope)
+y = b1 * x + b0                   ## use 'b#' for 'constant coefficients' instead
+y = b0 + b1 * x                   ## more conventional ordering: b0 (intercept) and b1 (slope)
 
-## sneak peak at multivariate case:
-y = b0 + b1 * x1 + b2 * x2 + b3 * x3 + ...
+## sneak peak at multivariate case: explains the ordering and the numbering better:
+y = b0 + (b1 * x1) + (b2 * x2) + (b3 * x3) + ...
 
-## the statistical model:
+## the statistical model for individual observations includes explanatory and error parts:
 y.i = b0 + b1 * x.i + e.i
-e.i ~ N(0, s)
+e.i ~ N(0, s)                     ## errors: model for residuals is normal w/ mean 0 and constant sd
 
 ```
 
-With e.i independent (reflects random sampling) and come from the 
-  same normal distribution N(0, s). Fitting sensitive to outliers.
+Here we will look at what data simulated to meet the model assumptions looks like when we
+  vary the the standard deviation of the error term:
 
 ```
 rm(list=ls())
@@ -115,12 +166,54 @@ par(mfrow=c(1, 1))
 
 ```
 
-Fitting, coeficients, fitted values, residuals, coefficient of 
-  determination. F-statistic. After fitting, we are often in looking at the distribution of 
-  'residuals' to ensure assumptions are met. Residuals are the 
-  difference between the 'fitted' (predicted) value of the 
+[Return to index](#index)
 
-Now fit first model and see what it yields. 
+---
+
+### Fitting a simple linear regression
+
+Simple linear regression refers to fitting a linear model with a single explanatory 
+  variable. Fitting a linear model involves calculating the coefficients (intercept 
+  and slope for simple regression) for the best fitting line. For the slope, this 
+  involves a straightforward algebraic calculation in the case of a single 
+  explanatory variable, which is closely related for the calculation of Pearson's
+  correlation:
+
+```
+f.fit <- function(x, y) {
+
+  x.dev <- x - mean(x)              ## x deviations from mean
+  y.dev <- y - mean(y)              ## y deviations from mean
+
+  s.xy <- sum(x.dev * y.dev)        ## n * ('covariance' of x and y)
+  s.x2 <- sum(x.dev ^ 2)            ## n * var.pop(x)
+  s.y2 <- sum(y.dev ^ 2)            ## n * var.pop(y)
+
+  ## formula for slope of simple linear regression:
+  b1 <- s.xy / s.x2
+
+  ## formula for Pearson's correlation:
+  r <- s.xy / (sqrt(s.x2) * sqrt(s.y2))
+
+  ## formula for the intercept:
+  b0 <- mean(y) - b1 * mean(x)
+
+  return(c(b0=b0, b1=b1, r=r))
+}
+
+```
+
+The fit produced by the `lm()` (linear model) function will include, in addition
+  to the model coefficients, the 'fitted' `y` values for the data used to train the 
+  model, the 'residuals' (vertical distances between observed `y` values in the 
+  training set and the corresponding `y` values of the fitted line representing
+  the conditional mean of `y`). The fit also includes a number of calculated values 
+  used by the `summary()` function to generate the p-values and confidence intervals 
+  that we are primarily interested in. After fitting, we are often in looking at the 
+  distribution of 'residuals' to ensure assumptions associated with the fit are met. 
+
+Here we will fit a simple linear regression model to the first simulated dataset
+  from the last example:
 
 ```
 (fit1 <- lm(y1 ~ x))
@@ -130,42 +223,61 @@ names(fit1)
 attributes(fit1)
 str(fit1)
 
+## use purpose-built functions to extract coefficients, fitted values and residuals:
 coef(fit1)
 fitted(fit1)
 residuals(fit1)
-fit1$df.residual
-fit1$call
+
+## compare to the calculations described earlier:
+f.fit(x, y1)
+coef(fit1)
+cor(x, y1)
 
 ```
 
-But typically work with the summary, which adds confidence intervals and p-values.
-  The confidence intervals are for the model estimates of the two coefficients 
-  `b0` and `b1`. The null hypothesis for all the coefficients is that they are 
-  zero. For `b0`, this is equivalent to the hypothesis that the line passes 
-  through the origin (x=0, y=0) of the plot. Test uses the t-distribution, like 
-  the t-test. Also get the F-statistic for the entire model, just like for ANOVA. 
-  We will further discuss the close relationship between all three of these 
-  procedures shortly. For the F-test, the null hypothesis is that the overall
-  slope of the line is not zero. In the case of a single
-  'independent' variable `x` we are looking at now, this is equivalent to the
-  test on `b1`. 
+After we fit the model, we typically work with the summary of the model, which 
+  adds standard errors for the coefficient estimates and p-values for the null 
+  hypothesis that the respective coefficient is equal to zero. For the slope 
+  `b1`, this would correspond to no correlation between `x` and `y`). For the
+  intercept `b0`, this is equivalent to the hypothesis that the line passes 
+  through the origin (`x=0, y=0`) of the plot. The p-values and confidence intervals
+  for the coefficients are calculated using the parametric t-distribution, just
+  like the t-test. The summary also returns the F-statistic for the entire model, 
+  just like for ANOVA. We will further discuss the close relationship between all 
+  three of these procedures shortly. For the F-test, the null hypothesis is that 
+  the overall slope of the line is not zero. In the case of a single 'independent' 
+  variable `x` we are looking at now, this is equivalent to the t-test on `b1` 
+  being equal to zero. We can get confidence intervals for the coefficients using
+  the `confint()` function.
+
+Assumptions behind p-values, confidence intervals and 'prediction intervals': 
+  random sampling; linear relationship; errors homoskedastic; errors 
+  normally distributed, or enough data for CLT (30 per coefficient; maybe less
+  for closer to normal residuals);  `x` values known exactly (often not true 
+  when measured); 
 
 ```
-(smry1 <- summary(fit1))          ## this is the main output you are interested in
+smry1 <- summary(fit1))           ## this is the main output you are interested in
 class(smry1)
 is.list(smry1)
 names(smry1)
 attributes(smry1)
 str(smry1)
 
+smry1
+
 (coefs <- coef(smry1))            ## much more detail than coef(fit1)
-class(coefs)
-coefs['x', 'Pr(>|t|)']
+class(coefs)                      ## array
+coefs['x', 'Pr(>|t|)']            ## can use character indexing
+
+confint(fit1)                     ## use t-distribution to calculate CIs for coefficients
 
 all(residuals(smry1) == residuals(fit1))
 ## no 'fitted(smry1)'
 
-smry1$adj.r.squared
+cor(x, y1) ^ 2
+smry1$r.squared                   ## same as squared correlation
+smry1$adj.r.squared               ## adjusted downward to better reflect 'chance' fit
 (fstat <- smry1$fstatistic)       ## F-statistic + F-distrib params: numerator df, denominator df
 pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
@@ -197,6 +309,11 @@ coef(smry2)
 coef(smry4)
 coef(smry8)
 
+confint(fit1)
+confint(fit2)
+confint(fit4)
+confint(fit8)
+
 ```
 
 Let's try this on some real data:
@@ -209,6 +326,7 @@ dat <- mtcars
 fit <- lm(mpg ~ wt, data=dat)     ## do the initial fit
 smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
+confint(fit)                      ## confidence intervals on coefficients
 smry$adj.r.squared                ## coefficient of determination
 
 ## p-value for overall model; usually less interesting 
@@ -465,6 +583,8 @@ Text here; fitted are predicted for 'training set'. Here just return the
 More interested
   in accuracy of predictions for future data. Different evaluation 
   sets of varying worth.
+
+Something about sample() function.
 
 Continuous prediction:
 

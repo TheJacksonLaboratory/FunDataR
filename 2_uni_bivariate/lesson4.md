@@ -726,6 +726,29 @@ More interested
   in accuracy of predictions for future data. Different evaluation 
   sets of varying worth.
 
+Hold out data from this experiment captures sample-to-sample variation 
+  for samples sharing identical experimental parameters. If the same
+  experiment were conducted again, some of the experimental parameters
+  would be slightly different (e.g. ambient temperature, humidity, 
+  reagent batch, change due to genetic drift in the local colony of the
+  test species). So the accuracy estimated with data held out from the
+  same experiment will appear better than if it were estimated with 
+  data from a separate experiment conducted a month or year later.
+  Similary, there are operator and lab effects that can be shared across
+  subsequent experiments: systematic variations due to equipment, 
+  protocols and the operators conducting the procedures. If we 
+  evaluated the model against data generated in another lab, the
+  lab-to-lab variation would be added to the experiment-to-experiment
+  variation, resulting in even more pessimistic accuracy estimates.
+  If we further wanted to extrapolate to a wild population, we would
+  expect even more variability to be added by the increased genetic
+  variability, as well as differences in health, nutrition, etc, when
+  compared to laboratory-raised organisms. So one should not be 
+  surprised to find even worse performance against that standard.
+  Testing on hold-out samples from the same experiment is fine, as it
+  helps guard against chance associations 
+
+
 Something about sample() function.
 
 Continuous prediction:
@@ -890,7 +913,7 @@ legend(
 ```
 
 Prediction with a categorical model: just the corresponding group mean
-  in the training se.
+  in the training set.
 
 ```
 rm(list=ls())

@@ -338,7 +338,7 @@ After we fit the model, we typically call `summary()` on the model, which
   coefficients using the `confint()` function.
 
 ```
-smry1 <- summary(fit1))           ## this is the main output you are interested in
+smry1 <- summary(fit1)           ## this is the main output you are interested in
 class(smry1)
 is.list(smry1)
 names(smry1)
@@ -689,18 +689,8 @@ par(mfrow=c(1, 1))
 ### Check your understanding 2
 
 Generate a linear fit of the `mtcars` data with `mpg` as response variable
-  and `disp` as explanatory variable. Generate a single figure area
+  and `disp` as a continuous explanatory variable. Generate a single figure area
   containing plots 1 thru 6 from `plot.lm()` called on your model.
-
-```
-rm(list=ls())
-dat <- mtcars
-
-fit <- lm(mpg ~ disp, data=dat)
-par(mfrow=c(2, 3))
-plot(fit, which=1:6)
-par(mfrow=c(1, 1))
-
 
 1) Does the 'residuals vs. fitted' plot suggest the relationship is truly linear?
 

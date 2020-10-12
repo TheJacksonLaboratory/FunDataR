@@ -82,5 +82,36 @@ L2C2:
 
 
 ###################################################################################################
-L2C3:
+L3C2:
+
+Using the mtcars built-in dataset:
+
+    Conduct an ANOVA omnibus F-test on the null hypothesis that the mean gas efficiency (mtcars$mpg) for cars with different numbers of cylinders (mtcars$cyl) are all equal. What is the p-value?
+
+    Conduct the TukeyHSD to look for pairwise differences in group means. What are the p-values for individual comparisons?
+
+    Do a qqnorm() and qqline() plot of the residuals from the model.
+
+    Perform a Shapiro test for normality of residuals.
+
+    Perform a Bartlett test for equal variances within groups.
+
+
+rm(list=ls())
+dat <- mtcars
+summary(dat)
+## fit <- aov(mpg ~ factor(cyl), data=dat)
+fit <- aov(mpg ~ as.character(cyl), data=dat)
+coef(fit)
+summary(fit)
+TukeyHSD(fit)
+
+qqnorm(residuals(fit))
+qqline(residuals(fit))
+
+shapiro.test(residuals(fit))
+bartlett.test(mpg ~ factor(cyl), data=dat)
+
+
+
 

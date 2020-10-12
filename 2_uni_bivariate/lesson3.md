@@ -677,8 +677,8 @@ Using the `mtcars` built-in dataset:
 The `prop.test()` we already introduced tests for associations between 
   categorical variables. We often want to look for associations between
   continuous variables as well. In the typical case, we observe two numeric 
-  variables on same subjects randomly selected from the population of interest. 
-  For example, can measure the both height and weight of N individuals, 
+  variables on the same subjects randomly selected from the population of 
+  interest. For example, can measure the both height and weight of N individuals, 
   resulting in two vectors of the same lengths (say `ht` and `wt`) with 
   measurements for a given individual at the same index position (so the height 
   for the i-th individual would be `ht[i]` and that person's weight would be 
@@ -695,7 +695,7 @@ The `prop.test()` we already introduced tests for associations between
   dataset due to random sampling). 
 
 Pearson tests for (and assumes) a linear relationship between the two 
-  variables. The test assumes the individuals on whom the two variables
+  variables. The test assumes the individuals on whom both variables
   are being measured are randomly drawn from the population for which you want
   to make inferences (here, we are making inferences about the correlation of 
   the variables in a population of interest). The test also assumes that 

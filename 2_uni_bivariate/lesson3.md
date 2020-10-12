@@ -686,30 +686,36 @@ The `prop.test()` we already introduced tests for associations between
   weight (e.g. that the taller someone is, perhaps the heavier they tend to be), 
   and wish to test this idea. To do so, we could look for a 'correlation' 
   between our variables. The best known measure of correlation is Pearson's 
-  correlation. This is a value ranging between 1 (signaling a perfect positive 
-  correlation: whenever `ht` goes up, `wt` is guaranteed to go up) and -1 
-  (signaling perfect negative correlation: whenever `ht` goes up, `wt` goes 
-  down). For two variables that are not associated with one another, 
-  Pearson's correlation within samples from the population will tend towards
-  zero (may not be zero due to random fluctuation in the dataset due to random
-  sampling). 
+  correlation. The value of Pearson's correlation can range between 1 (signaling 
+  a perfect positive correlation: whenever `ht` goes up, `wt` is guaranteed 
+  to go up as well) and -1 (signaling perfect negative correlation: whenever 
+  `ht` goes up, `wt` goes down). For two variables that are not associated 
+  with one another, Pearson's correlation within samples from the population 
+  will tend towards zero (may not be zero due to random fluctuation in the 
+  dataset due to random sampling). 
 
 Pearson tests for (and assumes) a linear relationship between the two 
-  variables. It further assumes that residuals (distances from the observations 
-  to the prediction line) are homoskedastic (share a common variance). Pearson's 
-  test is defined in terms
-  of 'sums-of-squares' so the results are relatively sensitive to outliers. 
-  However, for continuous variables without obvious outliers, and where the
-  assumptions hold, Pearson's test of correlation is the most powerful test of 
-  association. For discontinuous variables, where outliers are suspected, or 
-  where the assumptions are suspect, Spearman's rho test or Kendall's tau test 
-  are better choices than Pearson's correlation. Spearman's rho and Kendall's 
-  tau approaches make relatively few assumptions outside of random sampling
-  of populations and a monotonic relationship between variables. Non-monotonic
-  (as well as non-linear) relationships can often be discerned by plotting one 
-  variable against the other. If a non-monotonic relationship is suggested,
-  other methods should be used to characterize the association between the
-  variables.
+  variables. The test assumes the individuals on whom the two variables
+  are being measured are randomly drawn from the population for which you want
+  to make inferences (here, we are making inferences about the correlation of 
+  the variables in a population of interest). The test also assumes that 
+  observations are are either normally distributed (for smaller samples) or are 
+  identically distributed (when sample sizes are large enough to invoke the CLT,
+  which, as usual, depends on how far from normal the original population is,
+  but typically 30 observations are considered adequate).
+
+Pearson's test is defined in terms of 'sums-of-squares' so the results are 
+  relatively sensitive to outliers. However, for continuous variables without 
+  obvious outliers, and where the assumptions hold, Pearson's test of correlation 
+  is the most powerful test of association. For discontinuous variables, where 
+  outliers are suspected, or where the assumptions are suspect, Spearman's rho 
+  test or Kendall's tau test are better choices than Pearson's correlation. 
+  Spearman's rho and Kendall's tau approaches make relatively few assumptions 
+  outside of random sampling of populations and a monotonic (consistently rising
+  or falling; need not be linear) relationship between variables. Non-monotonic 
+  relationships can often be discerned by plotting one variable against the other. 
+  If a non-monotonic relationship is suggested, other methods should be used to 
+  characterize the association between the variables.
 
 Spearman's test amounts to taking a rank transformation of the data (for instance, 
   substitute all the `ht` values with their ranks from smallest to largest; then 
@@ -719,17 +725,16 @@ Spearman's test amounts to taking a rank transformation of the data (for instanc
   Spearman's correlations. Nevertheless, the p-values returned by Kendall's tau
   test tend to be pretty similar to those returned by Spearman's procedure, and 
   neither method makes many assumptions outside of random sampling and a 
-  monotonic association between variables (the plot of one variable against the 
-  other is always rising or always falling: it does not change directions). 
-  Kendall's tau test is sometimes preferred over Spearman's rho because the tau 
-  statistic has a fairly straight-forward interpretation. Like the Pearson 
-  correlation (and therefore Spearman's rho), tau varies between -1 (perfect 
-  negative association) and 1 (perfect positive association) with 0 indicating 
-  no association. However, for intermediate values, tau actually represents a 
-  readily interpretable probability, while Spearman's rho statistic does not. 
-  Kendall's tau estimates the probability that if one variable goes up, the 
-  other variable will go up as well (for positive tau), or the probability that 
-  if one variable goes up, the other will go down (for negative tau).
+  monotonic association between variables. Kendall's tau test is sometimes 
+  preferred over Spearman's rho because the tau statistic has a fairly 
+  straight-forward interpretation. Like the Pearson correlation (and therefore 
+  Spearman's rho), tau varies between -1 (perfect negative association) and 1 
+  (perfect positive association) with 0 indicating no association. However, for 
+  intermediate values, tau actually represents a readily interpretable probability, 
+  while Spearman's rho statistic does not. Kendall's tau expresses the esimated 
+  probability that if one variable goes up, the other variable will go up as well 
+  (for positive tau), or the probability that if one variable goes up, the other 
+  will go down (for negative tau).
 
 ```
 rm(list=ls())
@@ -807,7 +812,7 @@ cor.test(x, y, method='kendall')    ## undetectable
 Using the `mtcars` dataset:
 
 1) In a 1 row, 3 column plot layout (use `par(mfrow=c(?, ?))`, substituting the right
-   values for the ?s), plot the relationship between `mpg` (miles per gallon) and `disp` 
+   values for the `?`s), plot the relationship between `mpg` (miles per gallon) and `disp` 
    (engine displacement in cubic inches); do the same between `mpg` and `wt` (car weight 
    in 1000s of lbs); finally, plot `disp` vs `wt`.
 

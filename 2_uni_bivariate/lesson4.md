@@ -172,15 +172,16 @@ In general, hypothesis testing will be less powerful and intervals wider as
   yesterday, chances are higher that it will rain today. If it was sunny yesterday
   it is less likely to rain today. Similary, precipitation patterns follow 
   seasonal patterns that makes similar weather tend to clump together. When
-  observations close together in time are more correlated with one another, 
+  observations close together in time are correlated with one another, 
   this implies correlation in their residuals, violating this independence assumption. 
   Similarly, if we were to measure the basal circumference of trees in the forest, 
   we would probably find that trees near each other tend to share a similar 
   circumference distribution, different from trees further from each other: ground 
   moisture will tend to accelerate the growth of trees near the moisture, and 
   trees near each other will be more likely to be of the same species and 
-  share a similar allele distribution. Therefore observations that are spatially 
-  closer together will tend to be more correlated, introducing correlation in 
+  share a similar genetic allele distribution. Therefore observations that are spatially 
+  closer together will tend to be more strongly correlated, introducing 
+  a corresponding correlation in 
   their residuals. Both the temporal and spatial cases described exemplify 
   'auto-correlation', that is correlation between residuals that are 'close by'
   one another. There are special statistical models for autocorrelated data
@@ -192,10 +193,10 @@ Another assumption is that all the explanatory variable values are known exactly
   treatment of some type, where the value may be precisely known). Nevertheless, 
   you will often see linear modeling being used even when `x` is an inexactly 
   measured value. If the measurements are fairly tight, this may be an acceptable 
-  practice, but depending on how important the details of the model are, an 
-  alternative formulation, called the 'random effects' model can be used, which 
+  practice, but depending on how important the details of the model are, using an 
+  alternative formulation, called the 'random effects' model may be advisable, which 
   can explicitly model the uncertainty in the explanatory variable values, leading
-  to more reliable (though less powerful) p-values and interval estimates. Random
+  to more reliable p-values and interval estimates. Random
   effects models, which have broader applicability than the case of imprecisely
   measured `x`, are beyond the scope of this lesson, but this is a common issue you 
   should be aware of.
@@ -552,7 +553,7 @@ When we examine the adequacy of a linear model fit to the data, we are
   deviations from the model assumptions of linearity, homoskedasticity
   and (for smaller samples) normality of the residuals.
 
-What is an 'outlier'? An outlier is something that does not seem to fit 
+So, what is an 'outlier'? An outlier is simply something that does not seem to fit 
   he current model well. When looking at using a t-test to generate a confidence 
   interval for a population mean based on a sample, we might look for 
   data points that are more than 3 standard deviations from the mean.
@@ -560,18 +561,20 @@ What is an 'outlier'? An outlier is something that does not seem to fit
   where the intercept represents the global mean of `y`. We are looking for 
   residuals from the model that are unusually large, indicating the model 
   fit is relatively poor for these data points. We can extend this idea to 
-  more complicated models. If a data point does not fit the model well, it 
-  may indicate that the data point represents an error of some sort: a 
+  our linear models of a conditional mean. In any case, if a data point 
+  does not fit the model well, it may indicate that the data point represents 
+  an error of some sort: a 
   measurement error perhaps, or maybe a sampling error (like you meant to 
   sample maple tree circumference, but accidentally included an oak tree 
   in your sample of measurements). In this case, it makes good sense to 
   remove the offending observation from the sample and repeat the analysis. 
   However, the fault may well lie in the model, rather than the observation. 
   In particular, perhaps the model lacks an important explanatory term 
-  (like a non-linear component or another explanatory variable) that would 
-  greatly improve the correspondence between the expanded model and the 
-  observation. When outliers are identified, these possibilities need to 
-  be carefully distinguished.
+  (like an additional explanatory variable or a non-linear relationship to 
+  the current explanatory variable) that would greatly improve the 
+  correspondence between the expanded model and the observation. When 
+  outliers are identified, these possibilities need to be carefully 
+  distinguished.
 
 When `plot()` is called on the fit returned by `lm()` (which is an object of 
   class `lm`), the call is redirected to the specialized function 
@@ -583,9 +586,10 @@ When `plot()` is called on the fit returned by `lm()` (which is an object of
   class-specific versions for a number of 'generic' functions, perhaps
   most notably 'plot()' and 'summary()'.
 
-Some other terms you should know when looking at the residual plots:
+Here are two other terms you should familiarize yourself with in order to be
+  able to better interpret residual plots:
 
-Leverage: is based solely on the explanatory/independent variables (the single
+**Leverage**: is based solely on the explanatory/independent variables (the single
   variable `x` here). It is a measure of how far the `x` value for an 
   observation is from the mean `x` value for the sample, normalized by the
   variability of `x` in the sample. In general, leverage greater than twice 
@@ -599,7 +603,7 @@ Leverage: is based solely on the explanatory/independent variables (the single
   ANOVA designs (all groups have equal sample size) the leverage of each 
   observation is always the same.
 
-Influence: influential observations are those which, if removed from the sample,
+**Influence**: influential observations are those which, if removed from the sample,
   would result in a large change in the fitted values for the remaining
   observations. That means that if you dropped the influential observation, 
   the coefficients of the fit would change to a relatively large degree. 
@@ -608,12 +612,13 @@ Influence: influential observations are those which, if removed from the sample,
   from the regression line you would get by dropping this observation. The 
   further the `y` value of the omitted observation is from the regression line, 
   and the larger the influence of the observation, the higher the observations 
-  influence will be. Cook's distance is a measure of influence which reflects 
+  influence will be. **Cook's distance** is a measure of influence which reflects 
   the average sum-of-squared changes in fitted values for the remaining 
   observations after dropping the observation of interest, normalized by the
   variability of residuals from the original model. Cook's distance values 
-  greater than `0.5` are considered large and distances greater than `1.0` 
-  are considered very large.
+  greater than `0.5` suggest the corresponding observation has high
+  influence on the fit, and observations with Cook's distances greater than 
+  `1.0` are considered to have very high influence.
 
 ```
 rm(list=ls())
@@ -633,7 +638,7 @@ par(mfrow=c(1, 1))                ## reset figure area to 1x1
 
 ```
 
-Here is a list of the six plots and what we are looking for:
+Here is a list of the six residual plots and what they represent:
 
 **Residuals vs. fitted**: trend may suggest the relationship not linear. Changing
   spread of the residuals suggests heteroskedasticity, though this may be easier

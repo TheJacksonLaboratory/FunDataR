@@ -666,6 +666,8 @@ Here we will try the same thing with some categorical data. Since the design is
   coefficients, not counting the intercept) is once again '2':
 
 ```
+rm(list=ls())
+
 dat <- iris
 summary(dat)
 head(dat)

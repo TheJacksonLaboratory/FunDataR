@@ -682,27 +682,32 @@ The `prop.test()` we already introduced tests for associations between
   resulting in two vectors of the same lengths (say `ht` and `wt`) with 
   measurements for a given individual at the same index position (so the height 
   for the i-th individual would be `ht[i]` and that person's weight would be 
-  `wt[i]`). We may think that there may be a relationship between height and 
-  weight (e.g. that the taller someone is, perhaps the heavier they tend to be), 
-  and wish to test this idea. To do so, we could look for a 'correlation' 
-  between our variables. The best known measure of correlation is Pearson's 
-  correlation. The value of Pearson's correlation can range between 1 (signaling 
-  a perfect positive correlation: whenever `ht` goes up, `wt` is guaranteed 
-  to go up as well) and -1 (signaling perfect negative correlation: whenever 
-  `ht` goes up, `wt` goes down). For two variables that are not associated 
-  with one another, Pearson's correlation within samples from the population 
-  will tend towards zero (may not be zero due to random fluctuation in the 
-  dataset due to random sampling). 
+  `wt[i]`). That is, these data are 'paired'. We may think that there may be a 
+  relationship between height and weight (e.g. that the taller someone is, 
+  perhaps the heavier they tend to be), and wish to test this idea. To do so,   
+  we could look for a 'correlation' between our variables. The best known 
+  measure of correlation is Pearson's correlation. The value of Pearson's 
+  correlation can range between 1 (signaling a perfect positive correlation: 
+  whenever `ht` goes up, `wt` is guaranteed to go up as well) and -1 (signaling 
+  perfect negative correlation: whenever `ht` goes up, `wt` goes down). For two 
+  variables that are not associated with one another, Pearson's correlation 
+  within samples from the population will tend towards zero (may not be zero
+  due to random fluctuation in the dataset due to random sampling). 
 
-Pearson tests for (and assumes) a linear relationship between the two 
-  variables. The test assumes the individuals on whom both variables
-  are being measured are randomly drawn from the population for which you want
-  to make inferences (here, we are making inferences about the correlation of 
-  the variables in a population of interest). The test also assumes that 
-  observations are are either normally distributed (for smaller samples) or are 
-  identically distributed (when sample sizes are large enough to invoke the CLT,
-  which, as usual, depends on how far from normal the original population is,
-  but typically 30 observations are considered adequate).
+Pearson assumes a linear relationship between the two variables, although it 
+  can produce significant p-values for non-linear relationships as long as they
+  are primarily monotonic. The squared magnitude of Pearson's correlation describes
+  the percentage of total variance in the variables that can be explained by a 
+  linear relationship with the other variables. The test assumes the individuals 
+  on whom both variables are being measured are randomly drawn from the population 
+  for which you want to make inferences (here, we are making inferences about the 
+  correlation of the variables in a population of interest). The test also assumes 
+  that observations are are either normally distributed (for smaller samples) which
+  is relaxed to the assumption that the the observed values of each variable are 
+  identically distributed when sample sizes are large enough to invoke the CLT.
+  As usual, how large is large enough depends on how far from normal the variable 
+  distributions in the original population are, but typically 30 observations are 
+  considered adequate.
 
 Pearson's test is defined in terms of 'sums-of-squares' so the results are 
   relatively sensitive to outliers. However, for continuous variables without 
@@ -710,16 +715,16 @@ Pearson's test is defined in terms of 'sums-of-squares' so the results are
   is the most powerful test of association. For discontinuous variables, where 
   outliers are suspected, or where the assumptions are suspect, Spearman's rho 
   test or Kendall's tau test are better choices than Pearson's correlation. 
-  Spearman's rho and Kendall's tau approaches make relatively few assumptions 
+  Spearman's rho and Kendall's tau procedures use relatively few assumptions 
   outside of random sampling of populations and a monotonic (consistently rising
-  or falling; need not be linear) relationship between variables. Non-monotonic 
-  relationships can often be discerned by plotting one variable against the other. 
-  If a non-monotonic relationship is suggested, other methods should be used to 
-  characterize the association between the variables.
+  or falling; does not matter if linear or not) relationship between variables. 
+  Non-monotonic relationships can often be discerned by plotting one variable 
+  against the other. If a non-monotonic relationship is suggested, other methods 
+  should be used to characterize the association between the variables.
 
 Spearman's test amounts to taking a rank transformation of the data (for instance, 
   substitute all the `ht` values with their ranks from smallest to largest; then 
-  do the same thing for the `wt` values), then conducting Pearson's test on the 
+  do the same thing for the `wt` values), followed by Pearson's test on the 
   transformed data. Kendall's tau test also ranks the data for each variable, but 
   the theoretical approach and p-value calculation differs from Pearson's and 
   Spearman's correlations. Nevertheless, the p-values returned by Kendall's tau
@@ -730,11 +735,20 @@ Spearman's test amounts to taking a rank transformation of the data (for instanc
   straight-forward interpretation. Like the Pearson correlation (and therefore 
   Spearman's rho), tau varies between -1 (perfect negative association) and 1 
   (perfect positive association) with 0 indicating no association. However, for 
-  intermediate values, tau actually represents a readily interpretable probability, 
-  while Spearman's rho statistic does not. Kendall's tau expresses the esimated 
-  probability that if one variable goes up, the other variable will go up as well 
-  (for positive tau), or the probability that if one variable goes up, the other 
-  will go down (for negative tau).
+  intermediate values, tau actually represents an interpretable probability that
+  Spearman's rho does not. For observation `i`, let's call the pair of 
+  measurements for `x` and `y` as `x.i` and `y.i`, respectively. Similary, 
+  for observation `j`, the two measurements will be `x.j` and `y.j`. For all 
+  possible pairings of observations where `x.i > x.j`, Kendall's tau represents 
+  the difference between the probability `p1` that `y.i > y.j` and the 
+  probability `p2` that `y.i < y.j`. Note that this formulation does not specify 
+  what to do with the case `y.i == y.j`. There are several different versions of 
+  the tau test that handle ties in the data ranking in somewhat different ways. 
+  Assuming no ties in the data, this means a tau of `0.3`, implies that 
+  `p1 - p2 = 0.3`. Since it is always true that `(p1 + p2) == 1`, some 
+  rearrangement/substitution allows us to calculate that if tau is `0.3`, then 
+  `p1` must be `0.65` and `p2` must be `0.35` (`0.65 + 0.35 == 1` and 
+  `0.65 - 0.35 == 0.3`).
 
 ```
 rm(list=ls())

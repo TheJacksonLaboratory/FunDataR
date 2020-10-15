@@ -551,7 +551,7 @@ When we examine the adequacy of a linear model fit to the data, we are
   often most interested in looking at the residuals. This is because 
   outliers are often relatively obvious in plots of residuals, as are 
   deviations from the model assumptions of linearity, homoskedasticity
-  and (for smaller samples) normality of the residuals.
+  and (particularly important for smaller samples) normality of the residuals.
 
 So, what is an 'outlier'? An outlier is simply something that does not seem to fit 
   he current model well. When looking at using a t-test to generate a confidence 
@@ -561,20 +561,63 @@ So, what is an 'outlier'? An outlier is simply something that does not seem to f
   where the intercept represents the global mean of `y`. We are looking for 
   residuals from the model that are unusually large, indicating the model 
   fit is relatively poor for these data points. We can extend this idea to 
-  our linear models of a conditional mean. In any case, if a data point 
-  does not fit the model well, it may indicate that the data point represents 
-  an error of some sort: a 
-  measurement error perhaps, or maybe a sampling error (like you meant to 
-  sample maple tree circumference, but accidentally included an oak tree 
-  in your sample of measurements). In this case, it makes good sense to 
-  remove the offending observation from the sample and repeat the analysis. 
-  However, the fault may well lie in the model, rather than the observation. 
-  In particular, perhaps the model lacks an important explanatory term 
-  (like an additional explanatory variable or a non-linear relationship to 
-  the current explanatory variable) that would greatly improve the 
-  correspondence between the expanded model and the observation. When 
+  our linear models of a conditional mean, looking for residuals that are more
+  than 3 standard deviations (of the residual distribution) from the prediction 
+  line. 
+
+When a data point does not fit the model well, it may indicate that the data 
+  point represents an error of some sort: a measurement error perhaps, or maybe 
+  a sampling error (like you meant to sample maple tree circumference, but 
+  accidentally included an oak tree in your sample of measurements). In this 
+  case, it makes good sense to remove the offending observation from the sample 
+  and repeat the analysis. However, the fault may well lie in the model, rather 
+  than the observation. In particular, perhaps the model lacks an important 
+  explanatory term (like an additional explanatory variable or a non-linear 
+  relationship to the current explanatory variable) that would greatly improve 
+  the correspondence between the expanded model and the observation. When 
   outliers are identified, these possibilities need to be carefully 
-  distinguished.
+  distinguished. Often this distinction is hard to make with certainty, in
+  which case we should act with care, only removing apparent outliers if they
+  have a significant impact on the estimates of the model coefficients. In any 
+  case, if any data are removed, it should be documented (specifying which data
+  were removed and why) in the methods section of subsequent scientific 
+  publications. It may also be useful to compare the fits with and without the
+  outliers in order to quantify the 'sensitivity' of the fit to the choice about
+  whether the outliers are included or not.
+
+In addition to having `y` response variable values that do not fit the model 
+  developed from the rest of the data well, which is signalled by relatively 
+  large residuals, outliers can also have `x` explanatory variable values 
+  that are unusually far from the rest of the data. Below are two terms that
+  are often used when discussing the impact of outliers on a fit:
+
+**Leverage**: is based solely on the explanatory/independent variables (the single
+  variable `x` here). It is a measure of how far the `x` value for an 
+  observation is from the mean `x` value for the sample, normalized by the
+  variability of `x` in the sample. In general, leverage greater than twice 
+  the average leverage of `p / n` is considered 'high', where `p` is 
+  the number of coeffients in the model and `n` is sample size. The higher the 
+  leverage of an observation, the more potential differences in the `y` value 
+  of that observation will tend to affect the coefficient estimates. For balanced
+  ANOVA designs (all groups have equal sample size) the leverage of each 
+  observation is always the same.
+
+**Influence**: influential observations are those which, if removed from the 
+  sample, would result in a large change in the fitted values for the remaining
+  observations. That means that if you dropped the influential observation, 
+  the coefficients of the fit would change to a relatively large degree. 
+  Influence reflects both leverage (how far explanatory variables are from 
+  their respective means) but also how far the `y` value for the observation is 
+  from the regression line you would get by dropping this observation. The 
+  further the `y` value of the omitted observation is from the regression line
+  (the larger the 'residual'), and the larger the influence of the observation, 
+  the higher the observations influence will be. **Cook's distance** is a measure 
+  of influence which reflects the average sum-of-squared changes in fitted values 
+  for the remaining observations after dropping the observation of interest, 
+  normalized by the variability of residuals from the original model. Cook's 
+  distance values greater than `0.5` suggest the corresponding observation has 
+  high influence on the fit, and observations with Cook's distances greater than 
+  `1.0` are considered to have very high influence.
 
 When `plot()` is called on the fit returned by `lm()` (which is an object of 
   class `lm`), the call is redirected to the specialized function 
@@ -586,49 +629,16 @@ When `plot()` is called on the fit returned by `lm()` (which is an object of
   class-specific versions for a number of 'generic' functions, perhaps
   most notably 'plot()' and 'summary()'.
 
-Here are two other terms you should familiarize yourself with in order to be
-  able to better interpret residual plots:
-
-**Leverage**: is based solely on the explanatory/independent variables (the single
-  variable `x` here). It is a measure of how far the `x` value for an 
-  observation is from the mean `x` value for the sample, normalized by the
-  variability of `x` in the sample. In general, leverage greater than twice 
-  the average leverage of `(p + 1) / n` is considered 'high', where `p` is 
-  the number of coeffients other than the intercept (here, `p == 2`, since there
-  are 3 groups and one is modeled as the coefficient) and `n` is sample size. 
-  Therefore, in the present case, leverage more than twice the expected average 
-  of `3 / n` would be considered high leverage. The higher the leverage of an
-  observation, the more potential differences in the `y` value of that 
-  observation will tend to affect the coefficient estimates. For balanced
-  ANOVA designs (all groups have equal sample size) the leverage of each 
-  observation is always the same.
-
-**Influence**: influential observations are those which, if removed from the sample,
-  would result in a large change in the fitted values for the remaining
-  observations. That means that if you dropped the influential observation, 
-  the coefficients of the fit would change to a relatively large degree. 
-  Influence reflects both leverage (how far explanatory variables are from 
-  their respective means) but also how far the `y` value for the observation is 
-  from the regression line you would get by dropping this observation. The 
-  further the `y` value of the omitted observation is from the regression line, 
-  and the larger the influence of the observation, the higher the observations 
-  influence will be. **Cook's distance** is a measure of influence which reflects 
-  the average sum-of-squared changes in fitted values for the remaining 
-  observations after dropping the observation of interest, normalized by the
-  variability of residuals from the original model. Cook's distance values 
-  greater than `0.5` suggest the corresponding observation has high
-  influence on the fit, and observations with Cook's distances greater than 
-  `1.0` are considered to have very high influence.
-
 ```
 rm(list=ls())
 
 dat <- mtcars
-3 / nrow(dat)                     ## expected average leverage
 
 fit <- lm(mpg ~ wt, data=dat)     ## do the initial fit
 smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
+
+nrow(coef(smry)) / nrow(dat)      ## expected average leverage: p / n
 
 par(mfrow=c(2, 3))                ## split figure area into 2 rows, 3 cols
 
@@ -640,9 +650,9 @@ par(mfrow=c(1, 1))                ## reset figure area to 1x1
 
 Here is a list of the six residual plots and what they represent:
 
-**Residuals vs. fitted**: trend may suggest the relationship not linear. Changing
-  spread of the residuals suggests heteroskedasticity, though this may be easier
-  to see on Scale-location plot. Outliers.
+**Residuals vs. fitted**: a trend in the residual mean suggests the relationship 
+  is not linear. Changing spread of the residuals suggests heteroskedasticity, though 
+  this may be easier to see on Scale-location plot. Outliers.
 
 **Normal Q-Q**: are the residuals normally distributed, per error term assumption in 
   the case of smaller sample sizes (if large sample, you may not care unless 
@@ -652,11 +662,11 @@ Here is a list of the six residual plots and what they represent:
   w/ fitted value. Potential outliers. sqrt(abs(residuals)) less skewed than 
   abs(residuals) for normally distributed. The scale values should bounce around 1.
 
-**Cook's distance**: identifies 'influential outliers': identified by jackknifing:
-  how much do fitted values for other points change when this point is dropped from 
-  the fitting procedure? Average sum-of-squared change in fitted values,
-  normalized by dividing by original residual standard deviation. Values greater 
-  than `0.5` indicate high influence.
+**Cook's distance**: identifies 'influential' outliers by jackknifing: measure
+  how much fitted values for other points change when this point is dropped from 
+  the fitting procedure? Average sum-of-squared change in fitted values, normalized 
+  by dividing by original residual standard deviation. Values greater than `0.5` 
+  indicate high influence.
 
 **Residuals vs. leverage**: outliers with large leverage; disassembles Cook's distance
   into residual (`y` component) and leverage (`x` component). Look for points outside
@@ -665,7 +675,7 @@ Here is a list of the six residual plots and what they represent:
 
 **Cook's distance vs. leverage**: another way of projecting these properties.
 
-Here we will try the same thing with some categorical data. Since the design is 
+Now we will try the same thing with some categorical data. Since the design is 
   exactly balanced (equal number of observations in each group) each data point has 
   exactly the same leverage. There are three categories, so `p` (number of returned 
   coefficients, not counting the intercept) is once again '2':
@@ -676,12 +686,12 @@ rm(list=ls())
 dat <- iris
 summary(dat)
 head(dat)
-3 / nrow(dat)                     ## expected mean leverage
 
 fit <- lm(Sepal.Length ~ Species, data=dat)
 smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 summary(aov(fit))
+nrow(coef(smry)) / nrow(dat)                     ## expected mean leverage
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -717,37 +727,72 @@ Generate a linear fit of the `mtcars` data with `mpg` as response variable
 
 ### Prediction
 
-AREA BELOW IS UNDER CONSTRUCTION:
+Mechanistic statistical models, which explicitly model the associations between
+  variables as causal connections, are a great way to gain and test our understanding 
+  about the components of the system being studied. In addition, both mechanistic 
+  and empirical (where we may be ignorant of the mechanisms behind associations
+  between variables) models can have value for making predictions about the value
+  of the response `y` variable of a new observation based on the the 'predictor' 
+  (explanatory) variable `x` value for that observation. In the examples we've 
+  discussed thus far, the predicted value for the new observation will be the 
+  `y` value of the line from our fit at the observation's value of `x`. This 
+  `y` value is the 'fitted' or 'predicted' value for the new observation.
 
-Text here; fitted are predicted for 'training set'. Here just return the
-  corresponding `y` value for the fitted line at the input value `x`.
+For any model, the model is initially developed with a finite sample from a 
+  presumably much larger population. This sample used to initially fit, or 
+  'train' the model can be referred to as a 'training set'. The methods we've
+  shown for scrutinizing linear models has focused on looking at the residuals
+  in the training set. Here we are looking for consistency with model 
+  assumptions that are necessary for making parametric inferences (via p-values
+  and confidence intervals) about the model coefficients. However, just like
+  a sample mean fits the sample better than it would another random sample
+  from that population, we should expect that our training set will fit our
+  linear model of the conditional mean better than another random sample from 
+  the same population. Therefore, any evaluation of our model that we do
+  with the training set is expected to be somewhat overly optimistic of the
+  quality of the fit to the entire population of interest. In order to get 
+  a fairer evaluation of the model, it is best to use another independent
+  random sample from that population. This second sample can be referred to
+  as the 'test set'.
 
-More interested
-  in accuracy of predictions for future data. Different evaluation 
-  sets of varying worth.
-
-Hold out data from this experiment captures sample-to-sample variation 
-  for samples sharing identical experimental parameters. If the same
-  experiment were conducted again, some of the experimental parameters
-  would be slightly different (e.g. ambient temperature, humidity, 
-  reagent batch, change due to genetic drift in the local colony of the
-  test species). So the accuracy estimated with data held out from the
-  same experiment will appear better than if it were estimated with 
-  data from a separate experiment conducted a month or year later.
-  Similary, there are operator and lab effects that can be shared across
-  subsequent experiments: systematic variations due to equipment, 
-  protocols and the operators conducting the procedures. If we 
-  evaluated the model against data generated in another lab, the
-  lab-to-lab variation would be added to the experiment-to-experiment
-  variation, resulting in even more pessimistic accuracy estimates.
-  If we further wanted to extrapolate to a wild population, we would
-  expect even more variability to be added by the increased genetic
-  variability, as well as differences in health, nutrition, etc, when
-  compared to laboratory-raised organisms. So one should not be 
-  surprised to find even worse performance against that standard.
-  Testing on hold-out samples from the same experiment is fine, as it
-  helps guard against chance associations 
-
+When evaluating a model, it is worth carefully thinking about the relationship
+  of the samples used for training and testing with the population we wish
+  to make inferences about. We may find that it is actually quite difficult 
+  to get random samples from that population and get unbiased estimates of the
+  performance of our model. We often want to be able to make inferences about
+  what will happen if other labs try to repeat our experiment. If those 
+  inferences prove correct, it means that our results are 'repeatable'. We
+  could (randomly or randomly within treatment groups) hold out some of the 
+  observations from an experiment conducted in our lab to use as a test set, 
+  then use the remaining observations as a training set. The test set will
+  give us a better estimate of model performance we should expect in someone
+  else's lab than the training set, but the estimate is still probably too
+  optimistic, because all the experimental parameters are constant. For 
+  instance, we are not capturing variation in day-to-day parameters, such as 
+  temperature and humidity. If we conducted the same experiment in our lab
+  again, we would expect some variation in experimental parameters, which
+  would cause the observated variable values to be systematically slightly 
+  different from those in the previous experiment. So using observations 
+  from the new experiment to evaluate the original model is expected to 
+  result in somewhat more pessimistic, but also more realistic estimates 
+  of model performance to be expected when other labs try to repeat the 
+  experiment. However, even a repeat experiment in our lab will not capture
+  expected additional lab-to-lab variation due to differences in reagent
+  lots, experimental material (their *C. elegans* 'N2' strain colony is 
+  likely genetically different from yours, due to genetic drift; their
+  rearing conditions are likely somewhat different as well) equipment, 
+  protocols, inter-operator variation, etc. These differences introduce
+  more systematic effects that we expect will cause the model performance
+  to be worse than what would be estimated by repeating the experiment
+  in our own lab. As a practical matter, we want to always hold out some
+  randomly selected observations for a test set which must not be used for 
+  any aspect of training the model. The results from the evaluation using
+  this test set provide some very preliminary estimates of model 
+  performance. We can repeat the experiment later to provide somewhat more
+  independent, and therefore better, test sets, refining the performance
+  estimate. However, the actual model performance we care about will not 
+  be known until several different labs have tried to repeat the 
+  experiment.
 
 Something about sample() function.
 

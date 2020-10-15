@@ -1138,7 +1138,18 @@ f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat.mu)    ## compare to global mean predi
 
 ### Check your understanding 3
 
-1) question here
+Using the built-in data set 'faithful':
+
+1) Assign the sample observations randomly so about 80% are in a training-set and 
+   the remaining 20% in a test-set.
+
+2) Fit a simple linear regression model to the training-set observations designating
+   `waiting` as the response and `eruptions` as the predictor. 
+
+3) Make predictions for both the training-set and test-set.
+
+4) Use the f.mse() function above to estimate model performance on both the training and test-sets.
+   What sort of performance do you see if you use the global mean to predict values for the test-set?
 
 [Return to index](#index)
 

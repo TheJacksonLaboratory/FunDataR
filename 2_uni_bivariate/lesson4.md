@@ -1138,7 +1138,8 @@ f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat.mu)    ## compare to global mean predi
 
 ### Check your understanding 3
 
-Using the built-in data set 'faithful':
+Using the built-in data set 'faithful' (Yellowstone National Park's 'Old Faithful' 
+  geyser eruption length vs. delay between eruptions):
 
 1) Assign the sample observations randomly so about 80% are in a training-set and 
    the remaining 20% in a test-set.
@@ -1149,7 +1150,8 @@ Using the built-in data set 'faithful':
 3) Make predictions for both the training-set and test-set.
 
 4) Use the f.mse() function above to estimate model performance on both the training and test-sets.
-   What sort of performance do you see if you use the global mean to predict values for the test-set?
+   What sort of performance do you see if you use the global mean (of response variable values in 
+   the TRAINING set) to predict values for the test-set?
 
 [Return to index](#index)
 

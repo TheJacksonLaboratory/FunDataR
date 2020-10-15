@@ -737,22 +737,24 @@ Mechanistic statistical models, which explicitly model the associations between
   `y` value of the line from our fit at the observation's value of `x`. This 
   `y` value is the 'fitted' or 'predicted' value for the new observation.
 
-For any model, the model is initially developed with a finite sample from a 
-  presumably much larger population. This sample used to initially fit, or 
-  'train' the model can be referred to as a 'training set'. The methods we've
-  shown for scrutinizing linear models has focused on looking at the residuals
-  in the training set. Here we are looking for consistency with model 
+For any model, the model is initially developed based on a finite sample from a 
+  presumably much larger population of interest. This sample, used to initially 
+  fit, or 'train' the model is often referred to as a 'training set'. The methods 
+  we've shown for scrutinizing linear models has focused on looking at the 
+  residuals in the training set. Here we are looking for consistency with model 
   assumptions that are necessary for making parametric inferences (via p-values
   and confidence intervals) about the model coefficients. However, just like
-  a sample mean fits the sample better than it would another random sample
+  we expect a sample mean to fit the sample it was calculated from better than 
+  it would fit (in the sum-of-squared deviations sense) another random sample
   from that population, we should expect that our training set will fit our
   linear model of the conditional mean better than another random sample from 
-  the same population. Therefore, any evaluation of our model that we do
-  with the training set is expected to be somewhat overly optimistic of the
-  quality of the fit to the entire population of interest. In order to get 
-  a fairer evaluation of the model, it is best to use another independent
-  random sample from that population. This second sample can be referred to
-  as the 'test set'.
+  the same population. Therefore, any evaluation of our model based on the 
+  training set is expected to be somewhat overly optimistic of the predictive
+  performance of the model to expect on random observations from the population
+  of interest. In order to get  a fairer evaluation of the model in this 
+  context, it is best to use another independent random sample from that 
+  population. You will often see this second sample referred to as a 
+  'test set'.
 
 When evaluating a model, it is worth carefully thinking about the relationship
   of the samples used for training and testing with the population we wish
@@ -762,75 +764,82 @@ When evaluating a model, it is worth carefully thinking about the relationship
   inferences about what will happen if other labs try to repeat our experiment. 
   If our inferences would be borne out in replicate experiments conducted in 
   other labs, it means that our results are 'repeatable'. In order to estimate
-  this repeatability, we could (randomly or randomly within treatment groups) 
-  hold out some of the observations from an experiment conducted in our 
-  lab to use as a test set, then use the remaining observations as a training 
-  set. The test set will give us a better estimate of model performance we 
-  should expect in someone else's lab than the training set, but the estimate 
-  is still probably too optimistic, because all the experimental parameters 
-  are shared between the training and test sets. For instance, we are not 
-  capturing variation in day-to-day parameters, such as temperature and 
-  humidity. If we conducted the same experiment in our lab again, we would 
-  expect some variation in experimental parameters, which would cause the 
-  observed variable values to be systematically slightly different from 
-  those in the original experiment. So using observations from the new 
-  experiment to evaluate the original model should provide somewhat more 
-  pessimistic, but also more realistic estimates of model performance to 
-  be expected when other labs try to repeat the experiment. However, even 
-  a repeat experiment in our lab will not capture expected additional 
-  lab-to-lab variation due to differences in reagent lots, experimental 
-  material (their *C. elegans* 'N2' strain colony is likely genetically 
-  different from yours, due to genetic drift; their rearing conditions are 
-  likely somewhat different as well) equipment, protocols, inter-operator 
-  variation, etc. These differences introduce more systematic effects that 
-  we expect will cause the model performance to be worse than what would 
-  be estimated by repeating the experiment in our own lab. As a practical 
-  matter, we want to always hold out some randomly selected observations 
-  for a test set which must not be used for any aspect of training the model. 
-  The results from the evaluation using this test set provide some very 
-  preliminary estimates of model performance. We can repeat the experiment 
-  later to provide somewhat more independent, and therefore better, test 
-  sets, refining the performance estimate. However, the actual model 
-  performance we care about will not be known until several different labs 
-  have tried to repeat the experiment.
+  this repeatability, we could randomly select (or 'hold-out') some of the 
+  observations from an experiment conducted in our lab to use as a test set, 
+  then use the remaining observations as a training set. The test set will 
+  give us a better estimate of model performance we should expect in someone 
+  else's lab than the training set, but the estimate is still probably too 
+  optimistic, because all the experimental parameters are shared between the 
+  training and test sets. For instance, we are not capturing variation in 
+  day-to-day parameters, such as temperature and humidity. If we conducted 
+  the same experiment in our lab again, we would expect some variation in 
+  experimental parameters, which would cause the observed variable values to 
+  be systematically slightly different from those in the original experiment. 
+  So using observations from the new experiment to evaluate the original model 
+  should provide somewhat more pessimistic, but also more realistic estimates 
+  of model performance to be expected when other labs try to repeat the 
+  experiment. However, even a repeat experiment in our lab will not capture 
+  expected additional lab-to-lab variation due to differences in reagent 
+  lots, experimental material (their *C. elegans* 'N2' strain colony is likely 
+  genetically different from yours, due to genetic drift; their rearing 
+  conditions are likely somewhat different as well) equipment, protocols, 
+  inter-operator variation, etc. These differences introduce more systematic 
+  lab-specific effects that we expect will cause the model performance to be 
+  worse than what would be estimated by repeating the experiment in our own 
+  lab. As a practical matter, we want to always hold out some randomly 
+  selected observations for a test set which must not be used for any aspect 
+  of training the model. The results from the evaluation using this test set 
+  provide some very preliminary estimates of model performance. We can repeat 
+  the experiment later to provide somewhat more independent, and therefore 
+  better, test sets, refining the performance estimate. However, the actual 
+  model performance we care about will not be known until several different 
+  labs have tried to repeat the experiment. Although you often don't see 
+  this type of process being applied to many published conclusions in the 
+  basic sciences, when stakes are high and resources available (e.g. 
+  development of medical tests and treatments), a similar staged, multi-step, 
+  multi-lab/center process is typically required in order to make 'official'
+  estimates of performance.
 
 A critically important feature of the evaluation results obtained using 
   an 'independent' (or nearly so) test-set is that the validity of those 
   results does not depend on any of the usual parametric assumptions. The 
   only assumption is that both the training and test sets are randomly and
   indendently drawn from the same population of interest. That is, the
-  results will be valid regardless of how your residual plots look. However,
-  the precision of the estimates will depend on how large the test-sets are.
-  We want as large a test-set as possible in order to get a precise estimate
-  of model performance. At the same time, we want as large a training-set
-  as possible in order to get a good model in the first place. Modern 
-  computational tools for resolving this tension between allocating 
-  observations to training vs. test sets will be presented when we discuss 
-  cross-validation in the next course (Multivariate statistics) in this series. 
+  results will be valid despite many types of ugliness you might encounter
+  in residual plots. However, the precision of the estimates will depend on 
+  how large the test-sets are. We want as large a test-set as possible in 
+  order to get a precise estimate of model performance. At the same time, 
+  we want as large a training-set as possible in order to get a good model 
+  in the first place. Modern computational tools for resolving this tension 
+  between allocating observations to training vs. test sets will be presented 
+  when we discuss cross-validation in the next course in this series 
+  (Multivariate statistics). 
 
 In the example below, we use the R `sample()` function to randomly sample
-  our data in order to partition observations into a training-set and test-set.
-  The `sample()` function randomly samples a specified (with the parameter 
-  `size`) number of values from an input vector (first argument) the user 
-  provides. The parameter `replace` specifies whether the same value can be 
-  sampled from the input vector again: this would mimic the behavior of 
-  sampling a population, where we assume the sampling does not change the 
-  composition of the population. However, in the present case, we want to 
-  assign individual observations exclusively to the training-set or the 
-  test-set. If we draw an observation into the test-set, we don't want it 
-  accidentally getting picked again for either the test-set or training set.
-  In order to accomplish this, we invoke `sample()` with `replace=F`.
+  our data in order to randomly partition observations into a training-set 
+  and test-set. The `sample()` function randomly samples a specified (with 
+  the parameter `size`) number of values from an input vector (first 
+  argument) the user provides. The parameter `replace` specifies whether 
+  the same value can be sampled from the input vector more than once: this 
+  would mimic the behavior of sampling a population, where we assume the 
+  sampling does not change the composition of the population. However, in 
+  the present case, we want to assign individual observations exclusively 
+  to the training-set or the test-set. If we draw an observation into the 
+  test-set, we don't want it accidentally getting picked again for either 
+  the test-set or training set. In order to accomplish this, we invoke 
+  `sample()` with `replace=F`.
 
 In the following example, we will generate a simple linear regression model
-  with a continuous `x` predictor/explanatory variable. We shall see that the
-  predicted variables fall along a continuum, depending on `x`. We will 
-  split the original sample into a training-set (about 80% of the data) and
-  a test-set (the remaining 20% of the data). We will fit the model to the
+  with a continuous `x` predictor/explanatory variable. The predicted variables 
+  in this case are expected to also fall along a continuum, depending on `x`. 
+  We will split the original sample into a training-set (about 80% of the data) 
+  and a test-set (the remaining 20% of the data). We will fit the model to the
   training-set, then evaluate it using the test-set. Our metric for model
-  performance will be the mean-squared-error (MSE), which is the average
-  squared residual between the prediction line and the test-set observations.
-  This metric is a reasonable default choice for evaluating predictions made
-  on a continuous scale (our response variable `y` is continuous here).
+  predictive performance will be the mean-squared-error (MSE), which is the 
+  average squared size of the distances between the prediction line and the 
+  observed `y` values for the test-set observations. This metric is a 
+  reasonable default choice for evaluating predictions made on a continuous 
+  scale (our response variable `y` is continuous here).
 
 We begin by splitting the observations in our sample into a training-set and 
   a test-set:
@@ -848,6 +857,8 @@ class(dat)                        ## table data
 nrow(dat)                         ## how many observations
 summary(dat)                      ## two continuous variables
 head(dat)
+
+par(mfrow=c(1, 1))
 plot(dist ~ speed, data=dat)      ## take a peak at the data
 
 ###########################################################
@@ -882,6 +893,9 @@ Now we will fit the model using only the training data:
 fit <- lm(dist ~ speed, data=dat.trn)
 summary(fit)
 
+## average leverage:
+length(coef(fit)) / nrow(dat.trn)
+
 ## check residual plots:
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -910,7 +924,7 @@ Now we will use the fitted model for making predictions. We
   do this by invoking the `predict()` function, with the 
   `newdata` parameter set to a data.frame that contains 
   a column with the same name as the predictor/explanatory
-  variable `speed`. This data.frame can contain other 
+  variable (`speed`). This data.frame can contain other 
   variables as well, including the response variable `dist`,
   but these will be ignored. The predicted value only depends
   on `newdata$speed`. First we will predict values for the
@@ -931,11 +945,12 @@ y.hat.tst <- predict(fit, newdata=dat.tst)
 
 ```
 
-Now we will evaluate the quality of the model, initially 
-  using the training-set, which we expect will return an
-  overly optimistic estimate. Then, we will evaluate the
-  model with the test-set, which should provide a much more
-  realistic estimate of model predictive performance:
+Now we will evaluate the predictive performance of the 
+  model, initially using the training-set, which we expect 
+  will return an overly optimistic estimate. Then, we will 
+  evaluate the model with the test-set, which should 
+  provide a much more reliable estimate of model 
+  predictive performance:
 
 ```
 ## a function to calculate the mean-squared error 
@@ -971,44 +986,46 @@ f.mse(y=dat.tst$dist, y.hat=y.hat.mu)
 
 ```
 
-Confidence intervals capture the uncertainty in the prediction line
-  (the conditional mean). In the case of simple linear regression, the confidence 
-  interval captures the uncertainty in the slope. If there were no intercept 
-  term in the model, the model would not be constrained to pass thru the origin, 
-  and the confidence interval would be expected to be two parallel lines, rather 
-  than tapering to a point at the origin. If you want to know how far off the
-  prediction line calculated using your training data sample is likely to be from 
-  the 'true' prediction line for the population, use the confidence interval. 
-  The interpretation is as usual in terms of repeated theoretical experiments:
-  if you drew an independent random sample of the current sample size from the
-  population many times, each time constructing a 95% confidence interval, then
-  in 95% of those experiments, the true population prediction line will be 
-  captured within the interval.
+Confidence intervals capture the uncertainty in the prediction line (the 
+  conditional mean). In the case of simple linear regression, the confidence 
+  interval captures how the uncertainty in the slope and in intercept estimates 
+  translates into uncertainty about the line representing the conditional mean. If 
+  you want to know how close the 'true' prediction line for the population (the
+  line you would get if you fitted a line to the entire population) is likely to
+  be to the prediction line calculated using your training-data sample, use the 
+  confidence interval. The interpretation is once again in terms of the frequency
+  of results one might obtain if one were to repeat the experiment: if you drew 
+  an independent random sample of the current sample size from the population 
+  many times, each time constructing a 95% confidence interval, then in 95% of 
+  those experiments, the true population prediction line will be captured within 
+  the interval.
 
 Prediction intervals capture the uncertainty in the predicted response variable
-  `y` values for new observations. They include the uncertainty in the 
-  conditional mean (regression line) expressed by the confidence interval, but 
-  add to it the uncertainty due to the variation represented by the error term 
-  in the model. As a reminder: this error term captures the (assumed) random, 
+  `y` values for new randomly sampled observations. They include the uncertainty 
+  in the conditional mean (regression line) expressed by the confidence interval, 
+  but add to it the uncertainty due to the variation represented by the error 
+  term in the model. As a reminder: this error term captures the (assumed) random, 
   independent, normally distributed 'noise' (the residuals) in the response 
   variable that cannot be accounted for by a linear relationship with the 
   predictor/explanatory variable. That is, the prediction interval tries to
   account for the magnitude of the dispersion of observations around the 
-  prediction line. Since they add an additional type of uncertainty, 
+  prediction line. Since this incorporates an additional source of uncertainty, 
   prediction intervals are always at least as large as confidence intervals. 
-  If you want to know how far new observations are likely to fall from the 
+  If you want to know how close new observations are likely to fall to the 
   prediction line, use the prediction interval. The prediction interval
   discussed here again has a 'frequentist' interpretation: if you repeated
   the experiment over-and-over, each time drawing the same-sized independent
   random sample from the same population, each time fitting a linear model,
   calculating 95% prediction intervals, and randomly selecting one more 
-  test observation from the population, in 95% of the experiments, the 
-  test observation response value would be within the corresponding 
+  test observation from the population, in 95% of these experiments, the 
+  test observation response value is expected to be within the corresponding 
   prediction interval.
 
 ```
-## needs same type (numeric) and name 'speed' as origin independent:
+## make a series of equally spaced values for graphing;
+##   needs same type (numeric) and name 'speed' as original training data:
 dat.new <- data.frame(speed=seq(from=0, to=30, by=0.01))
+head(dat.new)
 
 ## corresponding predictions: fits will be same, prediction intervals wider:
 y.hat.ci <- predict(fit, newdata=dat.new, interval='confidence')
@@ -1016,6 +1033,11 @@ y.hat.pi <- predict(fit, newdata=dat.new, interval='prediction')
 head(y.hat.ci)
 head(y.hat.pi)
 all.equal(y.hat.ci[, 'fit'], y.hat.pi[, 'fit'])
+
+## one response prediction for each element of predictor dat.new$speed:
+nrow(dat.new)
+nrow(y.hat.ci)
+nrow(y.hat.pi)
 
 ## figure out range needed for plot:
 (xlim <- range(dat.new$speed))
@@ -1027,7 +1049,7 @@ lines(x=dat.new$speed, y.hat.ci[, 'lwr'], col='cyan', lty=2)
 lines(x=dat.new$speed, y.hat.ci[, 'upr'], col='cyan', lty=2)
 lines(x=dat.new$speed, y.hat.pi[, 'lwr'], col='magenta', lty=3)
 lines(x=dat.new$speed, y.hat.pi[, 'upr'], col='magenta', lty=3)
-points(x=dat.tst$speed, y=dat.tst$dist)
+points(x=dat.tst$speed, y=dat.tst$dist, pch='o')
 
 legend(
   'topleft',

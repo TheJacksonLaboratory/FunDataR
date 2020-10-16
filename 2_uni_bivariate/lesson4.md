@@ -653,6 +653,7 @@ smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 
 nrow(coef(smry)) / nrow(dat)      ## expected average leverage: p / n
+3 * sd(cooks.distance(fit))       ## a reasonable Cook's distance cutoff
 
 par(mfrow=c(2, 3))                ## split figure area into 2 rows, 3 cols
 
@@ -680,11 +681,12 @@ Here is a list of the six residual plots and what they represent:
   how much fitted values for other points change when this point is dropped from 
   the fitting procedure? Average sum-of-squared change in fitted values, normalized 
   by dividing by original residual standard deviation. Values greater than `1.0`, 
-  or more than three times the standard deviation, indicate high influence.
+  or (better yet) more than three times the standard deviation, indicate high influence.
 
 **Residuals vs. leverage**: outliers with large leverage; disassembles Cook's distance
   into residual (`y` component) and leverage (`x` component). Look for points outside
-  dashed line where Cook's distance > `1.0`. Spread should not change with leverage: 
+  dashed line where Cook's distance > `1.0` (or better yet, larger than three times
+  the standard deviation of Cook's distances). Spread should not change with leverage: 
   suggests heteroskedasticity. 
 
 **Cook's distance vs. leverage**: another way of projecting these properties. Now 
@@ -708,6 +710,7 @@ smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 summary(aov(fit))
 length(coef(fit)) / nrow(dat)     ## expected mean leverage
+3 * sd(cooks.distance(fit))       ## a reasonable Cook's distance cutoff
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -914,6 +917,9 @@ summary(fit)
 ## average leverage:
 length(coef(fit)) / nrow(dat.trn)
 
+## Cook's distance cutoff:
+3 * sd(cooks.distance(fit))
+
 ## check residual plots:
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -1115,7 +1121,10 @@ summary(dat.tst)
 
 fit <- lm(Sepal.Length ~ Species, data=dat.trn)
 summary(fit)
-length(coef(fit)) / nrow(dat.trn)                ## expected average leverage
+
+length(coef(fit)) / nrow(dat.trn) ## expected average leverage
+3 * sd(cooks.distance(fit))       ## a reasonable Cook's distance cutoff
+
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
 

@@ -69,7 +69,7 @@ In order to do so, we will need to estimate the two parameters of a
   similar to working with the mean, except now the 'conditional 
   mean' of `y` changes with changing `x` along the line we are 
   estimating. Just as when working with the mean, or any other 
-  procedure minimizing a sum-of-squared deviations penatly function,
+  procedure minimizing a sum-of-squared deviations penalty function,
   the fitting procedure can be relatively sensitive to outliers.
 
 You will often hear the terms 'independent variable' and 'dependent 
@@ -427,17 +427,20 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 So far we have shown how to fit a linear model with a 
   continuous explanatory variable. However, the explanatory
   variable can also be categorical variable, like group 
-  membership. In this case, null hypothesis becomes that the group
-  means are all the same, just like t-test and ANOVA. The 
-  coefficients returned will be the same as for ANOVA, and the
-  group means will be encoded just like with ANOVA. In the
-  two-sample case, the equal-variances unpaired samples version
-  of `t.test()`, `aov()` and `lm()` will produce identical 
+  membership. In this case, null hypothesis becomes that the 
+  means of the response `y` in each of the groups specified by
+  the explanatory variable `x` are all the same, just like 
+  the null hypotheses of the t-test and ANOVA. The coefficients 
+  returned will be the same as for ANOVA, and the group means 
+  will be encoded just like they were in the ANOVA analysis. 
+  In the two-group case, the equal-variances unpaired samples 
+  version of `t.test()`, `aov()` and `lm()` will produce identical 
   estimates on differences in group means and p-values for the
-  null hypothesis. 
+  null hypothesis. When more than two groups are analyzed, the
+  results of `aov()` and `lm()` will be entirely equivalent.
 
 Here we will look at the equivalency of all three procedures 
-  in the two-samples case:
+  in the two-groups case:
 
 ```
 rm(list=ls())
@@ -478,9 +481,10 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ```
 
-When we have more than two groups, the `aov()` and `lm()` functions 
-  return the same coefficients (and therefore same estimates of group
-  means) and the same p-values:
+Here we will look at comparisons of more than two groups. We expect
+  the `aov()` and `lm()` functions to return the same coefficients 
+  (and therefore the same estimates of group means) and the same 
+  p-values:
 
 ```
 rm(list=ls())
@@ -553,16 +557,16 @@ When we examine the adequacy of a linear model fit to the data, we are
   and (particularly important for smaller samples) normality of the residuals.
 
 So, what is an 'outlier'? An outlier is simply something that does not seem to fit 
-  he current model well. When looking at using a t-test to generate a confidence 
-  interval for a population mean based on a sample, we might look for 
-  data points that are more than 3 standard deviations from the mean.
-  In this case, the equivalent linear model is an 'intercept-only' model,
-  where the intercept represents the global mean of `y`. We are looking for 
-  residuals from the model that are unusually large, indicating the model 
-  fit is relatively poor for these data points. We can extend this idea to 
-  our linear models of a conditional mean, looking for residuals that are more
-  than 3 standard deviations (of the residual distribution) from the prediction 
-  line. 
+  the current model well. That current model includes assumptions about the form 
+  of the conditional mean, as well as the distribution of the residuals (for 
+  small samples, independent and drawn from a normal distribution with constant 
+  dispersion; for larger samples, independent and drawn from the same distribution 
+  with constant dispersion). When looking at using a t-test to generate a confidence 
+  interval for a population mean based on a sample, we might identify outliers by
+  looking for observations whose response `y` values are more than 3 standard 
+  deviations from the mean. We can extend this idea to our linear models of a 
+  conditional mean, looking for residuals that are more than 3 standard deviations 
+  (of the residual distribution) from the prediction line. 
 
 When a data point does not fit the model well, it may indicate that the data 
   point represents an error of some sort: a measurement error perhaps, or maybe 
@@ -587,8 +591,15 @@ When a data point does not fit the model well, it may indicate that the data
 In addition to having `y` response variable values that do not fit the model 
   developed from the rest of the data well, which is signalled by relatively 
   large residuals, outliers can also have `x` explanatory variable values 
-  that are unusually far from the rest of the data. Below are two terms that
-  are often used when discussing the impact of outliers on a fit:
+  that are unusually far from the rest of the data. This can be an important 
+  consideration, because sometimes your model fits well within a range of `x`
+  values, but diverges (perhaps becomes non-linear) beyond that range. 
+  Apparent outliers at extreme values of `x` may be indicating this
+  situation. On the other hand, they may represent a mistake in the `x` 
+  value. In any case, outliers with extreme `x` values tend to have more 
+  influence on the fit than outliers near the mean value of `x`. Below are 
+  two terms that are often used when discussing the impact of outliers on 
+  model fitting:
 
 **Leverage**: is based solely on the explanatory/independent variables (the single
   variable `x` here). It is a measure of how far the `x` value for an 
@@ -596,7 +607,7 @@ In addition to having `y` response variable values that do not fit the model
   variability of `x` in the sample. In general, leverage greater than twice 
   the average leverage of `p / n` is considered 'high', where `p` is 
   the number of coeffients in the model and `n` is sample size. The higher the 
-  leverage of an observation, the more potential differences in the `y` value 
+  leverage of an observation, the more a fixed size change in the `y` value 
   of that observation will tend to affect the coefficient estimates. For balanced
   ANOVA designs (all groups have equal sample size) the leverage of each 
   observation is always the same.
@@ -609,23 +620,27 @@ In addition to having `y` response variable values that do not fit the model
   their respective means) but also how far the `y` value for the observation is 
   from the regression line you would get by dropping this observation. The 
   further the `y` value of the omitted observation is from the regression line
-  (the larger the 'residual'), and the larger the influence of the observation, 
-  the higher the observations influence will be. **Cook's distance** is a measure 
-  of influence which reflects the average sum-of-squared changes in fitted values 
-  for the remaining observations after dropping the observation of interest, 
-  normalized by the variability of residuals from the original model. Cook's 
-  distance values greater than `0.5` suggest the corresponding observation has 
-  high influence on the fit, and observations with Cook's distances greater than 
-  `1.0` are considered to have very high influence.
+  (the larger the 'jackknife residual'), and the larger the influence of the 
+  observation, the higher the observations influence will be. **Cook's distance** 
+  is a measure of influence which reflects the average sum-of-squared changes 
+  in fitted values for the remaining observations after dropping the observation 
+  of interest, normalized by the variability of residuals from the original model. 
+  Cook's distance values greater than `0.5-1.0` are usually considered to suggest the 
+  corresponding observation has high influence on the fit, and observations with 
+  Cook's distances greater than `1.0` are considered to have very high influence. 
+  Some textbooks suggest cutoffs of `1.0` for high and `2.0` for very high. A 
+  better indicator may be observations with Cook's distances greater than three
+  times the standard deviation of Cook's distances for all observations in the
+  sample.
 
 When `plot()` is called on the fit returned by `lm()` (which is an object of 
   class `lm`), the call is redirected to the specialized function 
   `plot.lm()`, that knows how to generate a variety of diagnostic plots
   for a linear fit. This is just like calling `summary()` on an object of class
-  `lm` will redirect the call to the specialized function `summary.lm()`
-  that knows how to calculate summary statistics for a linear fit. In 
+  `lm` redirects the call to the specialized function `summary.lm()`
+  which knows how to calculate summary statistics for a linear fit. In 
   general, code writers developing classes of their own can specify 
-  class-specific versions for a number of 'generic' functions, perhaps
+  class-specific versions for a number of 'generic' functions, 
   most notably 'plot()' and 'summary()'.
 
 ```
@@ -664,20 +679,22 @@ Here is a list of the six residual plots and what they represent:
 **Cook's distance**: identifies 'influential' outliers by jackknifing: measure
   how much fitted values for other points change when this point is dropped from 
   the fitting procedure? Average sum-of-squared change in fitted values, normalized 
-  by dividing by original residual standard deviation. Values greater than `0.5` 
-  indicate high influence.
+  by dividing by original residual standard deviation. Values greater than `1.0`, 
+  or more than three times the standard deviation, indicate high influence.
 
 **Residuals vs. leverage**: outliers with large leverage; disassembles Cook's distance
   into residual (`y` component) and leverage (`x` component). Look for points outside
-  dashed line where Cook's distance > `0.5`. Spread should not change with leverage: 
+  dashed line where Cook's distance > `1.0`. Spread should not change with leverage: 
   suggests heteroskedasticity. 
 
-**Cook's distance vs. leverage**: another way of projecting these properties.
+**Cook's distance vs. leverage**: another way of projecting these properties. Now 
+  we have Cook's distance on the vertical axis, leverage on the horizontal axis, 
+  and standardized residuals as the contours on the plot.
 
 Now we will try the same thing with some categorical data. Since the design is 
   exactly balanced (equal number of observations in each group) each data point has 
-  exactly the same leverage. There are three categories, so `p` (number of returned 
-  coefficients, not counting the intercept) is once again '2':
+  exactly the same leverage. Since there are three categories, so `p` (number of 
+  returned coefficients) is three:
 
 ```
 rm(list=ls())
@@ -690,7 +707,7 @@ fit <- lm(Sepal.Length ~ Species, data=dat)
 smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 summary(aov(fit))
-nrow(coef(smry)) / nrow(dat)                     ## expected mean leverage
+length(coef(fit)) / nrow(dat)     ## expected mean leverage
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -796,9 +813,10 @@ When evaluating a model, it is worth carefully thinking about the relationship
   labs have tried to repeat the experiment. Although you often don't see 
   this type of process being applied to many published conclusions in the 
   basic sciences, when stakes are high and resources available (e.g. 
-  development of medical tests and treatments), a similar staged, multi-step, 
-  multi-lab/center process is typically required in order to make 'official'
-  estimates of performance.
+  development of medical tests and treatments), a similar multi-step 
+  (typically with progressively increasing sample sizes), multi-lab/center 
+  process is typically required in order to make 'official' estimates of 
+  performance.
 
 A critically important feature of the evaluation results obtained using 
   an 'independent' (or nearly so) test-set is that the validity of those 
@@ -818,16 +836,16 @@ A critically important feature of the evaluation results obtained using
 In the example below, we use the R `sample()` function to randomly sample
   our data in order to randomly partition observations into a training-set 
   and test-set. The `sample()` function randomly samples a specified (with 
-  the parameter `size`) number of values from an input vector (first 
-  argument) the user provides. The parameter `replace` specifies whether 
-  the same value can be sampled from the input vector more than once: this 
-  would mimic the behavior of sampling a population, where we assume the 
-  sampling does not change the composition of the population. However, in 
-  the present case, we want to assign individual observations exclusively 
-  to the training-set or the test-set. If we draw an observation into the 
-  test-set, we don't want it accidentally getting picked again for either 
-  the test-set or training set. In order to accomplish this, we invoke 
-  `sample()` with `replace=F`.
+  the parameter `size`) number of values from an input vector the user 
+  provides. The parameter `replace` specifies whether the same value can 
+  be sampled from the input vector more than once: this would mimic the 
+  behavior of sampling a population, where we assume the sampling does not 
+  change the composition of the population. However, in the present case, 
+  we want to assign individual observations exclusively to the training-set 
+  or the test-set. If we draw an observation into the test-set, we don't 
+  want it accidentally getting picked again for either the test-set or 
+  training set. In order to accomplish this, we invoke `sample()` with 
+  `replace=F`.
 
 In the following example, we will generate a simple linear regression model
   with a continuous `x` predictor/explanatory variable. The predicted variables 

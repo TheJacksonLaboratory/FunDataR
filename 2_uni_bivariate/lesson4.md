@@ -628,10 +628,11 @@ In addition to having `y` response variable values that do not fit the model
   Cook's distance values greater than `0.5-1.0` are usually considered to suggest the 
   corresponding observation has high influence on the fit, and observations with 
   Cook's distances greater than `1.0` are considered to have very high influence. 
-  Some textbooks suggest cutoffs of `1.0` for high and `2.0` for very high. A 
-  better indicator may be observations with Cook's distances greater than three
-  times the standard deviation of Cook's distances for all observations in the
-  sample.
+  Some textbooks suggest cutoffs of `1.0` for high and `2.0` for very high. 
+  Other more detailed formulations of the cutoff include `4 / (n - p)`, where
+  `n` is sample size and `p` is the number of coefficients being estimated.
+  Another approach (used here) is to simply look for Cook's distances greater
+  than three standard deviations from the mean Cook's distance for the sample.
 
 When `plot()` is called on the fit returned by `lm()` (which is an object of 
   class `lm`), the call is redirected to the specialized function 
@@ -653,7 +654,8 @@ smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 
 nrow(coef(smry)) / nrow(dat)      ## expected average leverage: p / n
-3 * sd(cooks.distance(fit))       ## a reasonable Cook's distance cutoff
+d <- cooks.distance(fit)          ## calculate Cook's distances
+mean(d) + 3 * sd(d)               ## a reasonable Cook's distance cutoff
 
 par(mfrow=c(2, 3))                ## split figure area into 2 rows, 3 cols
 
@@ -710,7 +712,8 @@ smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 summary(aov(fit))
 length(coef(fit)) / nrow(dat)     ## expected mean leverage
-3 * sd(cooks.distance(fit))       ## a reasonable Cook's distance cutoff
+d <- cooks.distance(fit)          ## calculate Cook's distances
+mean(d) + 3 * sd(d)               ## a reasonable Cook's distance cutoff
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -918,7 +921,8 @@ summary(fit)
 length(coef(fit)) / nrow(dat.trn)
 
 ## Cook's distance cutoff:
-3 * sd(cooks.distance(fit))
+d <- cooks.distance(fit)          ## calculate Cook's distances
+mean(d) + 3 * sd(d)               ## a reasonable Cook's distance cutoff
 
 ## check residual plots:
 par(mfrow=c(2, 3))
@@ -1123,7 +1127,8 @@ fit <- lm(Sepal.Length ~ Species, data=dat.trn)
 summary(fit)
 
 length(coef(fit)) / nrow(dat.trn) ## expected average leverage
-3 * sd(cooks.distance(fit))       ## a reasonable Cook's distance cutoff
+d <- cooks.distance(fit)          ## calculate Cook's distances
+mean(d) + 3 * sd(d)               ## a reasonable Cook's distance cutoff
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)

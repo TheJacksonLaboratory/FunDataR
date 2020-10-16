@@ -69,7 +69,7 @@ In order to do so, we will need to estimate the two parameters of a
   similar to working with the mean, except now the 'conditional 
   mean' of `y` changes with changing `x` along the line we are 
   estimating. Just as when working with the mean, or any other 
-  procedure minimizing a sum-of-squared deviations penatly function,
+  procedure minimizing a sum-of-squared deviations penalty function,
   the fitting procedure can be relatively sensitive to outliers.
 
 You will often hear the terms 'independent variable' and 'dependent 
@@ -181,11 +181,10 @@ In general, hypothesis testing will be less powerful and intervals wider as
   trees near each other will be more likely to be of the same species and 
   share a similar genetic allele distribution. Therefore observations that are spatially 
   closer together will tend to be more strongly correlated, introducing 
-  a corresponding correlation in 
-  their residuals. Both the temporal and spatial cases described exemplify 
-  'auto-correlation', that is correlation between residuals that are 'close by'
-  one another. There are special statistical models for autocorrelated data
-  that are beyond the scope of this lesson.
+  a corresponding correlation in their residuals. Both the temporal and spatial 
+  cases described exemplify 'auto-correlation', that is correlation between 
+  residuals that are 'close by' one another. There are special statistical models 
+  for autocorrelated data that are beyond the scope of this lesson.
 
 Another assumption is that all the explanatory variable values are known exactly
   (without error). This is called a 'fixed effects' model. Strictly speaking, this
@@ -428,17 +427,20 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 So far we have shown how to fit a linear model with a 
   continuous explanatory variable. However, the explanatory
   variable can also be categorical variable, like group 
-  membership. In this case, null hypothesis becomes that the group
-  means are all the same, just like t-test and ANOVA. The 
-  coefficients returned will be the same as for ANOVA, and the
-  group means will be encoded just like with ANOVA. In the
-  two-sample case, the equal-variances unpaired samples version
-  of `t.test()`, `aov()` and `lm()` will produce identical 
+  membership. In this case, null hypothesis becomes that the 
+  means of the response `y` in each of the groups specified by
+  the explanatory variable `x` are all the same, just like 
+  the null hypotheses of the t-test and ANOVA. The coefficients 
+  returned will be the same as for ANOVA, and the group means 
+  will be encoded just like they were in the ANOVA analysis. 
+  In the two-group case, the equal-variances unpaired samples 
+  version of `t.test()`, `aov()` and `lm()` will produce identical 
   estimates on differences in group means and p-values for the
-  null hypothesis. 
+  null hypothesis. When more than two groups are analyzed, the
+  results of `aov()` and `lm()` will be entirely equivalent.
 
 Here we will look at the equivalency of all three procedures 
-  in the two-samples case:
+  in the two-groups case:
 
 ```
 rm(list=ls())
@@ -479,9 +481,10 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ```
 
-When we have more than two groups, the `aov()` and `lm()` functions 
-  return the same coefficients (and therefore same estimates of group
-  means) and the same p-values:
+Here we will look at comparisons of more than two groups. We expect
+  the `aov()` and `lm()` functions to return the same coefficients 
+  (and therefore the same estimates of group means) and the same 
+  p-values:
 
 ```
 rm(list=ls())
@@ -551,84 +554,105 @@ When we examine the adequacy of a linear model fit to the data, we are
   often most interested in looking at the residuals. This is because 
   outliers are often relatively obvious in plots of residuals, as are 
   deviations from the model assumptions of linearity, homoskedasticity
-  and (for smaller samples) normality of the residuals.
+  and (particularly important for smaller samples) normality of the residuals.
 
 So, what is an 'outlier'? An outlier is simply something that does not seem to fit 
-  he current model well. When looking at using a t-test to generate a confidence 
-  interval for a population mean based on a sample, we might look for 
-  data points that are more than 3 standard deviations from the mean.
-  In this case, the equivalent linear model is an 'intercept-only' model,
-  where the intercept represents the global mean of `y`. We are looking for 
-  residuals from the model that are unusually large, indicating the model 
-  fit is relatively poor for these data points. We can extend this idea to 
-  our linear models of a conditional mean. In any case, if a data point 
-  does not fit the model well, it may indicate that the data point represents 
-  an error of some sort: a 
-  measurement error perhaps, or maybe a sampling error (like you meant to 
-  sample maple tree circumference, but accidentally included an oak tree 
-  in your sample of measurements). In this case, it makes good sense to 
-  remove the offending observation from the sample and repeat the analysis. 
-  However, the fault may well lie in the model, rather than the observation. 
-  In particular, perhaps the model lacks an important explanatory term 
-  (like an additional explanatory variable or a non-linear relationship to 
-  the current explanatory variable) that would greatly improve the 
-  correspondence between the expanded model and the observation. When 
+  the current model well. That current model includes assumptions about the form 
+  of the conditional mean, as well as the distribution of the residuals (for 
+  small samples, independent and drawn from a normal distribution with constant 
+  dispersion; for larger samples, independent and drawn from the same distribution 
+  with constant dispersion). When looking at using a t-test to generate a confidence 
+  interval for a population mean based on a sample, we might identify outliers by
+  looking for observations whose response `y` values are more than 3 standard 
+  deviations from the mean. We can extend this idea to our linear models of a 
+  conditional mean, looking for residuals that are more than 3 standard deviations 
+  (of the residual distribution) from the prediction line. 
+
+When a data point does not fit the model well, it may indicate that the data 
+  point represents an error of some sort: a measurement error perhaps, or maybe 
+  a sampling error (like you meant to sample maple tree circumference, but 
+  accidentally included an oak tree in your sample of measurements). In this 
+  case, it makes good sense to remove the offending observation from the sample 
+  and repeat the analysis. However, the fault may well lie in the model, rather 
+  than the observation. In particular, perhaps the model lacks an important 
+  explanatory term (like an additional explanatory variable or a non-linear 
+  relationship to the current explanatory variable) that would greatly improve 
+  the correspondence between the expanded model and the observation. When 
   outliers are identified, these possibilities need to be carefully 
-  distinguished.
+  distinguished. Often this distinction is hard to make with certainty, in
+  which case we should act with care, only removing apparent outliers if they
+  have a significant impact on the estimates of the model coefficients. In any 
+  case, if any data are removed, it should be documented (specifying which data
+  were removed and why) in the methods section of subsequent scientific 
+  publications. It may also be useful to compare the fits with and without the
+  outliers in order to quantify the 'sensitivity' of the fit to the choice about
+  whether the outliers are included or not.
 
-When `plot()` is called on the fit returned by `lm()` (which is an object of 
-  class `lm`), the call is redirected to the specialized function 
-  `plot.lm()`, that knows how to generate a variety of diagnostic plots
-  for a linear fit. This is just like calling `summary()` on an object of class
-  `lm` will redirect the call to the specialized function `summary.lm()`
-  that knows how to calculate summary statistics for a linear fit. In 
-  general, code writers developing classes of their own can specify 
-  class-specific versions for a number of 'generic' functions, perhaps
-  most notably 'plot()' and 'summary()'.
-
-Here are two other terms you should familiarize yourself with in order to be
-  able to better interpret residual plots:
+In addition to having `y` response variable values that do not fit the model 
+  developed from the rest of the data well, which is signalled by relatively 
+  large residuals, outliers can also have `x` explanatory variable values 
+  that are unusually far from the rest of the data. This can be an important 
+  consideration, because sometimes your model fits well within a range of `x`
+  values, but diverges (perhaps becomes non-linear) beyond that range. 
+  Apparent outliers at extreme values of `x` may be indicating this
+  situation. On the other hand, they may represent a mistake in the `x` 
+  value. In any case, outliers with extreme `x` values tend to have more 
+  influence on the fit than outliers near the mean value of `x`. Below are 
+  two terms that are often used when discussing the impact of outliers on 
+  model fitting:
 
 **Leverage**: is based solely on the explanatory/independent variables (the single
   variable `x` here). It is a measure of how far the `x` value for an 
   observation is from the mean `x` value for the sample, normalized by the
   variability of `x` in the sample. In general, leverage greater than twice 
-  the average leverage of `(p + 1) / n` is considered 'high', where `p` is 
-  the number of coeffients other than the intercept (here, `p == 2`, since there
-  are 3 groups and one is modeled as the coefficient) and `n` is sample size. 
-  Therefore, in the present case, leverage more than twice the expected average 
-  of `3 / n` would be considered high leverage. The higher the leverage of an
-  observation, the more potential differences in the `y` value of that 
-  observation will tend to affect the coefficient estimates. For balanced
+  the average leverage of `p / n` is considered 'high', where `p` is 
+  the number of coeffients in the model and `n` is sample size. The higher the 
+  leverage of an observation, the more a fixed size change in the `y` value 
+  of that observation will tend to affect the coefficient estimates. For balanced
   ANOVA designs (all groups have equal sample size) the leverage of each 
   observation is always the same.
 
-**Influence**: influential observations are those which, if removed from the sample,
-  would result in a large change in the fitted values for the remaining
+**Influence**: influential observations are those which, if removed from the 
+  sample, would result in a large change in the fitted values for the remaining
   observations. That means that if you dropped the influential observation, 
   the coefficients of the fit would change to a relatively large degree. 
   Influence reflects both leverage (how far explanatory variables are from 
   their respective means) but also how far the `y` value for the observation is 
   from the regression line you would get by dropping this observation. The 
-  further the `y` value of the omitted observation is from the regression line, 
-  and the larger the influence of the observation, the higher the observations 
-  influence will be. **Cook's distance** is a measure of influence which reflects 
-  the average sum-of-squared changes in fitted values for the remaining 
-  observations after dropping the observation of interest, normalized by the
-  variability of residuals from the original model. Cook's distance values 
-  greater than `0.5` suggest the corresponding observation has high
-  influence on the fit, and observations with Cook's distances greater than 
-  `1.0` are considered to have very high influence.
+  further the `y` value of the omitted observation is from the regression line
+  (the larger the 'jackknife residual'), and the larger the influence of the 
+  observation, the higher the observations influence will be. **Cook's distance** 
+  is a measure of influence which reflects the average sum-of-squared changes 
+  in fitted values for the remaining observations after dropping the observation 
+  of interest, normalized by the variability of residuals from the original model. 
+  Cook's distance values greater than `0.5-1.0` are usually considered to suggest the 
+  corresponding observation has high influence on the fit, and observations with 
+  Cook's distances greater than `1.0` are considered to have very high influence. 
+  Some textbooks suggest cutoffs of `1.0` for high and `2.0` for very high. A 
+  better indicator may be observations with Cook's distances greater than three
+  times the standard deviation of Cook's distances for all observations in the
+  sample.
+
+When `plot()` is called on the fit returned by `lm()` (which is an object of 
+  class `lm`), the call is redirected to the specialized function 
+  `plot.lm()`, that knows how to generate a variety of diagnostic plots
+  for a linear fit. This is just like calling `summary()` on an object of class
+  `lm` redirects the call to the specialized function `summary.lm()`
+  which knows how to calculate summary statistics for a linear fit. In 
+  general, code writers developing classes of their own can specify 
+  class-specific versions for a number of 'generic' functions, 
+  most notably 'plot()' and 'summary()'.
 
 ```
 rm(list=ls())
 
 dat <- mtcars
-3 / nrow(dat)                     ## expected average leverage
 
 fit <- lm(mpg ~ wt, data=dat)     ## do the initial fit
 smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
+
+nrow(coef(smry)) / nrow(dat)      ## expected average leverage: p / n
 
 par(mfrow=c(2, 3))                ## split figure area into 2 rows, 3 cols
 
@@ -640,9 +664,9 @@ par(mfrow=c(1, 1))                ## reset figure area to 1x1
 
 Here is a list of the six residual plots and what they represent:
 
-**Residuals vs. fitted**: trend may suggest the relationship not linear. Changing
-  spread of the residuals suggests heteroskedasticity, though this may be easier
-  to see on Scale-location plot. Outliers.
+**Residuals vs. fitted**: a trend in the residual mean suggests the relationship 
+  is not linear. Changing spread of the residuals suggests heteroskedasticity, though 
+  this may be easier to see on Scale-location plot. Outliers.
 
 **Normal Q-Q**: are the residuals normally distributed, per error term assumption in 
   the case of smaller sample sizes (if large sample, you may not care unless 
@@ -652,23 +676,25 @@ Here is a list of the six residual plots and what they represent:
   w/ fitted value. Potential outliers. sqrt(abs(residuals)) less skewed than 
   abs(residuals) for normally distributed. The scale values should bounce around 1.
 
-**Cook's distance**: identifies 'influential outliers': identified by jackknifing:
-  how much do fitted values for other points change when this point is dropped from 
-  the fitting procedure? Average sum-of-squared change in fitted values,
-  normalized by dividing by original residual standard deviation. Values greater 
-  than `0.5` indicate high influence.
+**Cook's distance**: identifies 'influential' outliers by jackknifing: measure
+  how much fitted values for other points change when this point is dropped from 
+  the fitting procedure? Average sum-of-squared change in fitted values, normalized 
+  by dividing by original residual standard deviation. Values greater than `1.0`, 
+  or more than three times the standard deviation, indicate high influence.
 
 **Residuals vs. leverage**: outliers with large leverage; disassembles Cook's distance
   into residual (`y` component) and leverage (`x` component). Look for points outside
-  dashed line where Cook's distance > `0.5`. Spread should not change with leverage: 
+  dashed line where Cook's distance > `1.0`. Spread should not change with leverage: 
   suggests heteroskedasticity. 
 
-**Cook's distance vs. leverage**: another way of projecting these properties.
+**Cook's distance vs. leverage**: another way of projecting these properties. Now 
+  we have Cook's distance on the vertical axis, leverage on the horizontal axis, 
+  and standardized residuals as the contours on the plot.
 
-Here we will try the same thing with some categorical data. Since the design is 
+Now we will try the same thing with some categorical data. Since the design is 
   exactly balanced (equal number of observations in each group) each data point has 
-  exactly the same leverage. There are three categories, so `p` (number of returned 
-  coefficients, not counting the intercept) is once again '2':
+  exactly the same leverage. Since there are three categories, so `p` (number of 
+  returned coefficients) is three:
 
 ```
 rm(list=ls())
@@ -676,12 +702,12 @@ rm(list=ls())
 dat <- iris
 summary(dat)
 head(dat)
-3 / nrow(dat)                     ## expected mean leverage
 
 fit <- lm(Sepal.Length ~ Species, data=dat)
 smry <- summary(fit)              ## compute p-values and CIs on b#
 coef(smry)                        ## the main table of interest
 summary(aov(fit))
+length(coef(fit)) / nrow(dat)     ## expected mean leverage
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -717,18 +743,124 @@ Generate a linear fit of the `mtcars` data with `mpg` as response variable
 
 ### Prediction
 
-AREA BELOW IS UNDER CONSTRUCTION:
+Mechanistic statistical models, which explicitly model the associations between
+  variables as causal connections, are a great way to gain and test our understanding 
+  about the components of the system being studied. In addition, both mechanistic 
+  and empirical (where we may be ignorant of the mechanisms behind associations
+  between variables) models can have value for making predictions about the value
+  of the response `y` variable of a new observation based on the the 'predictor' 
+  (explanatory) variable `x` value for that observation. In the examples we've 
+  discussed thus far, the predicted value for the new observation will be the 
+  `y` value of the line from our fit at the observation's value of `x`. This 
+  `y` value is the 'fitted' or 'predicted' value for the new observation.
 
-Text here; fitted are predicted for 'training set'. Here just return the
-  corresponding `y` value for the fitted line at the input value `x`.
+For any model, the model is initially developed based on a finite sample from a 
+  presumably much larger population of interest. This sample, used to initially 
+  fit, or 'train' the model is often referred to as a 'training set'. The methods 
+  we've shown for scrutinizing linear models has focused on looking at the 
+  residuals in the training set. Here we are looking for consistency with model 
+  assumptions that are necessary for making parametric inferences (via p-values
+  and confidence intervals) about the model coefficients. However, just like
+  we expect a sample mean to fit the sample it was calculated from better than 
+  it would fit (in the sum-of-squared deviations sense) another random sample
+  from that population, we should expect that our training set will fit our
+  linear model of the conditional mean better than another random sample from 
+  the same population. Therefore, any evaluation of our model based on the 
+  training set is expected to be somewhat overly optimistic of the predictive
+  performance of the model to expect on random observations from the population
+  of interest. In order to get  a fairer evaluation of the model in this 
+  context, it is best to use another independent random sample from that 
+  population. You will often see this second sample referred to as a 
+  'test set'.
 
-More interested
-  in accuracy of predictions for future data. Different evaluation 
-  sets of varying worth.
+When evaluating a model, it is worth carefully thinking about the relationship
+  of the samples used for training and testing with the population we wish
+  to make inferences about. We may find that it is actually quite difficult 
+  to get random samples from that population and get unbiased estimates of the
+  performance of our model. In particular, we often want to be able to make 
+  inferences about what will happen if other labs try to repeat our experiment. 
+  If our inferences would be borne out in replicate experiments conducted in 
+  other labs, it means that our results are 'repeatable'. In order to estimate
+  this repeatability, we could randomly select (or 'hold-out') some of the 
+  observations from an experiment conducted in our lab to use as a test set, 
+  then use the remaining observations as a training set. The test set will 
+  give us a better estimate of model performance we should expect in someone 
+  else's lab than the training set, but the estimate is still probably too 
+  optimistic, because all the experimental parameters are shared between the 
+  training and test sets. For instance, we are not capturing variation in 
+  day-to-day parameters, such as temperature and humidity. If we conducted 
+  the same experiment in our lab again, we would expect some variation in 
+  experimental parameters, which would cause the observed variable values to 
+  be systematically slightly different from those in the original experiment. 
+  So using observations from the new experiment to evaluate the original model 
+  should provide somewhat more pessimistic, but also more realistic estimates 
+  of model performance to be expected when other labs try to repeat the 
+  experiment. However, even a repeat experiment in our lab will not capture 
+  expected additional lab-to-lab variation due to differences in reagent 
+  lots, experimental material (their *C. elegans* 'N2' strain colony is likely 
+  genetically different from yours, due to genetic drift; their rearing 
+  conditions are likely somewhat different as well) equipment, protocols, 
+  inter-operator variation, etc. These differences introduce more systematic 
+  lab-specific effects that we expect will cause the model performance to be 
+  worse than what would be estimated by repeating the experiment in our own 
+  lab. As a practical matter, we want to always hold out some randomly 
+  selected observations for a test set which must not be used for any aspect 
+  of training the model. The results from the evaluation using this test set 
+  provide some very preliminary estimates of model performance. We can repeat 
+  the experiment later to provide somewhat more independent, and therefore 
+  better, test sets, refining the performance estimate. However, the actual 
+  model performance we care about will not be known until several different 
+  labs have tried to repeat the experiment. Although you often don't see 
+  this type of process being applied to many published conclusions in the 
+  basic sciences, when stakes are high and resources available (e.g. 
+  development of medical tests and treatments), a similar multi-step 
+  (typically with progressively increasing sample sizes), multi-lab/center 
+  process is typically required in order to make 'official' estimates of 
+  performance.
 
-Something about sample() function.
+A critically important feature of the evaluation results obtained using 
+  an 'independent' (or nearly so) test-set is that the validity of those 
+  results does not depend on any of the usual parametric assumptions. The 
+  only assumption is that both the training and test sets are randomly and
+  indendently drawn from the same population of interest. That is, the
+  results will be valid despite many types of ugliness you might encounter
+  in residual plots. However, the precision of the estimates will depend on 
+  how large the test-sets are. We want as large a test-set as possible in 
+  order to get a precise estimate of model performance. At the same time, 
+  we want as large a training-set as possible in order to get a good model 
+  in the first place. Modern computational tools for resolving this tension 
+  between allocating observations to training vs. test sets will be presented 
+  when we discuss cross-validation in the next course in this series 
+  (Multivariate statistics). 
 
-Continuous prediction:
+In the example below, we use the R `sample()` function to randomly sample
+  our data in order to randomly partition observations into a training-set 
+  and test-set. The `sample()` function randomly samples a specified (with 
+  the parameter `size`) number of values from an input vector the user 
+  provides. The parameter `replace` specifies whether the same value can 
+  be sampled from the input vector more than once: this would mimic the 
+  behavior of sampling a population, where we assume the sampling does not 
+  change the composition of the population. However, in the present case, 
+  we want to assign individual observations exclusively to the training-set 
+  or the test-set. If we draw an observation into the test-set, we don't 
+  want it accidentally getting picked again for either the test-set or 
+  training set. In order to accomplish this, we invoke `sample()` with 
+  `replace=F`.
+
+In the following example, we will generate a simple linear regression model
+  with a continuous `x` predictor/explanatory variable. The predicted variables 
+  in this case are expected to also fall along a continuum, depending on `x`. 
+  We will split the original sample into a training-set (about 80% of the data) 
+  and a test-set (the remaining 20% of the data). We will fit the model to the
+  training-set, then evaluate it using the test-set. Our metric for model
+  predictive performance will be the mean-squared-error (MSE), which is the 
+  average squared size of the distances between the prediction line and the 
+  observed `y` values for the test-set observations. This metric is a 
+  reasonable default choice for evaluating predictions made on a continuous 
+  scale (our response variable `y` is continuous here).
+
+We begin by splitting the observations in our sample into a training-set and 
+  a test-set:
 
 ```
 ###########################################################
@@ -737,90 +869,125 @@ Continuous prediction:
 rm(list=ls())
 set.seed(1)                       ## random seed; for 'sample()'
 
+## load data:
 dat <- cars                       ## speed vs. stopping distance
-class(dat)
+class(dat)                        ## table data
 nrow(dat)                         ## how many observations
-summary(dat)
+summary(dat)                      ## two continuous variables
 head(dat)
+
+par(mfrow=c(1, 1))
+plot(dist ~ speed, data=dat)      ## take a peak at the data
 
 ###########################################################
 ## split the data into a training set and test set:
 
 ## 1/5th for testing; 4/5ths for training:
-n.test <- round(nrow(cars) / 5)
+n.test <- round(nrow(dat) / 5)    ## size of test set is closest integer to n / 5
 
-## sample n.test unique integers from 1 to nrow(cars):
+## make an integer index: sample n.test unique integers from 1 to nrow(cars):
 idx.test <- sample(1 : nrow(dat), size=n.test, replace=F)
-nrow(dat)
-length(idx.test)
+nrow(dat)                         ## n
+length(idx.test)                  ## n.test is closest integer to n / 5
 
 ## make logical index from integer index:
-i.test <- rep(F, nrow(dat))
-i.test[idx.test] <- T
-i.train <- ! i.test
+i.test <- rep(F, nrow(dat))       ## initialize to all FALSE vector of length n
+i.test[idx.test] <- T             ## positions corresponding to test-set to TRUE
+i.train <- ! i.test               ## training-set index complements test-set index
 cbind(i.train, i.test)            ## i.train is T when i.test is F & vice versa
 
-## split the data into traning (trn) and test (tst) set:
-dat.trn <- dat[i.train, ]
-dat.tst <- dat[i.test, ]
-nrow(dat.trn)
-nrow(dat.tst)
+## split the data into training (trn) and test (tst) set:
+dat.trn <- dat[i.train, ]         ## training-set
+dat.tst <- dat[i.test, ]          ## test-set
+nrow(dat.trn)                     ## n - n.test
+nrow(dat.tst)                     ## n.test
 
-###########################################################
-## fit the model with the training data:
+```
 
+Now we will fit the model using only the training data:
+
+```
+## fit model to dat.trn:
 fit <- lm(dist ~ speed, data=dat.trn)
 summary(fit)
 
-## since intercept is non-significant, refit w/o intercept:
+## average leverage:
+length(coef(fit)) / nrow(dat.trn)
 
-fit <- lm(dist ~ speed - 1, data=dat.trn)
-summary(fit)                      ## note improved R-squared
- 
 ## check residual plots:
-
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
 
-## look at the fit directly:
-
+## plot the training set observations:
 par(mfrow=c(1, 1))
-plot(dist ~ speed - 1, data=dat.trn)
-abline(fit)
+plot(dist ~ speed, data=dat.trn, main="Training-set")
+
+## linear fit line:
+abline(fit, col='cyan', lty=2)
+
+## prediction line for global mean (slope y/x == 0)
+abline(h=mean(dat.trn$dist), col='orangered', lty=3)
+
+## label the lines:
+legend(
+  'topleft',
+  legend=c('linear fit', 'global mean fit'),
+  col=c('cyan', 'orangered'),
+  lty=c(2, 3)
+)
 
 ```
 
-Some stuff about prediction of trn is fitted; mse as an error 
-  function.
+Now we will use the fitted model for making predictions. We
+  do this by invoking the `predict()` function, with the 
+  `newdata` parameter set to a data.frame that contains 
+  a column with the same name as the predictor/explanatory
+  variable (`speed`). This data.frame can contain other 
+  variables as well, including the response variable `dist`,
+  but these will be ignored. The predicted value only depends
+  on `newdata$speed`. First we will predict values for the
+  training-set, which are the same fitted `dist` values that 
+  are returned by a call to `fitted(fit)`. Then we will predict
+  `dist` values corresponding to the `speed` values in the
+  test-set.
 
 ```
-###########################################################
-## predict values:
-
-## 'predicted' values for the training data:
+## 'predicted' values for the training-set:
 y.hat.trn <- predict(fit, newdata=dat.trn)
 
 ## are just the fitted values:
 all.equal(y.hat.trn, fitted(fit))
 
-## predict stopping distances for the test data:
+## predict stopping distances for the test-set:
 y.hat.tst <- predict(fit, newdata=dat.tst)
 
-###########################################################
-## evaluate the predictions:
+```
 
-## mean-squared error:
+Now we will evaluate the predictive performance of the 
+  model, initially using the training-set, which we expect 
+  will return an overly optimistic estimate. Then, we will 
+  evaluate the model with the test-set, which should 
+  provide a much more reliable estimate of model 
+  predictive performance:
+
+```
+## a function to calculate the mean-squared error 
+##   performance metric:
 
 f.mse <- function(y, y.hat) {
 
+  ## inputs should be numeric:
   if(! (is.numeric(y) && is.numeric(y.hat)) )
     stop("y and y.hat must be numeric")
 
+  ## and same length:
   if(length(y) != length(y.hat))
     stop("y and y.hat must be same length")
 
+  ## length 0 y equivalent to 0/0:
   if(length(y) == 0) return(NaN)
 
+  ## return MSE: the easy part!
   mean((y - y.hat) ^ 2)
 }
 
@@ -837,30 +1004,46 @@ f.mse(y=dat.tst$dist, y.hat=y.hat.mu)
 
 ```
 
-Confidence intervals capture the uncertainty in the prediction line
-  (the conditional mean). Since we have no intercept in the current model,
-  only the slope can change, and the confidence interval captures the
-  uncertainty in the slope. If there were an intercept term in the model,
-  the model would not be constrained to pass thru the origin, and the 
-  confidence interval would be expected to be two parallel lines, rather than
-  tapering to a point at the origin. If you want to know how far off the
-  prediction line calculated using your training data sample is from the 'true'
-  prediction line for the population, use the confidence interval.
+Confidence intervals capture the uncertainty in the prediction line (the 
+  conditional mean). In the case of simple linear regression, the confidence 
+  interval captures how the uncertainty in the slope and in intercept estimates 
+  translates into uncertainty about the line representing the conditional mean. If 
+  you want to know how close the 'true' prediction line for the population (the
+  line you would get if you fitted a line to the entire population) is likely to
+  be to the prediction line calculated using your training-data sample, use the 
+  confidence interval. The interpretation is once again in terms of the frequency
+  of results one might obtain if one were to repeat the experiment: if you drew 
+  an independent random sample of the current sample size from the population 
+  many times, each time constructing a 95% confidence interval, then in 95% of 
+  those experiments, the true population prediction line will be captured within 
+  the interval.
 
-Prediction intervals capture the uncertainty in the predicted values for new
-  observations. They include the uncertainty of the conditional mean expressed by
-  the confidence interval, but add to it the uncertainty due to the variation
-  represented by the error term in the model. As a reminder: this error term 
-  captures the (assumed) random, independent, normally distributed 'noise' in 
-  the dependent variable that cannot be accounted for by a linear relationship 
-  with the independent/explanatory variable. Therefore, prediction intervals are
-  always at least as large as confidence intervals. If you want to know how
-  far new observations are likely to fall from the prediction line, use the 
+Prediction intervals capture the uncertainty in the predicted response variable
+  `y` values for new randomly sampled observations. They include the uncertainty 
+  in the conditional mean (regression line) expressed by the confidence interval, 
+  but add to it the uncertainty due to the variation represented by the error 
+  term in the model. As a reminder: this error term captures the (assumed) random, 
+  independent, normally distributed 'noise' (the residuals) in the response 
+  variable that cannot be accounted for by a linear relationship with the 
+  predictor/explanatory variable. That is, the prediction interval tries to
+  account for the magnitude of the dispersion of observations around the 
+  prediction line. Since this incorporates an additional source of uncertainty, 
+  prediction intervals are always at least as large as confidence intervals. 
+  If you want to know how close new observations are likely to fall to the 
+  prediction line, use the prediction interval. The prediction interval
+  discussed here again has a 'frequentist' interpretation: if you repeated
+  the experiment over-and-over, each time drawing the same-sized independent
+  random sample from the same population, each time fitting a linear model,
+  calculating 95% prediction intervals, and randomly selecting one more 
+  test observation from the population, in 95% of these experiments, the 
+  test observation response value is expected to be within the corresponding 
   prediction interval.
 
 ```
-## needs same type (numeric) and name 'speed' as origin independent:
+## make a series of equally spaced values for graphing;
+##   needs same type (numeric) and name 'speed' as original training data:
 dat.new <- data.frame(speed=seq(from=0, to=30, by=0.01))
+head(dat.new)
 
 ## corresponding predictions: fits will be same, prediction intervals wider:
 y.hat.ci <- predict(fit, newdata=dat.new, interval='confidence')
@@ -869,6 +1052,12 @@ head(y.hat.ci)
 head(y.hat.pi)
 all.equal(y.hat.ci[, 'fit'], y.hat.pi[, 'fit'])
 
+## one response prediction for each element of predictor dat.new$speed:
+nrow(dat.new)
+nrow(y.hat.ci)
+nrow(y.hat.pi)
+
+## figure out range needed for plot:
 (xlim <- range(dat.new$speed))
 (ylim <- range(c(y.hat.ci, y.hat.pi)))
 
@@ -878,7 +1067,7 @@ lines(x=dat.new$speed, y.hat.ci[, 'lwr'], col='cyan', lty=2)
 lines(x=dat.new$speed, y.hat.ci[, 'upr'], col='cyan', lty=2)
 lines(x=dat.new$speed, y.hat.pi[, 'lwr'], col='magenta', lty=3)
 lines(x=dat.new$speed, y.hat.pi[, 'upr'], col='magenta', lty=3)
-points(x=dat.tst$speed, y=dat.tst$dist)
+points(x=dat.tst$speed, y=dat.tst$dist, pch='o')
 
 legend(
   'topleft',
@@ -889,8 +1078,10 @@ legend(
 
 ```
 
-Prediction with a categorical model: just the corresponding group mean
-  in the training se.
+Now we will repeat the process with a dataset of phenotypic
+  measurements on samples of different flower species. These 
+  data contain the categorical predictor variable `Species` 
+  and the continuous response variable `Sepal.Length`:
 
 ```
 rm(list=ls())
@@ -898,8 +1089,10 @@ rm(list=ls())
 ## flower phenotypic measurements by strain:
 
 (dat <- iris)                     ## Species clumped into blocks
+class(dat)
 summary(dat)                      ## 50 of each of 3 species
 head(dat)
+plot(dat)                         ## for data.frame: plot all-vs-all variables
 
 ## split 4/5 (N=120) for training, 1/5 (N=30) for testing; since balanced
 ##   experiment, and blocks in order, can systematically sample to not 
@@ -922,6 +1115,7 @@ summary(dat.tst)
 
 fit <- lm(Sepal.Length ~ Species, data=dat.trn)
 summary(fit)
+length(coef(fit)) / nrow(dat.trn)                ## expected average leverage
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
 
@@ -962,7 +1156,20 @@ f.mse(y=dat.tst$Sepal.Length, y.hat=y.hat.mu)    ## compare to global mean predi
 
 ### Check your understanding 3
 
-1) question here
+Using the built-in data set 'faithful' (Yellowstone National Park's 'Old Faithful' 
+  geyser eruption length vs. delay between eruptions):
+
+1) Assign the sample observations randomly so about 80% are in a training-set and 
+   the remaining 20% in a test-set.
+
+2) Fit a simple linear regression model to the training-set observations designating
+   `waiting` as the response and `eruptions` as the predictor. 
+
+3) Make predictions for both the training-set and test-set.
+
+4) Use the f.mse() function above to estimate model performance on both the training and test-sets.
+   What sort of performance do you see if you use the global mean (of response variable values in 
+   the TRAINING set) to predict values for the test-set?
 
 [Return to index](#index)
 

@@ -80,38 +80,228 @@ sd(runif(1e6, -100, 100))
 ###################################################################################################
 L2C2:
 
+###################################################################################################
+L3C1:
+
+## 1. Compare the arrest rates for assault in Alaska and Maine using prop.test().
+
+rm(list=ls())
+dat <- USArrests  
+dat <- dat * 10                      ## convert to whole numbers; now arrests per 10,000
+dat[c('Alaska', 'Maine'), 'Assault'] / c(1e4, 1e4)
+prop.test(x=dat[c('Alaska', 'Maine'), 'Assault'], n=c(1e4, 1e4))
+
+## 2. Compare the arrest rates for assault in Alaska, Maine, and North Dakota using prop.test().
+
+dat[c('Alaska', 'Maine', 'North Dakota'), 'Assault'] / c(1e4, 1e4, 1e4)
+prop.test(x=dat[c('Alaska', 'Maine', 'North Dakota'), 'Assault'], n=c(1e4, 1e4, 1e4))
+
+## 3. Repeat #1, but using fisher.test(). Are the results similar?
+
+tbl <- cbind(dat[c('Alaska', 'Maine'), 'Assault'], c(1e4, 1e4))
+fisher.test(tbl)
+# the odds ratio is just ratio of proportions from prop.test; p-values both significant; 
+#   fisher.test() returns CI on odds ratio, while prop.test() gives CI for difference in proportions.
+
+## 4. What is the null hypothesis of these tests?
+
+# proportions are equal in each group.
 
 ###################################################################################################
 L3C2:
 
-Using the mtcars built-in dataset:
+## Using the mtcars built-in dataset:
 
-    Conduct an ANOVA omnibus F-test on the null hypothesis that the mean gas efficiency (mtcars$mpg) for cars with different numbers of cylinders (mtcars$cyl) are all equal. What is the p-value?
-
-    Conduct the TukeyHSD to look for pairwise differences in group means. What are the p-values for individual comparisons?
-
-    Do a qqnorm() and qqline() plot of the residuals from the model.
-
-    Perform a Shapiro test for normality of residuals.
-
-    Perform a Bartlett test for equal variances within groups.
-
+## 1. Conduct an ANOVA omnibus F-test on the null hypothesis that the mean gas efficiency (mtcars$mpg) 
+      for cars with different numbers of cylinders (mtcars$cyl) are all equal. What is the p-value?
 
 rm(list=ls())
-dat <- mtcars
-summary(dat)
-## fit <- aov(mpg ~ factor(cyl), data=dat)
-fit <- aov(mpg ~ as.character(cyl), data=dat)
-coef(fit)
-summary(fit)
-TukeyHSD(fit)
+fit <- aov(mpg ~ factor(cyl), data=mtcars)
+smry <- summary(fit)[[1]]
+smry$F
+smry$Df
+1 - pf(smry$F, smry$Df[1], smry$Df[2])
 
+## 2. Conduct the TukeyHSD to look for pairwise differences in group means. What are the p-values for 
+      individual comparisons?
+
+hsd <- TukeyHSD(fit)
+hsd[['factor(cyl)']][, 'p adj']
+
+## 3. Do a qqnorm() and qqline() plot of the residuals from the model.
+
+par(mfrow=c(1, 1))
 qqnorm(residuals(fit))
 qqline(residuals(fit))
 
+## 4. Perform a Shapiro test for normality of residuals.
+
 shapiro.test(residuals(fit))
-bartlett.test(mpg ~ factor(cyl), data=dat)
+
+## 5. Perform a Bartlett test for equal variances within groups.
+
+bartlett.test(mpg ~ factor(cyl), data=mtcars)
+plot(mpg ~ factor(cyl), data=mtcars)
+# 4-cylinder group seems more dispersed
 
 
+###################################################################################################
+L3C3:
+
+## Using the mtcars dataset:
+
+## 1. In a 1 row, 3 column plot layout (use par(mfrow=c(?, ?)), substituting the right values for 
+      the ?s), plot the relationship between mpg (miles per gallon) and disp (engine displacement 
+      in cubic inches); do the same between mpg and wt (car weight in 1000s of lbs); finally, plot 
+      disp vs wt.
+
+par(mfrow=c(1, 3))
+plot(mpg ~ disp, data=mtcars)
+plot(mpg ~ wt, data=mtcars)
+plot(disp ~ wt, data=mtcars)
+
+## 2. What is the Pearson's correlation between mpg and disp. Is it significant? What is the 
+      confidence interval?
+
+cor.test(mtcars$mpg, mtcars$disp)
+# significant w/ p-value < 1e-9; 95% conf int on corrleation: -0.9233594 to -0.7081376
+
+## 3. Conduct a Kendall's test on the correlation between mpg and wt. What is the p-value? Is 
+      there a confidence interval?
+
+cor.test(mtcars$mpg, mtcars$disp, method='kendall')
+# p-value about 1e-9; no confidence interval
+
+
+## 4. Conduct a one-sided Spearman's test on the correlation between mpg and wt. What is the 
+      p-value? Is there a confidence interval?
+
+cor.test(mtcars$mpg, mtcars$disp, method='spearman')
+# p-value <1e-12; no confidence interval
+
+## 5. What is the null hypothesis for all three of these correlation tests?
+
+# population correlation is zero
+
+
+###################################################################################################
+L4C1:
+
+## 1: Plot mpg vs. disp using the formula syntax.
+
+rm(list=ls())
+dat <- mtcars
+plot(mpg ~ disp, data=dat)
+
+## 2: Fit a linear model with mpg as the response and disp as the explanatory variable. Extract the 
+##    intercept estimate. Extract the slope estimate. Get the fitted values. Get the residuals.
+
+fit <- lm(mpg ~ disp, data=dat)
+coef(fit)['(Intercept)']
+coef(fit)['disp']
+fitted(fit)
+residuals(fit)
+
+## 3: Summarize the fit. Extract the p-value for the null hypothesis that the regression line passes 
+##    through the origin (or y==0 when x==0). Extract the p-value for the null hypothesis that the 
+##    conditional mean of y does not depend on x. Hint: think about the meaning of the coefficients 
+##    returned.
+
+(smry <- summary(fit))
+coef(smry)['(Intercept)', 'Pr(>|t|)']
+coef(smry)['disp', 'Pr(>|t|)']
+
+###################################################################################################
+L4C2:
+
+## Generate a linear fit of the mtcars data with mpg as response variable and disp as a continuous 
+##   explanatory variable. Generate a single figure area containing plots 1 thru 6 from plot.lm() 
+##   called on your model.
+
+fit <- lm(mpg ~ disp, data=mtcars)
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
+par(mfrow=c(1, 1))
+
+## 1: Does the 'residuals vs. fitted' plot suggest the relationship is truly linear?
+
+# the plot shows a v-shaped trend, which suggests perhaps a more flexible fit should be considered.
+#   on the other hand, the 'trend' may be due to outliers in the upper right of the plot.
+
+## 2: What does the 'scale vs. location' plot suggest about the relationship between residual 
+##    variance and larger predicted values? Is that consistent with assumptions behind the p-values 
+##    summary() will generate for your coefficients?
+
+# it suggests that residual size (scale) tends to increase with larger values (location) of the 
+#   response variable. 
+
+## 3: Are there any 'highly influential' data points?
+
+# none of the Cook's distances are greater than 0.5, so no observations are particularly influential.
+
+## 4: Does the 'residuals vs. leverage' plot suggest that 'Toyota Corolla' is influential more 
+##    because of how far the mpg value is from the modeled conditional mean or how far the disp 
+##    value is from the sample average?
+
+# average leverage is expected to be 0.0625:
+length(coef(fit)) / nrow(mtcars)
+
+# toyota corolla leverage looks like about 0.08, so only slightly higher than average;
+#   scale-location and standardized residuals-vs-leverage plots both show toyota corolla residual 
+#   is larger than the rest. So the mpg value seems more 'out-of-line' with the rest of the values 
+#   than does the disp value for this observation.
+
+###################################################################################################
+L4C3:
+
+## Using the built-in data set 'faithful' (Yellowstone National Park's 'Old Faithful' 
+##   geyser eruption length vs. delay between eruptions):
+
+## 1: Assign the sample observations randomly so about 80% are in a training-set and 
+##    the remaining 20% in a test-set.
+
+rm(list=ls())
+dat <- faithful
+n.trn <- round(nrow(dat) / 5)
+
+idx.trn <- sample(1 : nrow(dat), n.trn, replace=F)
+i.trn <- rep(F, nrow(dat))
+i.trn[idx.trn] <- T
+i.tst <- ! i.trn
+
+dat.trn <- dat[i.trn, ]
+dat.tst <- dat[i.tst, ]
+
+## 2: Fit a simple linear regression model to the training-set observations designating
+##    `waiting` as the response and `eruptions` as the predictor. 
+
+fit <- lm(waiting ~ eruptions, data=dat.trn)
+
+## 3: Make predictions for both the training-set and test-set.
+
+pred.trn <- fitted(fit)
+## pred.trn <- predict(fit, newdata=dat.trn)
+pred.tst <- predict(fit, newdata=dat.tst)
+
+## 4: Use the f.mse() function above to estimate model performance on both the training and test-sets.
+##    What sort of performance do you see if you use the global mean (of response variable values in 
+##    the TRAINING set) to predict values for the test-set.
+
+f.mse <- function(y, y.hat) {
+
+  if(! (is.numeric(y) && is.numeric(y.hat)) )
+    stop("y and y.hat must be numeric")
+
+  if(length(y) != length(y.hat))
+    stop("y and y.hat must be same length")
+
+  if(length(y) == 0) return(NaN)
+
+  mean((y - y.hat) ^ 2)
+}
+
+f.mse(dat.trn$waiting, pred.trn)
+f.mse(dat.tst$waiting, pred.tst)
+f.mse(dat.tst$waiting, rep(mean(dat.trn$waiting), nrow(dat.tst)))
 
 

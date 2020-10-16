@@ -1,14 +1,14 @@
 # Fundamentals of computational data analysis using R
-## Multivariate statistics: more on simple regression
+## Multivariate statistics: computational alternatives to parametric statistics
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Transforming the response](#transforming-the-response)
-- [Transforming predictors](#transforming-predictors)
-- [Local regression](#local-regression)
+- [Permutation testing](#permutation-testing)
+- [Empirical boostrap](#empirical-bootstrap)
+- [Cross-validation](#cross-validation)
 
 ### Check your understanding
 
@@ -18,9 +18,9 @@
 
 ---
 
-### title 1
+### Permutation testing
 
-Transforming the response
+intro here
 
 ```
 code here
@@ -39,7 +39,7 @@ code here
 
 ---
 
-### Transforming predictors
+### Empirical boostrap
 
 intro here
 
@@ -56,7 +56,7 @@ code here
 
 ---
 
-### Local regression
+### Cross-validation
 
 intro here
 

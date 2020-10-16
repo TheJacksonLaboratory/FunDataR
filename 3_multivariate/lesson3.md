@@ -1,14 +1,15 @@
 # Fundamentals of computational data analysis using R
-## Multivariate statistics: more on simple regression
+## Multivariate statistics: multiple regression
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Transforming the response](#transforming-the-response)
-- [Transforming predictors](#transforming-predictors)
-- [Local regression](#local-regression)
+- [Multiple regression](#multiple-regression)
+- [Correlated predictors](#correlated-predictors)
+- [Interactions](#interactions)
+- [Hierarchical models](#hierarchical-models)
 
 ### Check your understanding
 
@@ -18,9 +19,22 @@
 
 ---
 
-### title 1
+### Multiple regression
 
-Transforming the response
+intro here
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
+
+### Correlated predictors
+
+intro here
 
 ```
 code here
@@ -39,7 +53,7 @@ code here
 
 ---
 
-### Transforming predictors
+### Interactions
 
 intro here
 
@@ -56,7 +70,7 @@ code here
 
 ---
 
-### Local regression
+### Hierarchical models
 
 intro here
 

@@ -1,14 +1,15 @@
 # Fundamentals of computational data analysis using R
-## Multivariate statistics: more on simple regression
+## Multivariate statistics: generalized linear models
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Transforming the response](#transforming-the-response)
-- [Transforming predictors](#transforming-predictors)
-- [Local regression](#local-regression)
+- [Generalized linear modeling](#generalized-linear-models)
+- [Logistic regression](#logistic-regression)
+- [Poisson regression](#poisson-regression)
+- [Negative-binomial regression](#negative-binomial-regression)
 
 ### Check your understanding
 
@@ -18,9 +19,22 @@
 
 ---
 
-### title 1
+### Generalized linear models
 
-Transforming the response
+intro here
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
+
+### Logistic regression
+
+intro here
 
 ```
 code here
@@ -39,7 +53,7 @@ code here
 
 ---
 
-### Transforming predictors
+### Poisson regression
 
 intro here
 
@@ -47,6 +61,10 @@ intro here
 code here
 
 ```
+
+[Return to index](#index)
+
+---
 
 ### Check your understanding 2
 
@@ -56,7 +74,7 @@ code here
 
 ---
 
-### Local regression
+### Negative-binomial regression
 
 intro here
 

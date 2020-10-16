@@ -1,26 +1,38 @@
 # Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: resampling and multiple testing
+## Multivariate statistics: generalized linear models
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Multiple testing](#multiple-testing)
-- [Permutation testing](#permutation-testing)
-- [Empirical bootstrap](#empirical-bootstrap)
-- [Cross validation](#cross-validation)
+- [Generalized linear modeling](#generalized-linear-models)
+- [Logistic regression](#logistic-regression)
+- [Poisson regression](#poisson-regression)
+- [Negative-binomial regression](#negative-binomial-regression)
 
 ### Check your understanding
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
 - [Check 3](#check-your-understanding-3)
-- [Check 4](#check-your-understanding-4)
 
 ---
 
-### Multiple testing
+### Generalized linear models
+
+intro here
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
+
+### Logistic regression
 
 intro here
 
@@ -41,7 +53,7 @@ code here
 
 ---
 
-### Permutation testing
+### Poisson regression
 
 intro here
 
@@ -49,6 +61,10 @@ intro here
 code here
 
 ```
+
+[Return to index](#index)
+
+---
 
 ### Check your understanding 2
 
@@ -58,7 +74,7 @@ code here
 
 ---
 
-### Empirical bootstrap
+### Negative-binomial regression
 
 intro here
 
@@ -72,27 +88,6 @@ code here
 ---
 
 ### Check your understanding 3
-
-1) question here
-
-[Return to index](#index)
-
----
-
-### Cross validation
-
-intro here
-
-```
-code here
-
-```
-
-[Return to index](#index)
-
----
-
-### Check your understanding 4
 
 1) question here
 

@@ -1,14 +1,15 @@
 # Fundamentals of computational data analysis using R
-## Multivariate statistics: more on simple regression
+## Multivariate statistics: more about multiple regression
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Transforming the response](#transforming-the-response)
-- [Transforming predictors](#transforming-predictors)
-- [Local regression](#local-regression)
+- [Multiple testing](#multiple-testing)
+- [Overfitting](#overfitting)
+- [Feature selection](#feature-selection)
+- [Model selection](#model-selection)
 
 ### Check your understanding
 
@@ -18,9 +19,9 @@
 
 ---
 
-### title 1
+### Multiple testing
 
-Transforming the response
+intro here
 
 ```
 code here
@@ -39,7 +40,7 @@ code here
 
 ---
 
-### Transforming predictors
+### Overfitting
 
 intro here
 
@@ -47,6 +48,23 @@ intro here
 code here
 
 ```
+
+[Return to index](#index)
+
+---
+
+### Feature selection
+
+intro here
+
+```
+code here
+
+```
+
+[Return to index](#index)
+
+---
 
 ### Check your understanding 2
 
@@ -56,7 +74,7 @@ code here
 
 ---
 
-### Local regression
+### Model selection
 
 intro here
 

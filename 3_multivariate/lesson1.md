@@ -361,7 +361,7 @@ Linear regression has the virtues of conceptual simplicity and
   to the ratio of the expected size of the change for any given
   change in the predictor. The simplicity of the model makes it 
   easy imagine a consistent process tying together the response 
-  and predictor variables, which facilitates development and 
+  and predictor variables. This facilitates development and 
   testing of theories underlying the association between response 
   and predictor. In addition, the model assumptions about the 
   error term justify our use of parametric distributions to conduct
@@ -371,55 +371,114 @@ Linear regression has the virtues of conceptual simplicity and
   linear relationship between response and predictors as well as 
   normally distributed homoskedastic residuals. In addition, the 
   fitting process, because it involves minimization of a 
-  sum-of-squared residuals penalty, is very sensitive to outliers. 
+  sum-of-squared residuals penalty, is very sensitive to outliers.
+
+In some circumstances, the interpretability of the linear model
+  is not nearly as important as accurately estimating the shape 
+  of the linear relationship of the mean of the response variable
+  with the predictors. For instance, we sometimes want to calibrate
+  some measurements, for instance removing baseline drift from a mass 
+  spectrum, or translating optical density measurements into 
+  chemical concentration based on a calibration curve. In these
+  cases, understanding the underlying causal relationships may be
+  interesting, but not necessary for correcting the baseline drift
+  or translating optical measurements into estimates of chemical
+  concentration. 
+
+In these case, one commonly employed alternative to traditional 
+  linear modeling is local linear regression. One popular alrogithm
+  is implemented by the R `loess()` function. This algorithm takes
+  a training-set of observations on both the response and predictor
+  variables. At each predictor value `x.i`, a line is fit using the 
+  data near that predictor value, weighting the influence of 
+  each data point by a function of its distance from `x.i` which
+  decreases very rapidly as that distance rises. The fitting can
+  be done using either minimization of the (weighted) sum-of-squared
+  residuals penalty or using a penalty function that is similar 
+  to the sum-of-squared penalty for small residuals, but tapers off
+  for larger residuals, reducing the influence of outliers.
+
+The advantage of using the `loess()` function over `lm()` is that
+  it is relatively easy to get a good fit to the data without 
+  variable transformation. There is a parameter called `span`
+  that may need to be optimized in order to achieve the desired
+  level of smoothness in the prediction curve. The main disadvantages
+  of using the `loess()` function are that it is nearly impossible
+  to interpret: the coefficients do not have readily interpretable
+  meanings. In addition, there are no p-values or intervals being
+  returned, so we have to rely on methods like use of hold-out
+  test-set if we want to get an estimate of performance.
+
+We will demonstrate the use of the `loess()` function with a dataset
+  on weightloss over time. We begin by splitting our sample into
+  a test-set and training-set:
 
 ```
 rm(list=ls())
-set.seed(1)
+set.seed(3)
 
-summary(DNase)
-plot(DNase)
-table(DNase$Run)
+summary(wtloss)
 
-## hold out two whole runs (independent experiments) for testing:
+n <- nrow(wtloss)
+p.tst <- 0.5
+n.tst <- round(p.tst * n)
 
-unique(DNase$Run)
-(run.tst <- sample(unique(DNase$Run), 2, replace=F))
-i.tst <- DNase$Run %in% run.tst
-dat.tst <- DNase[i.tst, ]
-dat.trn <- DNase[! i.tst, ]
-summary(dat.tst)
-summary(dat.trn)
+idx.tst <- sample(1 : n, n.tst, replace=F)
+i.tst <- rep(F, n)
+i.tst[idx.tst] <- T
+dat.tst <- wtloss[i.tst, ]
+dat.trn <- wtloss[! i.tst, ]
 
+```
+
+Now we will plot the training-set and test-set with distinctive
+  symbols and colors, fit a simple linear regression to the 
+  training-set, and fit a local regression to the same data. We
+  then add the prediction lines for each fit to the plot:
+
+```
 ## plot the observations:
 
-plot(density ~ conc, data=dat.trn, pch='+', col='black')
-abline(h=mean(dat.trn$density), lty=4, col='black')
-points(density ~ conc, data=dat.tst, pch='o', col='orangered')
+par(mfrow=c(1, 1))
+plot(Weight ~ Days, data=dat.trn, pch='+', col='black')
+abline(h=mean(dat.trn$dist), lty=4, col='black')
+points(Weight ~ Days, data=dat.tst, pch='o', col='orangered')
 
 ## fit a simple linear regression model to training data:
 
-(fit1 <- lm(density ~ conc, data=dat.trn))
+(fit1 <- lm(Weight ~ Days, data=dat.trn))
 (smry1 <- summary(fit1))
 abline(fit1, lty=2, col='magenta')
 
 ## fit a local regression model to training data:
 
-(fit2 <- loess(density ~ conc, data=dat.trn))
+(fit2 <- loess(Weight ~ Days, data=dat.trn))
 class(fit2)
 is.list(fit2)
 names(fit2)
 attributes(fit2)
 
-dat.plot <- data.frame(conc=seq(from=0, to=13, by=0.01))
-dat.plot$density <- predict(fit2, newdata=dat.plot)
-lines(density ~ conc, data=dat.plot, lty=3, col='cyan')
+## generate some regularly spaced predictor values for plotting:
+dat.plot <- data.frame(Days=seq(from=0, to=246, by=0.01))
 
-## point estimates of relative performance:
+## add the corresonding predictions and plot them:
+dat.plot$Weight <- predict(fit2, newdata=dat.plot)
+lines(Weight ~ Days, data=dat.plot, lty=3, col='cyan')
 
-pred0 <- rep(mean(dat.trn$density), nrow(dat.tst))
+```
+
+Now we will make predictions for our test-set using our two
+  fitted models and make point estimates for the performance
+  of each:
+
+```
+## predictions (global mean, lm() and loess()):
+
+pred0 <- rep(mean(dat.trn$Weight), nrow(dat.tst))
 pred1 <- predict(fit1, newdata=dat.tst)
 pred2 <- predict(fit2, newdata=dat.tst)
+
+## performance metric function:
 
 f.mse <- function(obs, pred) {
   if(! (is.numeric(obs) && is.numeric(pred)) )
@@ -430,12 +489,62 @@ f.mse <- function(obs, pred) {
 
   if(length(obs) == 0) return(NaN)
 
-  mean((obs - pred) ^ 2)
+  mean((obs - pred) ^ 2, na.rm=T)
 }
 
-f.mse(dat.tst$density, pred0)
-f.mse(dat.tst$density, pred1)
-f.mse(dat.tst$density, pred2)
+## performance (global mean, lm() and loess()):
+
+f.mse(dat.tst$Weight, pred0)
+f.mse(dat.tst$Weight, pred1)
+f.mse(dat.tst$Weight, pred2)
+
+```
+
+Finally, we will fiddle with some of the parameters to `loess()` to see 
+  what difference they make:
+
+```
+f.fit <- function(span, degree, family, lty, col) {
+
+  ## fit the model using training-set:
+  suppressWarnings(fit <- loess(Weight ~ Days, data=dat.trn, span=span, 
+    degree=degree, family=family))
+
+  dat.plot <- data.frame(Days=seq(from=0, to=246, by=0.01))
+
+  ## add the corresonding predictions and plot them:
+  dat.plot$Weight <- predict(fit, newdata=dat.plot)
+  lines(Weight ~ Days, data=dat.plot, lty=lty, col=col)
+
+  ## return mse estimated from test-set:
+  pred <- predict(fit, newdata=dat.tst)
+  f.mse(dat.tst$Weight, pred)
+}
+
+f.plot <- function(main, degree, family) {
+  
+  plot(Weight ~ Days, data=dat.trn, pch='+', col='black', main=main, type='n')
+
+  ltys <- c(2, 3, 2, 3, 2)
+  cols <- c('cyan', 'magenta', 'orangered', 'cyan', 'magenta')
+  spans <- c(0.2, 0.4, 0.6, 0.8, 1)
+
+  for(i in 1 : length(spans)) {
+    mse <- f.fit(spans[i], degree, family, ltys[i], cols[i])
+    cat("span", spans[i], "mse", mse, "\n")
+    flush.console()
+  }
+
+  legend('topright', legend=spans, col=cols, lty=ltys, cex=0.75)
+}
+
+
+par(mfrow=c(2, 2))
+
+f.plot("Gaussian degree 2", 2, 'gaussian')
+f.plot("Gaussian degree 1", 1, 'gaussian')
+f.plot("Symmetric degree 2", 2, 'symmetric')
+f.plot("Symmetric degree 1", 1, 'symmetric')
 
 ```
 

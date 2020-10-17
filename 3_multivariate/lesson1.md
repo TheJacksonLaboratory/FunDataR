@@ -154,11 +154,15 @@ fit1 <- lm(Volume ~ Height, data=trees)
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
 
+## The scale-location plot shows a clear trend in the size of residuals with 
+##   changing response value. Let's see if power transforming the response
+##   will help:
+
 par(mfrow=c(1, 1))
 boxcox(fit1, plotit=T)
 
 ## since the confidence interval does not include 1, but does include 0, which 
-##   corresponds to the simple to interpret log(y),:
+##   corresponds to the simple to interpret log(y), let's try log(y):
 
 fit2 <- lm(log(Volume) ~ Height, data=trees)
 par(mfrow=c(2, 3))
@@ -185,23 +189,31 @@ dev.off()                         ## close the extra plotting window
 
 ### Transforming predictors
 
-intro here
+If assumptions about the error term are met reasonably well, but 
+  non-linearity in the relationship between the response and predictors
+  is still suggested by the residual plots (especially the 'Residuals
+  vs Fitted' plot), consider transforming the predictors. If there is 
+  more than one predictor, we can try to transform one predictor at a
+  time. The most commonly employed transformations are `log(x)`, 
+  `exp(x)`, `x ^ 2`, `x ^ 3`, `sqrt(x)`, and `1 / x`. For mechanistic
+  models, the choices are largely driven by, or inspire, the theory
+  about the process being studied. For empirical models, the 'best'
+  transformation is often found through trial and error.
 
-to linearize the relationship; other than log(y), rarely transform 
-  y for linearization, more for meeting assumptions about residual
-  distribution. the most popular 
-  way to linearize the relationship is transformation of x.
-  Often an iterative process guided by residual plots. In one
-  dimension x vs y plot can be very helpful, but in multiple 
-  regression, really depend on residual plots.
-
-polynomials/sqrt/log/exp/reciprocal are common. Often motivated by theory.
+Sometimes a transformation of the predictors can linearize the 
+  relationship, but at the expense of introducing violations of the
+  assumptions about the error distribution. In these cases it may
+  be worth trying to transform the response variable as well. 
+  If that does not work or is impractical, non-linear modeling 
+  approaches or non-parametric methods for calculating p-values 
+  and intervals should be considered.
 
 ```
 rm(list=ls())
 set.seed(1)
 
 ## configure simulation:
+
 n <- 100                          ## sample size
 p.tst <- 0.2                      ## proportion for test set
 n.tst <- round(p.tst * n)         ## test set size
@@ -229,10 +241,12 @@ nrow(dat.tst)
 nrow(dat.trn)
 
 ## plot the training data:
+
 par(mfrow=c(1, 1))
 plot(y ~ tm, data=dat.trn)
 
 ## fit a line to the training data:
+
 fit1 <- lm(y ~ tm, data=dat.trn)
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)

@@ -18,56 +18,126 @@
 
 ---
 
-### title 1
+### Transforming the response
 
-Transforming the response
+The assumptions behind a linear model can be divided into assumptions
+  about the form of the relationship (a line) and assumptions about the
+  error term. Assumptions behind the error term justify use of parametric
+  distributions for estimating p-values and confidence intervals on
+  coefficients, as well as prediction intervals for the response variable
+  for new observations. The error model assumptions in small sample sizes 
+  are that the errors are randomly drawn from a normal distribution with 
+  a mean of zero and constant standard deviation. For larger samples,
+  we make the more relaxed assumpton that errors are randomly drawn from
+  the same distribution with constant finite standard deviation. The
+  size of the sample required for the relaxed assumption to kick in is
+  dependent on the actual distribution: the closer to normal it is, 
+  the smaller samples are sufficient. For very skewed distributions, 
+  larger samples are required. The rule-of-thumb is that about 30 
+  observations are required in the case of simple linear regression.
 
-To achieve normality of the response (and therefore residuals in small 
-  samples) and homogeneity of variances. Also, can improve linearity
-  of the relationship. 
+One way to address deviations from the assumptions of the linear model
+  is to transform the variables. We can transform either the response
+  variable or the predictor variables, or both. This is often an iterative
+  process that is guided by the appearance of the residual plots. 
+  Some rules of thumb may be helpful: if the fit appears to be non-linear
+  (usually signalled by a non-linear systematic trend in the 'Residuals
+  vs fitted' plot), but the error assumptions appear reasonable, then
+  first try to transform the predictors. On the other hand, if the 
+  shape of the fit looks reasonable, but the error assumptions appear to
+  be violated, try to transform the response variable. If both sets of
+  assumptions appear to be incorrect, try first transforming the  
+  response. If this does not fix the issue try transforming the 
+  predictors (one at a time if there are several) as well. It is worth
+  keeping in mind that for some data sets, no monotonic transformation
 
-Variance stabilizing transformations. 
-  for strictly positive data: log(y); sqrt(y)
-  for positive data: log(y+1); sqrt(y)
+The transformations used are always monotonic (this makes the transformation
+  reversible, which is critical for making predictions on the original
+  scale of the response variable), and are usually some type of 'power 
+  function', that is they can be expressed as putting an exponent `lambda`
+  on the original variable `y.trans == y ^ lambda`. Common transformations 
+  include the square-root `y ^ 0.5`, square `y ^ 2`, reciprocal
+  `y ^ -1`, the natural log `log(y)`, the inverse of the natural log 
+  `exp(y)`, and the arcsine transformation `asin(sqrt(y))`. In the past, it
+  was common for analysts to transform count data (which tend to be 
+  otherwise heteroskedastic: the standard deviation increases with the
+  magnitude of the count) with the square-root transformation in order 
+  to make the variance more homogeneous (reduce the heteroskedasticity)
+  which made it possible to analyze these data with linear models. Similarly,
+  it was common to transform proportion data using the arcsine 
+  transformation to reduce heteroskedasticity and help linearize the
+  relationship with predictors. However, in the modern era we typically
+  use generalized linear models (presented later in this course) to deal
+  with counts and proportions.
 
-arcsine proportions; square-root counts: better yet, use GLMs!!!
+The `log(y)` transformation is still widely used however, as it seems
+  to attenuate both heteroskedasticity and non-linearity seen in the
+  relationships between variables in many natural and complex man-made
+  systems. In particular, it is often used when data are strictly
+  positive (no zeros or negative values), and the variant `log(y + 1)`
+  is often used when data are non-negative (restricted to values
+  that are positive or zero). The reasons why this transformation 
+  works well on so many data sets is because it changes multiplicative
+  relationships into additive ones. That is, 
+  `log(x * y) == log(x) + log(y)`. If there is a causal relationship
+  between `x` and `y` that is additive, that is a one unit change
+  in `x` always results in the same change in `y`, regardless of the
+  initial value of `y`, is equivalent to a linear relationship 
+  between the two variables. However, if a one unit change in `x` 
+  has an effect on `y` that is proportional to `y`, this means that
+  the same size change in `x` will have a smaller impact on small
+  `y` than on large `y`. This will cause the relationship to be 
+  non-linear, and typically also cause larger dispersion around 
+  the prediction curve at larger values of `y` than for smaller
+  values. These proportional multiplicative effects are common in 
+  nature: adding a fertilizer might make all the plants grow by an
+  additional 10% within a given test period. This means that in
+  absolute terms, large plants will see more gain in size than 
+  small ones. The relationship is multiplicative/non-linear, and we
+  should not be surprised that the spread in size of large plants
+  is larger than for small ones. Transforming these data by taking 
+  the log of the size will transform the relationship into a more
+  linear one as well as attenuate much of the heteroskedasticity.
 
-log(x) is particularly popular as it tends to both stabilize the variance
-  and improve the linearity of causal processes where the independent
-  variable has an effect on the dependent variable that is proportional
-  to the size of the dependent variable. For instance, if increasing
-  `x` one unit increases the corresponding value of `y` by `1%`, the 
-  size of the increase will depend on the initial value of `y`, rather
-  than simply being a constant.
+For strictly positive continuous data (there are less popular extensions
+  that are more general), there is a systematic method for exploring
+  the effects of a continuous range of power transformations on the 
+  response variable. Within the `MASS` package (included in most R
+  distributions) is the `boxcox()` function, which finds an exponent 
+  `lambda` of the response `y` such that `y ^ lambda` looks as close as 
+  possible to what we would expect for a variable that is linearly 
+  related to some other variable and has normally distributed errors 
+  with a mean of zero and constant standard deviation. There are 
+  several criteria here being improved, and it is not always clear 
+  which aspect of the distribution is being improved. In many cases, 
+  the main effect of the transformatoin is to make distributions of 
+  residuals more homoskedastic and symmetrically distributed, but 
+  often, even after transformation, the residuals will still not 
+  appear quite normally distributed. However, the improvement in the
+  homoskedasticity and reduced skewness may still be very useful when
+  working with smaller samples, in order to improve the applicability
+  of CLT assumptions.
 
-For strictly positive continuous data: box-cox: finds exponent of `y` 
-  `lambda` such that makes `y ^ lambda` look as close as possible to 
-  what we would expect for a variable that is linearly related to some
-  other variable and has normally distributed errors with a mean of 
-  zero and constant standard deviation. There are several criteria here
-  being improved. In many cases, the main effect of the change is to
-  make distributions of residuals more homoskedastic and symmetrically
-  distributed, but often will still not appear quite normal. By default, 
-  the R `MASS::boxcox()` function searches for an optimal `lambda` 
-  exponent in the range of `-2` to `2` by default, where a `lambda` 
-  exponent of `0` is treated as the natural log transformation `log(y)`. 
-  Typically, if `1` falls within the given 95% confidence interval, 
+By default, the R `MASS::boxcox()` function searches for an optimal 
+  `lambda` exponent in the range of `-2` to `2`, where a `lambda` 
+  exponent of `0` is treated as the natural log transformation `log(y)`.
+  It also returns a 95% confidence interval for the best `lambda` value. 
+  Typically, if `1` (an exponent of one is equivalent to no 
+  transformation) falls within the given 95% confidence interval, 
   there is not much point to transformation. If `1` is not within the 
   confidence interval, try to pick one of the values {-2, -1, -1/2, 0, 
   1/2, 1, 2} if it falls within the interval, as it makes interpretation 
-  simpler. That is, we know that `y ^ 1` means no transformation, 
+  much simpler. That is, we know that `y ^ 1` means no transformation, 
   `y ^ -1` means taking the reciprocal, `y ^ (1/2)` is a square-root 
   transformation, `lambda == 0` means the same thing as `log(y)`, 
   `y ^ 2` means squaring, and `y ^ -2` means squaring then taking the 
   reciprocal. By contrast, `y ^ 1.87` is a far less familiar/meaningful 
   transformation, even though it has a precise mathematical definition.
   You may gain some slight improvement in the appearance of the residual
-  plots, but at the expense of substantially complicating model 
-  intepretation.
-
-Even when result is not exactly normal, will tend to at least be 
-  symmetric and homoskedastic, which reduces the sample sizes needed for CLT 
-  approximations to kick in.
+  plots by making a more granular choice, but at the expense of 
+  substantially complicating model intepretation. This is rarely worth it
+  unless model interpretation is not important (as in the case of 
+  calibration curves).
 
 ```
 library('MASS')                   ## included in most R distros; provides boxcox()

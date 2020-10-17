@@ -87,14 +87,14 @@ The `log(y)` transformation is still widely used however, as it seems
   `log(x * y) == log(x) + log(y)`. If there is a causal relationship
   between `x` and `y` that is additive, that is a one unit change
   in `x` always results in the same change in `y`, regardless of the
-  initial value of `y`, is equivalent to a linear relationship 
-  between the two variables. However, if a one unit change in `x` 
-  has an effect on `y` that is proportional to `y`, this means that
-  the same size change in `x` will have a smaller impact on small
-  `y` than on large `y`. This will cause the relationship to be 
-  non-linear, and typically also cause larger dispersion around 
-  the prediction curve at larger values of `y` than for smaller
-  values. These proportional multiplicative effects are common in 
+  initial value of `y`, this will result in a linear dependence of
+  `y` on `x`. However, if a one unit change in `x` has an effect on 
+  `y` that is proportional to `y`, this means that the same size 
+  change in `x` will have a smaller impact on small `y` than on large 
+  `y`. This will cause the relationship to be 'exponential' rather
+  than linear, and also usually results in larger dispersions around 
+  the prediction curve at larger values of `y` than at smaller
+  values. These proportional or multiplicative effects are common in 
   nature: adding a fertilizer might make all the plants grow by an
   additional 10% within a given test period. This means that in
   absolute terms, large plants will see more gain in size than 
@@ -175,6 +175,14 @@ dev.off()                         ## close the extra plotting window
 
 ```
 
+In the previous example, we see that log transformation resulted in substantial
+  attenuation of the heteroskedasticity of residuals, BUT the 'Normal Q-Q' plot
+  still looks questionable. The log transformation could nevertheless facilitate 
+  use of non-parametric permutation methods that assume exchangability of 
+  observations (equivalent to the assumption that all observations are drawn 
+  from the same population and that the predictors have no predictive value) 
+  under the null hypothesis. We will discuss such methods in the next lesson.
+
 [Return to index](#index)
 
 ---
@@ -208,6 +216,18 @@ Sometimes a transformation of the predictors can linearize the
   approaches or non-parametric methods for calculating p-values 
   and intervals should be considered.
 
+In the following case, we will construct an example based on the
+  known physical relationship between position, time and acceleration: 
+  `position = position.initial + 0.5 * acceleration * (time ^ 2)`, 
+  where acceleration is assumed constant. For demonstration purposes,
+  we will model a constant dispersion error term, even though it is 
+  more likely that in a real experiment of this type, position 
+  measurements are likely to increase with velocity, so we expect 
+  errors would grow with time.
+
+First we will simulate some data and split it into a test-set and
+  training-set:
+
 ```
 rm(list=ls())
 set.seed(1)
@@ -218,16 +238,21 @@ n <- 100                          ## sample size
 p.tst <- 0.2                      ## proportion for test set
 n.tst <- round(p.tst * n)         ## test set size
 
-## simulate a sample:
-
-tm <- runif(n, min=0, max=n)      ## time
 accel <- 3                        ## acceleration
+y.init <- 1000                    ## initial position
+tm <- runif(n, min=0, max=n)      ## time
+
+## the modeled trajectory:
+y.mdl <- y.init + 0.5 * accel * (tm ^ 2)
+
+## a 'measurement error' term:
 err <- rnorm(length(tm), mean=0, sd=150)
-y.init <- 200                     ## initial velocity
-y <- y.init + 0.5 * accel * (tm ^ 2) + err
+
+## response and predictor values loaded into dataframe:
+y <- y.mdl + err
 dat <- data.frame(y=y, tm=tm)
 
-## split sample in test and training sets:
+## split sample into test and training sets:
 
 idx.tst <- sample(1 : n, n.tst, replace=F)
 i.tst <- rep(F, n)
@@ -237,9 +262,15 @@ i.trn <- ! i.tst
 dat.tst <- dat[i.tst, ]
 dat.trn <- dat[i.trn, ]
 
-nrow(dat.tst)
-nrow(dat.trn)
+nrow(dat.tst)                     ## 1/5th of data
+nrow(dat.trn)                     ## 4/5ths of data
 
+```
+
+Next we will take a peak at the training data, fit a linear model
+  to the training data and examine the residual plots:
+
+```
 ## plot the training data:
 
 par(mfrow=c(1, 1))
@@ -248,20 +279,43 @@ plot(y ~ tm, data=dat.trn)
 ## fit a line to the training data:
 
 fit1 <- lm(y ~ tm, data=dat.trn)
+
+## very significant regression in all respects:
+summary(fit1)
+
+## but check out the residual plots:
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
+par(mfrow=c(1, 1))
 
-## residuals vs. fitted clearly suggests second order (squared)
-##   but residuals look homoskedastic, so don't want to mess 
-##   with Weight.
+```
+
+In the above case, the 'Residuals vs Fitted' plot suggests a second 
+  order (squared) relationship, due to the unidirectional curvature.
+  However, residuals look homoskedastic, and we want to preserve 
+  that, so we may want to avoid transorming Weight. Instead, we will
+  try to transform the `tm` time variable. In the model formula we use
+  specify the transformation to `lm()`, we protect the exponentiation
+  operator `^` from being interpreted as a model formula operator 
+  (`^` is used for specifying interactions between variables in model 
+  formulas) by enclosing it in the `I()` function. Any operators 
+  enclosed in an `I()` function are treated as normal R mathematical 
+  functions, even if they have a special meaning in the context of
+  model formulas.
+
+```
+## transform the predictor, protecting the '^' operator from 
+##   interpretation as a formula operator by enclosing in 'I()':
 
 fit2 <- lm(y ~ I(tm ^ 2), data=dat.trn)
 par(mfrow=c(2, 3))
 plot(fit2, which=1:6)
 
 ## lets do a more objective comparison; predict values
-##   for test set using both models:
+##   for test set using both models as well as an intercept-only
+##   (global mean) model:
 
+pred0 <- rep(mean(dat.trn$y), n.tst)
 pred1 <- predict(fit1, newdata=dat.tst)
 pred2 <- predict(fit2, newdata=dat.tst)
 
@@ -280,8 +334,11 @@ f.mse <- function(y, y.hat) {
   mean((y - y.hat) ^ 2)
 }
 
-## second model appears to have WAY less error:
+## The purely linear model has much less error than the intercept-only
+##   (global mean model), but much more error than the model with
+##   squared predictor:
 
+f.mse(dat.tst$y, pred0)
 f.mse(dat.tst$y, pred1)
 f.mse(dat.tst$y, pred2)
 
@@ -297,7 +354,24 @@ f.mse(dat.tst$y, pred2)
 
 ### Local regression
 
-intro here
+Linear regression has the virtues of conceptual simplicity and 
+  relatively straightforward interpretation: the intercept 
+  coefficient corresponds to the mean value of the response when
+  the predictor is zero, and the slope coefficient corresponds
+  to the ratio of the expected size of the change for any given
+  change in the predictor. The simplicity of the model makes it 
+  easy imagine a consistent process tying together the response 
+  and predictor variables, which facilitates development and 
+  testing of theories underlying the association between response 
+  and predictor. In addition, the model assumptions about the 
+  error term justify our use of parametric distributions to conduct
+  hypothesis tests and estimate intervals. The trade-offs of using
+  a linear model include the relative difficulty (or inability) in 
+  discovering the right set of transformations to achieve both a 
+  linear relationship between response and predictors as well as 
+  normally distributed homoskedastic residuals. In addition, the 
+  fitting process, because it involves minimization of a 
+  sum-of-squared residuals penalty, is very sensitive to outliers. 
 
 ```
 rm(list=ls())

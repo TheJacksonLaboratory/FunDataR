@@ -46,20 +46,25 @@ One way to address deviations from the assumptions of the linear model
   first try to transform the predictors. On the other hand, if the 
   shape of the fit looks reasonable, but the error assumptions appear to
   be violated, try to transform the response variable. If both sets of
-  assumptions appear to be incorrect, try first transforming the  
-  response. If this does not fix the issue try transforming the 
-  predictors (one at a time if there are several) as well. It is worth
-  keeping in mind that for some data sets, no monotonic transformation
+  assumptions appear to be incorrect, try first transforming the response. 
+  If this does not fix the issue try transforming the predictors (one at 
+  a time if there are several) as well. It is worth keeping in mind that 
+  for some data sets, no monotonic transformation will result in both
+  sets of assumptions holding. Sometimes you will find that as you improve
+  linearity, you make residuals look worse in other respects, and 
+  vice-versa. In these cases alternatives to the linear model with constant
+  variance should be considered. We will discuss some options later in
+  the course.
 
-The transformations used are always monotonic (this makes the transformation
+The transformations used are always monotonic. This makes the transformation
   reversible, which is critical for making predictions on the original
-  scale of the response variable), and are usually some type of 'power 
-  function', that is they can be expressed as putting an exponent `lambda`
-  on the original variable `y.trans == y ^ lambda`. Common transformations 
-  include the square-root `y ^ 0.5`, square `y ^ 2`, reciprocal
-  `y ^ -1`, the natural log `log(y)`, the inverse of the natural log 
-  `exp(y)`, and the arcsine transformation `asin(sqrt(y))`. In the past, it
-  was common for analysts to transform count data (which tend to be 
+  scale of the response variable. The transformations are usually some type 
+  of 'power function', that is they can be expressed as putting an exponent 
+  `lambda` on the original variable `y.trans == y ^ lambda`. Common 
+  transformations include the square-root `y ^ 0.5`, square `y ^ 2`, 
+  reciprocal `y ^ -1`, the natural log `log(y)`, the inverse of the natural 
+  log `exp(y)`, and the arcsine transformation `asin(sqrt(y))`. In the past, 
+  it was common for analysts to transform count data (which tend to be 
   otherwise heteroskedastic: the standard deviation increases with the
   magnitude of the count) with the square-root transformation in order 
   to make the variance more homogeneous (reduce the heteroskedasticity)

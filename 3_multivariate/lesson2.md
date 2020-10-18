@@ -20,7 +20,13 @@
 
 ### Permutation testing
 
-intro here; null tied to exchangeability
+intro here; null tied to exchangeability; randomization vs. permutation testing;
+  randomization: outcomes for one observation not dependent on treatment or
+  ourcome of other observations
+  permutation: 
+
+random assignment to treatment groups leads to one set of assumptions
+non-random assignment requires further justification for exchangeability assumption.
 
 t-test
 
@@ -77,7 +83,10 @@ fit$p.value                       ## compare to parametric (finer grained)
 
 ```
 
-linear model
+Simple linear regression or other models with a single predictor (including polynomial
+  terms and multiple levels for a factor predictor):
+
+Can use lmperm() or coin().
 
 ```
 ## p-value on coefficient from lm():

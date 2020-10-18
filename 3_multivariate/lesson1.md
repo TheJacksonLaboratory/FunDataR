@@ -205,7 +205,7 @@ In the previous example, we see that log transformation resulted in substantial
 
 ### Check your understanding 1
 
-1) Fit a third linear model with `lm()` with `trees$Volume` as response and
+1) Fit a third linear model using `lm()` with `trees$Volume` as response and
    `trees$Height` using the 'optimal' `lambda` value suggested above (instead
    of rounding `lambda` to `0` and using the `log()`) to transform the 
    response. How do the residual plots differ from using the `log()`?

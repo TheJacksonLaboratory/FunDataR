@@ -446,7 +446,14 @@ The advantage of using the `loess()` function over `lm()` is that
   coefficients do not have very intuitive meanings. In addition, 
   there are no p-values or intervals being returned, so we have 
   to rely on methods like use of hold-out test-set if we want 
-  to get an estimate of performance.
+  to get an estimate of performance. Another more technical issue
+  is that once a loess model is fit to one dataset, communicating
+  the details of that model to other researchers so it can be
+  reused is not as straightforward as for a linear model where 
+  simply knowing the estimated coefficient values is sufficient
+  to recreate the analysis. For loess, one might need to share
+  the training data and ensure exactly the same version of the 
+  fitting algorithm is used to re-fit the model.
 
 We will demonstrate the use of the `loess()` function with a dataset
   on weight-loss over time of obesity patients at a weight-loss 

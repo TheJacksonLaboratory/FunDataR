@@ -22,18 +22,20 @@
 
 The assumptions behind a linear model can be divided into assumptions
   about the form of the relationship (a line) and assumptions about the
-  error term. Assumptions behind the error term justify use of parametric
-  distributions for estimating p-values and confidence intervals on
-  coefficients, as well as prediction intervals for the response variable
-  for new observations. The error model assumptions in small sample sizes 
-  are that the errors are randomly drawn from a normal distribution with 
+  error term. Deviations from either set of assumptions are reflected
+  in the distribution of residuals from the model. Assumptions behind 
+  the error term justify use of parametric distributions for estimating 
+  p-values and confidence intervals on coefficients, as well as 
+  prediction intervals for the response variable value for new 
+  observations. The error model assumptions in small sample sizes are 
+  that the errors are randomly drawn from a normal distribution with 
   a mean of zero and constant standard deviation. For larger samples,
   we make the more relaxed assumpton that errors are randomly drawn from
   the same distribution with constant finite standard deviation. The
   size of the sample required for the relaxed assumption to kick in is
   dependent on the actual distribution: the closer to normal it is, 
-  the smaller samples are sufficient. For very skewed distributions, 
-  larger samples are required. The rule-of-thumb is that about 30 
+  the smaller the required sample size. For very skewed distributions, 
+  larger samples are needed. The rule-of-thumb is that about 30 
   observations are required in the case of simple linear regression.
 
 One way to address deviations from the assumptions of the linear model
@@ -51,7 +53,7 @@ One way to address deviations from the assumptions of the linear model
   a time if there are several) as well. It is worth keeping in mind that 
   for some data sets, no monotonic transformation will result in both
   sets of assumptions holding. Sometimes you will find that as you improve
-  linearity, you make residuals look worse in other respects, and 
+  linearity, you cause departure from the error assumptions, and 
   vice-versa. In these cases alternatives to the linear model with constant
   variance should be considered. We will discuss some options later in
   the course.
@@ -68,8 +70,8 @@ The transformations used are always monotonic. This makes the transformation
   otherwise heteroskedastic: the standard deviation increases with the
   magnitude of the count) with the square-root transformation in order 
   to make the variance more homogeneous (reduce the heteroskedasticity)
-  which made it possible to analyze these data with linear models. Similarly,
-  it was common to transform proportion data using the arcsine 
+  which made it more acceptable to analyze these data with linear models. 
+  Similarly, it was common to transform proportion data using the arcsine 
   transformation to reduce heteroskedasticity and help linearize the
   relationship with predictors. However, in the modern era we typically
   use generalized linear models (presented later in this course) to deal
@@ -82,8 +84,8 @@ The `log(y)` transformation is still widely used however, as it seems
   positive (no zeros or negative values), and the variant `log(y + 1)`
   is often used when data are non-negative (restricted to values
   that are positive or zero). The reasons why this transformation 
-  works well on so many data sets is because it changes multiplicative
-  relationships into additive ones. That is, 
+  works well on so many data sets is because it can be used to 
+  transform multiplicative relationships into additive ones. That is, 
   `log(x * y) == log(x) + log(y)`. If there is a causal relationship
   between `x` and `y` that is additive, that is a one unit change
   in `x` always results in the same change in `y`, regardless of the
@@ -91,7 +93,7 @@ The `log(y)` transformation is still widely used however, as it seems
   `y` on `x`. However, if a one unit change in `x` has an effect on 
   `y` that is proportional to `y`, this means that the same size 
   change in `x` will have a smaller impact on small `y` than on large 
-  `y`. This will cause the relationship to be 'exponential' rather
+  `y`. This will cause the relationship to be multiplicative rather
   than linear, and also usually results in larger dispersions around 
   the prediction curve at larger values of `y` than at smaller
   values. These proportional or multiplicative effects are common in 
@@ -99,10 +101,11 @@ The `log(y)` transformation is still widely used however, as it seems
   additional 10% within a given test period. This means that in
   absolute terms, large plants will see more gain in size than 
   small ones. The relationship is multiplicative/non-linear, and we
-  should not be surprised that the spread in size of large plants
-  is larger than for small ones. Transforming these data by taking 
-  the log of the size will transform the relationship into a more
-  linear one as well as attenuate much of the heteroskedasticity.
+  should not be surprised that the spread about the mean of the 
+  sizes of large plants is greater than for small ones. Transforming 
+  these data by taking the log of the size will transform the 
+  relationship into a more linear one as well as attenuate much of 
+  the heteroskedasticity.
 
 For strictly positive continuous data (there are less popular extensions
   that are more general), there is a systematic method for exploring
@@ -114,7 +117,7 @@ For strictly positive continuous data (there are less popular extensions
   related to some other variable and has normally distributed errors 
   with a mean of zero and constant standard deviation. There are 
   several criteria here being improved, and it is not always clear 
-  which aspect of the distribution is being improved. In many cases, 
+  which aspect of the distribution is changing the most. In many cases, 
   the main effect of the transformatoin is to make distributions of 
   residuals more homoskedastic and symmetrically distributed, but 
   often, even after transformation, the residuals will still not 
@@ -151,6 +154,11 @@ sessionInfo()                     ## version info
 rm(list=ls())
 
 fit1 <- lm(Volume ~ Height, data=trees)
+nrow(coef(fit1)) / nrow(trees)    ## expected average leverage: p / n
+d1 <- cooks.distance(fit1)        ## calculate Cook's distances
+mean(d1) + 3 * sd(d1)             ## a reasonable Cook's distance cutoff
+max(d1)
+
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
 
@@ -165,6 +173,11 @@ boxcox(fit1, plotit=T)
 ##   corresponds to the simple to interpret log(y), let's try log(y):
 
 fit2 <- lm(log(Volume) ~ Height, data=trees)
+nrow(coef(fit2)) / nrow(trees)    ## expected average leverage: p / n
+d2 <- cooks.distance(fit2)        ## calculate Cook's distances
+mean(d2) + 3 * sd(d2)             ## a reasonable Cook's distance cutoff
+max(d2)                           ## 'outlier' influence has been attenuated
+
 par(mfrow=c(2, 3))
 plot(fit2, which=1:6)
 
@@ -177,11 +190,10 @@ dev.off()                         ## close the extra plotting window
 
 In the previous example, we see that log transformation resulted in substantial
   attenuation of the heteroskedasticity of residuals, BUT the 'Normal Q-Q' plot
-  still looks questionable. The log transformation could nevertheless facilitate 
-  use of non-parametric permutation methods that assume exchangability of 
-  observations (equivalent to the assumption that all observations are drawn 
-  from the same population and that the predictors have no predictive value) 
-  under the null hypothesis. We will discuss such methods in the next lesson.
+  still looks questionable. The log transformation could nevertheless help make
+  the CLT assumptions kick in quicker (at smaller sample sizes) and it can be 
+  seen that the influence of potential 'outlier' observations has been 
+  substantially reduced as well.
 
 [Return to index](#index)
 
@@ -199,7 +211,7 @@ In the previous example, we see that log transformation resulted in substantial
 
 If assumptions about the error term are met reasonably well, but 
   non-linearity in the relationship between the response and predictors
-  is still suggested by the residual plots (especially the 'Residuals
+  is suggested by the residual plots (especially the 'Residuals
   vs Fitted' plot), consider transforming the predictors. If there is 
   more than one predictor, we can try to transform one predictor at a
   time. The most commonly employed transformations are `log(x)`, 
@@ -212,18 +224,36 @@ Sometimes a transformation of the predictors can linearize the
   relationship, but at the expense of introducing violations of the
   assumptions about the error distribution. In these cases it may
   be worth trying to transform the response variable as well. 
-  If that does not work or is impractical, non-linear modeling 
-  approaches or non-parametric methods for calculating p-values 
-  and intervals should be considered.
+  If that does not work or is impractical, weighted regression can
+  be useful for addressing heteroskedasticit. The `lm()` function 
+  accepts observation weights which can be used to adjust for effects 
+  of heteroskedasticity on the error model by adjusting the sum-of-squared
+  deviations calculation to weight the contribution of individual
+  observations by their estimated variance. Due to time restrictions,
+  we won't cover that method here. In addition, generalized linear 
+  models (covered later) can be specified with more flexible error 
+  modeling, including heteroskedasticity. However, you should be 
+  aware that even if a linear model is fit to heteroskedastic data, 
+  the coefficient estimates will still be unbiased: that is, if you 
+  repeated the experiment many, many times, the average coefficient 
+  estimates would converge on the true coefficient values. This means 
+  the coefficient estimates can be trusted, despite the presence of 
+  heteroskedasticity, though parametric p-values and confidence 
+  cannot be trusted unless the heteroskedasticity is addressed. 
+  Under these circumstances, non-parametric methods for calculating 
+  p-values and intervals can be considered (introduced in the next
+  lesson). 
 
 In the following case, we will construct an example based on the
   known physical relationship between position, time and acceleration: 
   `position = position.initial + 0.5 * acceleration * (time ^ 2)`, 
-  where acceleration is assumed constant. For demonstration purposes,
-  we will model a constant dispersion error term, even though it is 
-  more likely that in a real experiment of this type, position 
-  measurements are likely to increase with velocity, so we expect 
-  errors would grow with time.
+  where acceleration is assumed constant. In a real experiment of this 
+  type, position measurement errors are likely to increase with velocity, 
+  so we expect errors to grow with velocity. Since the system is 
+  accelerating, velocity grows over time which means that measurement
+  errors are likely to rise over time as well, introducing 
+  heteroskedasticity. For demonstration purposes, we will ignore this 
+  possibility and model a constant dispersion error term.
 
 First we will simulate some data and split it into a test-set and
   training-set:
@@ -358,60 +388,70 @@ Linear regression has the virtues of conceptual simplicity and
   relatively straightforward interpretation: the intercept 
   coefficient corresponds to the mean value of the response when
   the predictor is zero, and the slope coefficient corresponds
-  to the ratio of the expected size of the change for any given
-  change in the predictor. The simplicity of the model makes it 
-  easy imagine a consistent process tying together the response 
-  and predictor variables. This facilitates development and 
+  to the ratio of the expected size of the change in the response 
+  after a change in the predictor. The simplicity of the model 
+  makes it easy imagine a consistent process tying together the 
+  response and predictor variables. This facilitates development and 
   testing of theories underlying the association between response 
   and predictor. In addition, the model assumptions about the 
   error term justify our use of parametric distributions to conduct
   hypothesis tests and estimate intervals. The trade-offs of using
   a linear model include the relative difficulty (or inability) in 
   discovering the right set of transformations to achieve both a 
-  linear relationship between response and predictors as well as 
-  normally distributed homoskedastic residuals. In addition, the 
-  fitting process, because it involves minimization of a 
-  sum-of-squared residuals penalty, is very sensitive to outliers.
+  linear relationship between response and predictors, while also
+  maintaining normally distributed homoskedastic residuals. In 
+  addition, the fitting process, because it involves minimization 
+  of a sum-of-squared residuals penalty, is relatively sensitive 
+  to the presence of outliers.
 
 In some circumstances, the interpretability of the linear model
   is not nearly as important as accurately estimating the shape 
-  of the linear relationship of the mean of the response variable
-  with the predictors. For instance, we sometimes want to calibrate
-  some measurements, for instance removing baseline drift from a mass 
+  of the relationship of the mean of the response variable with the 
+  predictors. For instance, we sometimes want to calibrate some 
+  measurements, for instance removing baseline drift from a mass 
   spectrum, or translating optical density measurements into 
   chemical concentration based on a calibration curve. In these
-  cases, understanding the underlying causal relationships may be
-  interesting, but not necessary for correcting the baseline drift
-  or translating optical measurements into estimates of chemical
+  cases, understanding the underlying causal processes underlying
+  the observed relationships among variables may be interesting, 
+  but not necessary for correcting the baseline drift or 
+  translating optical measurements into estimates of chemical
   concentration. 
 
-In these case, one commonly employed alternative to traditional 
-  linear modeling is local linear regression. One popular alrogithm
-  is implemented by the R `loess()` function. This algorithm takes
-  a training-set of observations on both the response and predictor
-  variables. At each predictor value `x.i`, a line is fit using the 
-  data near that predictor value, weighting the influence of 
-  each data point by a function of its distance from `x.i` which
-  decreases very rapidly as that distance rises. The fitting can
-  be done using either minimization of the (weighted) sum-of-squared
-  residuals penalty or using a penalty function that is similar 
-  to the sum-of-squared penalty for small residuals, but tapers off
-  for larger residuals, reducing the influence of outliers.
+When interpretability is a secondary concern, one commonly employed 
+  alternative to traditional linear modeling is local linear 
+  regression. One popular alrogithm is implemented by the R 
+  `loess()` function. This algorithm takes a training-set of 
+  observations on both the response and predictor variables. At each 
+  predictor value `x.i`, a line is fit using the data near that 
+  predictor value, weighting the influence of surrounding observations
+  by a function of their `x` distance from `x.i`. The default
+  weighting function decreases an observation's weight rapidly as 
+  the `x` distance from the observation to `x.i` rises. Model 
+  fitting can be done using either by minimization of the (weighted) 
+  sum-of-squared residuals penalty, or by using a 'robust' (to
+  outliers) penalty function that is similar to the sum-of-squared 
+  penalty for small residuals, but tapers off for larger residuals, 
+  thereby reducing the influence of outliers.
 
 The advantage of using the `loess()` function over `lm()` is that
   it is relatively easy to get a good fit to the data without 
   variable transformation. There is a parameter called `span`
   that may need to be optimized in order to achieve the desired
-  level of smoothness in the prediction curve. The main disadvantages
-  of using the `loess()` function are that it is nearly impossible
-  to interpret: the coefficients do not have readily interpretable
-  meanings. In addition, there are no p-values or intervals being
-  returned, so we have to rely on methods like use of hold-out
-  test-set if we want to get an estimate of performance.
+  level of smoothness in the prediction curve. In addition, the
+  `degree` parameter specifies the order of the locally fitted 
+  polynomial. The default is `2`, which is a curve. Specifying
+  `1` will still result in a flexible fit, but the flexibility will
+  tend to be less. The main disadvantages of using the `loess()` 
+  function are that it is nearly impossible to interpret: the 
+  coefficients do not have very intuitive meanings. In addition, 
+  there are no p-values or intervals being returned, so we have 
+  to rely on methods like use of hold-out test-set if we want 
+  to get an estimate of performance.
 
 We will demonstrate the use of the `loess()` function with a dataset
-  on weightloss over time. We begin by splitting our sample into
-  a test-set and training-set:
+  on weight-loss over time of obesity patients at a weight-loss 
+  clinic. We begin by splitting our sample into a test-set and 
+  training-set:
 
 ```
 rm(list=ls())
@@ -441,7 +481,7 @@ Now we will plot the training-set and test-set with distinctive
 
 par(mfrow=c(1, 1))
 plot(Weight ~ Days, data=dat.trn, pch='+', col='black')
-abline(h=mean(dat.trn$dist), lty=4, col='black')
+abline(h=mean(dat.trn$Weight), lty=4, col='black')
 points(Weight ~ Days, data=dat.tst, pch='o', col='orangered')
 
 ## fit a simple linear regression model to training data:
@@ -464,6 +504,9 @@ dat.plot <- data.frame(Days=seq(from=0, to=246, by=0.01))
 ## add the corresonding predictions and plot them:
 dat.plot$Weight <- predict(fit2, newdata=dat.plot)
 lines(Weight ~ Days, data=dat.plot, lty=3, col='cyan')
+
+legend('topright', legend=c('global mean', 'lm', 'loess'), 
+  lty=c(4, 2, 3), col=c('black', 'magenta', 'cyan'))
 
 ```
 
@@ -537,7 +580,6 @@ f.plot <- function(main, degree, family) {
 
   legend('topright', legend=spans, col=cols, lty=ltys, cex=0.75)
 }
-
 
 par(mfrow=c(2, 2))
 

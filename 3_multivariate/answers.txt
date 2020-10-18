@@ -3,7 +3,7 @@ Multivariate statistics
 ###################################################################################################
 ## Lesson 1 : Check 1 
 
-## 1) Fit a third linear model using `lm()` with `trees$Volume` as response and
+## 1) Fit a linear model using `lm()` with `trees$Volume` as response and
 ##    `trees$Height` using the 'optimal' `lambda` value suggested above (instead
 ##    of rounding `lambda` to `0` and using the `log()`) to transform the 
 ##    response. How do the residual plots differ from using the `log()`?

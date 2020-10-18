@@ -1,0 +1,155 @@
+Multivariate statistics
+
+###################################################################################################
+## Lesson 1 : Check 1 
+
+## 1) Fit a third linear model with `lm()` with `trees$Volume` as response and
+##    `trees$Height` using the 'optimal' `lambda` value suggested above (instead
+##    of rounding `lambda` to `0` and using the `log()`) to transform the 
+##    response. How do the residual plots differ from using the `log()`?
+
+rm(list=ls())
+
+fit1 <- lm(Volume ~ Height, data=trees)
+out <- boxcox(fit1)
+(lambda.best <- out$x[which.max(out$y)])
+
+fit2 <- lm(log(Volume) ~ Height, data=trees)
+
+dat <- trees
+dat$Volume <- dat$Volume ^ lambda.best
+fit3 <- lm(Volume ~ Height, data=dat)
+
+par(mfrow=c(2, 3))
+plot(fit2, which=1:6)             ## homoskedastic, but not very normal
+
+dev.new()                         ## open new plotting window
+par(mfrow=c(2, 3)) 
+plot(fit3, which=1:6)             ## pretty similar to fit2, but hard to interpret
+
+dev.off()                         ## close extra plotting window
+
+
+## 2) Fit another linear model with `lm()` with `trees$Volume` as response and
+##    `trees$Height` trying a `lambda` value of `-1` (corresponding to the 
+##    reciprocal), to transform the response. How do the residual plots 
+##    differ from using the `log()`?
+
+rm(list=ls())
+
+fit1 <- lm(log(Volume) ~ Height, data=trees)
+
+dat <- trees
+dat$Volume <- dat$Volume ^ -1
+fit2 <- lm(Volume ~ Height, data=dat)
+
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)             ## homoskedastic, but not very normal
+
+dev.new()                         ## open new plotting window
+par(mfrow=c(2, 3)) 
+plot(fit2, which=1:6)             ## more normal, but maybe heteroskedastic; outlier influence larger
+
+dev.off()                         ## close extra plotting window
+
+
+###################################################################################################
+## Lesson 1 : Check 2 
+
+## 1. Repeat the simulation of position vs time of an accelerating system from above (copy and
+##    paste). Then split the data into 20% test set and 80% training set (copy and paste). 
+##    Then fit a model of `y ~ tm` to the training data. Then fit another model of `sqrt(y) ~ tm` to 
+##    the training data. Finally, fit a model of `y ~ I(tm ^ 2)`.
+
+rm(list=ls())
+set.seed(1)
+
+# simulate data:
+n <- 100                          ## sample size
+p.tst <- 0.2                      ## proportion for test set
+n.tst <- round(p.tst * n)         ## test set size
+accel <- 3                        ## acceleration
+y.init <- 1000                    ## initial position
+tm <- runif(n, min=0, max=n)      ## time
+y.mdl <- y.init + 0.5 * accel * (tm ^ 2)
+err <- rnorm(length(tm), mean=0, sd=150)
+dat <- data.frame(y=y.mdl + err, tm=tm)
+
+# split into training and test sets:
+idx.tst <- sample(1 : n, n.tst, replace=F)
+i.tst <- rep(F, n)
+i.tst[idx.tst] <- T
+dat.tst <- dat[i.tst, ]
+dat.trn <- dat[! i.tst, ]
+
+# fit the models:
+fit0 <- lm(y ~ tm, data=dat.trn)
+fit1 <- lm(sqrt(y) ~ tm, data=dat.trn)
+fit2 <- lm(y ~ I(tm ^ 2), data=dat.trn)
+
+## 2. Generate residual plots for all three fits and rank the fits with regard to how well
+##    you feel they meed assumptions for the linear model.
+
+# plot the residuals:
+par(mfrow=c(2, 3))
+plot(fit0, which=1:6)             ## pretty bad
+plot(fit1, which=1:6)             ## better, but not so great
+plot(fit2, which=1:6)             ## much better
+
+## 3. Make predictions of the response values for the observations in the test set. Generate
+##    estimates of the mean-squared-error for each fit based on the test set.
+
+# predictions for fits: 
+pred0 <- predict(fit0, newdata=dat.tst)
+pred1 <- predict(fit1, newdata=dat.tst)
+pred1 <- pred1 ^ 2                ## MUST UNDO TRANSFORMATION!!!
+pred2 <- predict(fit2, newdata=dat.tst)
+
+# prediction error:
+mean((dat.tst$y - pred0) ^ 2)
+mean((dat.tst$y - pred1) ^ 2)
+mean((dat.tst$y - pred2) ^ 2)
+
+## 4. Plot the predicted response values on the y/left/vertical axis and observed response values on the
+##    x/bottom/horizontal axis for all three fits.
+
+par(mfrow=c(1, 3))
+
+plot(x=dat.tst$y, y=pred0, main="y ~ tm")
+abline(a=0, b=1)
+
+plot(x=dat.tst$y, y=pred1, main="sqrt(y) ~ tm")
+abline(a=0, b=1)
+
+plot(x=dat.tst$y, y=pred2, main="y ~ I(tm ^ 2)")
+abline(a=0, b=1)
+
+
+###################################################################################################
+## Lesson 1 : Check 3 
+
+## 1. Split the built-in 'DNase' dataset into a test-set consisting of `Run == 3` and `Run == 6` and a 
+##    training-set consisting of the other nine `Run` values.
+
+i.tst <- DNase$Run %in% c(3, 6)
+dat.tst <- DNase[i.tst, ]
+dat.trn <- DNase[! i.tst, ]
+summary(dat.tst$Run)              ## looks right
+summary(dat.trn$Run)              ## looks right
+
+## 2. Fit a linear model of `density ~ conc` to the training data. Make predictions on the held-out test-set.
+
+fit.lm <- lm(density ~ conc, data=dat.trn)
+pred.lm <- predict(fit.lm, newdata=dat.tst)
+
+## 3. Fit a loess model to the same formula, using the default parameter settings. Make predictions on the
+##    held-out test-set.
+
+fit.loess <- loess(density ~ conc, data=dat.trn)
+pred.loess <- predict(fit.loess, newdata=dat.tst)
+
+## 4. Calculate the mean-squared error for the two models based on the test-set predictions.
+
+mean((dat.tst$density - pred.lm) ^ 2)
+mean((dat.tst$density - pred.loess) ^ 2)
+

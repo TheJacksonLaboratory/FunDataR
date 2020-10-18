@@ -167,7 +167,11 @@ plot(fit1, which=1:6)
 ##   will help:
 
 par(mfrow=c(1, 1))
-boxcox(fit1, plotit=T)
+out <- boxcox(fit1, plotit=T)
+class(out)
+names(out)
+(idx.best <- which.max(out$y))    ## max in log-likelihood ('best fit')
+out$x[idx.best]                   ## corresponding exponent
 
 ## since the confidence interval does not include 1, but does include 0, which 
 ##   corresponds to the simple to interpret log(y), let's try log(y):
@@ -201,7 +205,15 @@ In the previous example, we see that log transformation resulted in substantial
 
 ### Check your understanding 1
 
-1) question here
+1) Fit a third linear model with `lm()` with `trees$Volume` as response and
+   `trees$Height` using the 'optimal' `lambda` value suggested above (instead
+   of rounding `lambda` to `0` and using the `log()`) to transform the 
+   response. How do the residual plots differ from using the `log()`?
+
+2) Fit another linear model with `lm()` with `trees$Volume` as response and
+   `trees$Height` trying a `lambda` value of `-1` (corresponding to the 
+   reciprocal), to transform the response. How do the residual plots 
+   differ from using the `log()`?
 
 [Return to index](#index)
 
@@ -376,7 +388,19 @@ f.mse(dat.tst$y, pred2)
 
 ### Check your understanding 2
 
-1) question here
+1. Repeat the simulation of position vs time of an accelerating system from above (copy and
+   paste). Then split the data into 20% test set and 80% training set (copy and paste). 
+   Then fit a model of `y ~ tm` to the training data. Then fit another model of `sqrt(y) ~ tm` to 
+   the training data. Finally, fit a model of `y ~ I(tm ^ 2)`.
+
+2. Generate residual plots for all three fits and rank the fits with regard to how well
+   you feel they meed assumptions for the linear model.
+
+3. Make predictions of the response values for the observations in the test set. Generate
+   estimates of the mean-squared-error for each fit based on the test set.
+
+4. Plot the predicted response values on the y/left/vertical axis and observed response values on the
+   x/bottom/horizontal axis for all three fits.
 
 [Return to index](#index)
 
@@ -572,7 +596,7 @@ f.fit <- function(span, degree, family, lty, col) {
 }
 
 f.plot <- function(main, degree, family) {
-  
+
   plot(Weight ~ Days, data=dat.trn, pch='+', col='black', main=main, type='n')
 
   ltys <- c(2, 3, 2, 3, 2)
@@ -603,7 +627,15 @@ f.plot("Symmetric degree 1", 1, 'symmetric')
 
 ### Check your understanding 3
 
-1) question here
+1. Split the built-in 'DNase' dataset into a test-set consisting of `Run == 3` and `Run == 6` and a 
+   training-set consisting of the other nine `Run` values.
+
+2. Fit a linear model of `density ~ conc` to the training data. Make predictions on the held-out test-set.
+
+3. Fit a loess model to the same formula, using the default parameter settings. Make predictions on the
+   held-out test-set.
+
+4. Calculate the mean-squared error for the two models based on the test-set predictions.
 
 [Return to index](#index)
 

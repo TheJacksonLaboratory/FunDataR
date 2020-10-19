@@ -138,6 +138,53 @@ Confidence interval on single mean.
 
 ```
 ## CI on single mean
+library(boot)
+sessionInfo()
+
+rm(list=ls())
+set.seed(1)
+
+dat <- iris[iris$Species == 'virginica', ]
+dat
+par(mfrow=c(1, 1))
+qqnorm(dat$Sepal.Length)
+qqline(dat$Sepal.Length)
+
+(fit1 <- t.test(dat$Sepal.Length))
+
+## function needs to take original data as first argument,
+##   and integer index of observations in bootstrap sample
+##   (generated and passed by boot()) as the second argument.
+##   It then needs to split the data based on the index and
+##   compute + return the statistic of interest:
+
+f <- function(dat, idx) {
+  mean(dat[idx, 'Sepal.Length'], na.rm=T)
+}
+
+R <- 9999
+out <- boot(dat, f, R)
+class(out)
+is.list(out)
+attributes(out)
+
+out                               ## note estimated bias about zero
+plot(out)
+jack.after.boot(out)
+
+out$t0
+f(dat, T)
+length(out$t)
+summary(out$t)
+head(out$t)
+
+ci <- boot.ci(out)
+class(ci)
+is.list(ci)
+attributes(ci)
+
+ci
+fit1
 
 ```
 
@@ -146,12 +193,70 @@ CI and bias for variance.
 ```
 ## CI and bias for variance.
 
+library('boot')
+rm(list=ls())
+set.seed(1)
+
+n <- 15
+x <- iris[iris$Species == 'virginica', 'Sepal.Length']
+x <- sample(x, n, replace=F)
+
+f.var.pop <- function(x) {
+  m <- mean(x, na.rm=T)
+  mean((x - m) ^ 2, na.rm=T)
+}
+
+var(x)                            ## sample formula for variance (unbiased)
+f.var.pop(x)                      ## population formula (biased)
+
+f <- function(x, i) {
+  f.var.pop(x[i])
+}
+
+R <- 9999
+out <- boot(x, f, R)
+
+out                               ## note bias
+plot(out)
+jack.after.boot(out)
+
+(bias <- out$t0 - mean(out$t, na.rm=T))
+(est <- out$t0 + bias)
+var(x)
+f.var.pop(x)
+
+(ci <- boot.ci(out))
+
 ```
 
 CI for lm() coefficient.
 
 ```
 ## CI for lm() coefficient.
+
+libary(boot)
+rm(list=ls())
+set.seed(1)
+
+par(mfrow=c(1, 1))
+plot(cars)
+
+f <- function(dat, i) {
+  fit.i <- lm(dist ~ speed, data=dat[i, ])
+  coef(fit.i)['speed']
+}
+
+fit <- lm(dist ~ speed, data=cars)
+coef(fit)['speed']
+f(cars, T)
+
+R <- 999
+out <- boot(cars, f, R)
+plot(out)
+jack.after.boot(out)
+(ci <- boot.ci(out))
+
+confint(fit)['speed', ]
 
 ```
 

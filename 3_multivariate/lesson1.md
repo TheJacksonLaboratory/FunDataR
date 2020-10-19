@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## Multivariate statistics: more on simple regression
+## Multivariate statistics: more simple regression
 #### Contact: mitch.kostich@jax.org
 
 ---
@@ -20,23 +20,25 @@
 
 ### Transforming the response
 
-The assumptions behind a linear model can be divided into assumptions
-  about the form of the relationship (a line) and assumptions about the
-  error term. Deviations from either set of assumptions are reflected
-  in the distribution of residuals from the model. Assumptions behind 
-  the error term justify use of parametric distributions for estimating 
+The assumptions that typically accompany a linear model can be divided 
+  into assumptions about the form of the relationship (linear) and 
+  assumptions about the error term. Assumptions behind the error term 
+  justify our use of parametric distributions for calculating
   p-values and confidence intervals on coefficients, as well as 
   prediction intervals for the response variable value for new 
   observations. The error model assumptions in small sample sizes are 
   that the errors are randomly drawn from a normal distribution with 
   a mean of zero and constant standard deviation. For larger samples,
   we make the more relaxed assumpton that errors are randomly drawn from
-  the same distribution with constant finite standard deviation. The
+  the a single distribution with constant finite standard deviation. The
   size of the sample required for the relaxed assumption to kick in is
   dependent on the actual distribution: the closer to normal it is, 
-  the smaller the required sample size. For very skewed distributions, 
-  larger samples are needed. The rule-of-thumb is that about 30 
-  observations are required in the case of simple linear regression.
+  the smaller the sample size needed. For very skewed distributions, 
+  larger samples are required. The rule-of-thumb is that about 30 
+  observations per coefficient suffice in the case of simple linear 
+  regression. Deviations from either set (form or error) of assumptions 
+  are often most easily detected in the distribution of residuals from 
+  the model. 
 
 One way to address deviations from the assumptions of the linear model
   is to transform the variables. We can transform either the response
@@ -54,9 +56,9 @@ One way to address deviations from the assumptions of the linear model
   for some data sets, no monotonic transformation will result in both
   sets of assumptions holding. Sometimes you will find that as you improve
   linearity, you cause departure from the error assumptions, and 
-  vice-versa. In these cases alternatives to the linear model with constant
-  variance should be considered. We will discuss some options later in
-  the course.
+  vice-versa. In these cases alternatives to the linear model with 
+  constant error dispersion should be considered. We will discuss some 
+  options later in the course.
 
 The transformations used are always monotonic. This makes the transformation
   reversible, which is critical for making predictions on the original
@@ -73,9 +75,11 @@ The transformations used are always monotonic. This makes the transformation
   which made it more acceptable to analyze these data with linear models. 
   Similarly, it was common to transform proportion data using the arcsine 
   transformation to reduce heteroskedasticity and help linearize the
-  relationship with predictors. However, in the modern era we typically
-  use generalized linear models (presented later in this course) to deal
-  with counts and proportions.
+  relationship with predictors. However, with the advent of modern 
+  computational methods that facilitate the more complicated calculations
+  required, we typically use generalized linear models (presented later 
+  in this course) to deal with counts and proportions in a more natural
+  way.
 
 The `log(y)` transformation is still widely used however, as it seems
   to attenuate both heteroskedasticity and non-linearity seen in the
@@ -84,28 +88,30 @@ The `log(y)` transformation is still widely used however, as it seems
   positive (no zeros or negative values), and the variant `log(y + 1)`
   is often used when data are non-negative (restricted to values
   that are positive or zero). The reasons why this transformation 
-  works well on so many data sets is because it can be used to 
-  transform multiplicative relationships into additive ones. That is, 
-  `log(x * y) == log(x) + log(y)`. If there is a causal relationship
-  between `x` and `y` that is additive, that is a one unit change
-  in `x` always results in the same change in `y`, regardless of the
-  initial value of `y`, this will result in a linear dependence of
-  `y` on `x`. However, if a one unit change in `x` has an effect on 
-  `y` that is proportional to `y`, this means that the same size 
-  change in `x` will have a smaller impact on small `y` than on large 
-  `y`. This will cause the relationship to be multiplicative rather
-  than linear, and also usually results in larger dispersions around 
-  the prediction curve at larger values of `y` than at smaller
-  values. These proportional or multiplicative effects are common in 
-  nature: adding a fertilizer might make all the plants grow by an
-  additional 10% within a given test period. This means that in
-  absolute terms, large plants will see more gain in size than 
-  small ones. The relationship is multiplicative/non-linear, and we
-  should not be surprised that the spread about the mean of the 
-  sizes of large plants is greater than for small ones. Transforming 
-  these data by taking the log of the size will transform the 
-  relationship into a more linear one as well as attenuate much of 
-  the heteroskedasticity.
+  works well on so many data sets is at least in part because it can 
+  be used to transform multiplicative relationships into additive ones. 
+  That is, `log(x * y) == log(x) + log(y)`. If there is a causal 
+  relationship between `x` and `y` that is additive, that is a one unit 
+  change in `x` always results in two unit change in `y`, regardless of 
+  the initial value of `y`, this will result in a linear dependence of
+  `y` on `x` with a slope of 2. However, if a one unit change in `x` 
+  has an effect on `y` that is proportional to `y`, this means that the 
+  same size change in `x` will have a smaller sized impact on small `y` 
+  than on large `y`. This will cause the relationship to be 
+  multiplicative rather than linear, and also usually results in larger 
+  dispersions around the prediction curve at larger values of `y` than 
+  at smaller values. These proportional or multiplicative effects are 
+  common in nature: adding a fertilizer might make all the plants grow 
+  by an additional 10% within a given test period. This means that in
+  absolute terms, large plants will see more gain in size in response
+  to the fertilizer than small ones, even though the same amount of 
+  fertilizer is appied to all the plants. The effect of the fertilizer
+  is multiplicative/non-linear, and we should not be surprised that 
+  the spread about the mean of the sizes of large plants is greater 
+  than for small ones. Transforming these data by taking the log of 
+  the size will transform the relationship into a linear one as 
+  well as attenuate much of the heteroskedasticity present on the 
+  original scale.
 
 For strictly positive continuous data (there are less popular extensions
   that are more general), there is a systematic method for exploring
@@ -117,14 +123,14 @@ For strictly positive continuous data (there are less popular extensions
   related to some other variable and has normally distributed errors 
   with a mean of zero and constant standard deviation. There are 
   several criteria here being improved, and it is not always clear 
-  which aspect of the distribution is changing the most. In many cases, 
-  the main effect of the transformatoin is to make distributions of 
-  residuals more homoskedastic and symmetrically distributed, but 
-  often, even after transformation, the residuals will still not 
-  appear quite normally distributed. However, the improvement in the
-  homoskedasticity and reduced skewness may still be very useful when
-  working with smaller samples, in order to improve the applicability
-  of CLT assumptions.
+  which aspect of the distribution is changed the most by the exponent
+  selected. In many cases, the main effect of the transformatoin is 
+  to make distributions of residuals more homoskedastic and 
+  symmetrically distributed, but often, even after transformation, the 
+  residuals will still not appear quite normally distributed. However, 
+  the improvement in the homoskedasticity and reduced skewness may 
+  still be very useful when working with smaller samples, in order to 
+  reduce the sample size required for applicability of CLT assumptions.
 
 By default, the R `MASS::boxcox()` function searches for an optimal 
   `lambda` exponent in the range of `-2` to `2`, where a `lambda` 
@@ -157,7 +163,7 @@ fit1 <- lm(Volume ~ Height, data=trees)
 nrow(coef(fit1)) / nrow(trees)    ## expected average leverage: p / n
 d1 <- cooks.distance(fit1)        ## calculate Cook's distances
 mean(d1) + 3 * sd(d1)             ## a reasonable Cook's distance cutoff
-max(d1)
+max(d1)                           ## one distance further out; still below 0.5
 
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
@@ -189,6 +195,15 @@ dev.new()                         ## open a new plotting window
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
 dev.off()                         ## close the extra plotting window
+
+## have to convert predictions back to original scale:
+pred <- predict(fit2, newdata=trees)
+summary(cbind(pred, trees))       ## difference of scale evident
+summary(cbind(exp(pred), trees))  ## better
+
+## same story w/ mean-squared error:
+mean((trees$Volume - pred) ^ 2)
+mean((trees$Volume - exp(pred)) ^ 2)
 
 ```
 
@@ -237,15 +252,16 @@ Sometimes a transformation of the predictors can linearize the
   assumptions about the error distribution. In these cases it may
   be worth trying to transform the response variable as well. 
   If that does not work or is impractical, weighted regression can
-  be useful for addressing heteroskedasticit. The `lm()` function 
+  be useful for addressing heteroskedasticity. The `lm()` function 
   accepts observation weights which can be used to adjust for effects 
-  of heteroskedasticity on the error model by adjusting the sum-of-squared
-  deviations calculation to weight the contribution of individual
-  observations by their estimated variance. Due to time restrictions,
-  we won't cover that method here. In addition, generalized linear 
+  of heteroskedasticity on the error model by adjusting the 
+  sum-of-squared deviations calculation to weight the contribution 
+  of individual observations by their estimated variance, weighting
+  higher precision observations more than observations where response
+  variation is expected to be high. In addition, generalized linear 
   models (covered later) can be specified with more flexible error 
-  modeling, including heteroskedasticity. However, you should be 
-  aware that even if a linear model is fit to heteroskedastic data, 
+  models, including heteroskedasticity. However, it is important to
+  remember that even if a linear model is fit to heteroskedastic data, 
   the coefficient estimates will still be unbiased: that is, if you 
   repeated the experiment many, many times, the average coefficient 
   estimates would converge on the true coefficient values. This means 
@@ -259,9 +275,13 @@ Sometimes a transformation of the predictors can linearize the
 In the following case, we will construct an example based on the
   known physical relationship between position, time and acceleration: 
   `position = position.initial + 0.5 * acceleration * (time ^ 2)`, 
-  where acceleration is assumed constant. In a real experiment of this 
-  type, position measurement errors are likely to increase with velocity, 
-  so we expect errors to grow with velocity. Since the system is 
+  where acceleration is assumed constant. We are mimicing a situation 
+  where position is measured across time and we are interested in 
+  determining acceleration. Since we know the physical laws involved,
+  our regression formula will be guided by the form of those laws rather
+  than being explored empirically. In a real experiment of this type, 
+  position measurement errors are likely to increase with velocity, 
+  so we would expect errors to grow with velocity. Since the system is 
   accelerating, velocity grows over time which means that measurement
   errors are likely to rise over time as well, introducing 
   heteroskedasticity. For demonstration purposes, we will ignore this 
@@ -333,17 +353,17 @@ par(mfrow=c(1, 1))
 ```
 
 In the above case, the 'Residuals vs Fitted' plot suggests a second 
-  order (squared) relationship, due to the unidirectional curvature.
-  However, residuals look homoskedastic, and we want to preserve 
-  that, so we may want to avoid transorming Weight. Instead, we will
-  try to transform the `tm` time variable. In the model formula we use
-  specify the transformation to `lm()`, we protect the exponentiation
-  operator `^` from being interpreted as a model formula operator 
-  (`^` is used for specifying interactions between variables in model 
-  formulas) by enclosing it in the `I()` function. Any operators 
-  enclosed in an `I()` function are treated as normal R mathematical 
-  functions, even if they have a special meaning in the context of
-  model formulas.
+  order (squared) relationship, signaled by the curved trend with
+  a single inflection point in the residuals. However, the residuals 
+  look homoskedastic, and we want to preserve that, so we will initially
+  avoid transorming `Weight`. Instead, we will try to transform the 
+  `tm` time variable. In the model formula we use specify the 
+  transformation to `lm()`, we protect the exponentiation operator 
+  `^` from being interpreted as a model formula operator (`^` is 
+  used for specifying interactions between variables in model formulas) 
+  by enclosing it in the `I()` function. Any operators enclosed in 
+  an `I()` function are treated as normal R mathematical functions, 
+  even if they have a special meaning in the context of model formulas.
 
 ```
 ## transform the predictor, protecting the '^' operator from 
@@ -361,28 +381,15 @@ pred0 <- rep(mean(dat.trn$y), n.tst)
 pred1 <- predict(fit1, newdata=dat.tst)
 pred2 <- predict(fit2, newdata=dat.tst)
 
-## our mean-squared error function:
-
-f.mse <- function(y, y.hat) {
-
-  if(! (is.numeric(y) && is.numeric(y.hat)) )
-    stop("y and y.hat must be numeric")
-
-  if(length(y) != length(y.hat))
-    stop("y and y.hat must be same length")
-
-  if(length(y) == 0) return(NaN)
-
-  mean((y - y.hat) ^ 2)
-}
-
 ## The purely linear model has much less error than the intercept-only
 ##   (global mean model), but much more error than the model with
 ##   squared predictor:
 
-f.mse(dat.tst$y, pred0)
-f.mse(dat.tst$y, pred1)
-f.mse(dat.tst$y, pred2)
+## mean-squared error:
+
+mean((dat.tst$y - pred0) ^ 2)
+mean((dat.tst$y - pred1) ^ 2)
+mean((dat.tst$y - pred2) ^ 2)
 
 ```
 
@@ -393,18 +400,18 @@ f.mse(dat.tst$y, pred2)
 ### Check your understanding 2
 
 1. Repeat the simulation of position vs time of an accelerating system from above (copy and
-   paste). Then split the data into 20% test set and 80% training set (copy and paste). 
-   Then fit a model of `y ~ tm` to the training data. Then fit another model of `sqrt(y) ~ tm` to 
+   paste). Split the data into 20% test set and 80% training set (copy and paste). 
+   Then fit a model of `y ~ tm` to the training data. Fit another model of `sqrt(y) ~ tm` to 
    the training data. Finally, fit a model of `y ~ I(tm ^ 2)`.
 
 2. Generate residual plots for all three fits and rank the fits with regard to how well
-   you feel they meed assumptions for the linear model.
+   you feel they meet assumptions for the linear model.
 
 3. Make predictions of the response values for the observations in the test set. Generate
    estimates of the mean-squared-error for each fit based on the test set.
 
-4. Plot the predicted response values on the y/left/vertical axis and observed response values on the
-   x/bottom/horizontal axis for all three fits.
+4. Plot the predicted response values on the y/left/vertical axis and observed response 
+   values on the x/bottom/horizontal axis for all three fits.
 
 [Return to index](#index)
 
@@ -436,7 +443,7 @@ In some circumstances, the interpretability of the linear model
   is not nearly as important as accurately estimating the shape 
   of the relationship of the mean of the response variable with the 
   predictors. For instance, we sometimes want to calibrate some 
-  measurements, for instance removing baseline drift from a mass 
+  measurements, such as removing baseline drift from a mass 
   spectrum, or translating optical density measurements into 
   chemical concentration based on a calibration curve. In these
   cases, understanding the underlying causal processes underlying
@@ -540,8 +547,12 @@ dat.plot <- data.frame(Days=seq(from=0, to=246, by=0.01))
 dat.plot$Weight <- predict(fit2, newdata=dat.plot)
 lines(Weight ~ Days, data=dat.plot, lty=3, col='cyan')
 
-legend('topright', legend=c('global mean', 'lm', 'loess'), 
-  lty=c(4, 2, 3), col=c('black', 'magenta', 'cyan'))
+legend(
+  'topright', 
+  legend=c('global mean', 'lm', 'loess', 'training-set', 'test-set'), 
+  lty=c(4, 2, 3, NA, NA), 
+  pch=c(NA, NA, NA, '+', 'o'),
+  col=c('black', 'magenta', 'cyan', 'black', 'orangered'))
 
 ```
 
@@ -556,25 +567,11 @@ pred0 <- rep(mean(dat.trn$Weight), nrow(dat.tst))
 pred1 <- predict(fit1, newdata=dat.tst)
 pred2 <- predict(fit2, newdata=dat.tst)
 
-## performance metric function:
+## mean-squared error of global mean, lm() and loess():
 
-f.mse <- function(obs, pred) {
-  if(! (is.numeric(obs) && is.numeric(pred)) )
-    stop("obs and pred must be numeric")
-
-  if(length(obs) != length(pred))
-    stop("obs and pred must be same length")
-
-  if(length(obs) == 0) return(NaN)
-
-  mean((obs - pred) ^ 2, na.rm=T)
-}
-
-## performance (global mean, lm() and loess()):
-
-f.mse(dat.tst$Weight, pred0)
-f.mse(dat.tst$Weight, pred1)
-f.mse(dat.tst$Weight, pred2)
+mean((dat.tst$Weight - pred0) ^ 2, na.rm=T)
+mean((dat.tst$Weight - pred1) ^ 2, na.rm=T)
+mean((dat.tst$Weight - pred2) ^ 2, na.rm=T)
 
 ```
 
@@ -596,7 +593,7 @@ f.fit <- function(span, degree, family, lty, col) {
 
   ## return mse estimated from test-set:
   pred <- predict(fit, newdata=dat.tst)
-  f.mse(dat.tst$Weight, pred)
+  mean((dat.tst$Weight - pred) ^ 2, na.rm=T)
 }
 
 f.plot <- function(main, degree, family) {

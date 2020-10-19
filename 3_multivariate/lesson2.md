@@ -20,7 +20,7 @@
 
 ### Permutation testing
 
-intro here; null tied to exchangeability; randomization vs. permutation testing;
+intro here; assumptions; null tied to exchangeability; randomization vs. permutation testing;
   randomization: outcomes for one observation not dependent on treatment or
   ourcome of other observations
   permutation: 
@@ -134,7 +134,33 @@ summary(rslts)
 
 ### Empirical boostrap
 
-Confidence interval on single mean.
+Assumptions. Idea like sampling population. Sample is best estimate of population
+  distribution.
+
+Confidence interval on single mean. 
+
+Percentile: whatever the percentile of `t.star`; may be sensitive to unusual distribution 
+  tails, but otherwise not too bad, and super-simple to interpret/implement.
+  lo: theta((1 - alpha) / 2) 
+  hi: theta(1 - (1 - alpha) / 2)
+
+Normal: uses the z-distribution (semi-parametric) and estimated se to get percentiles.
+  Assumes your plot of `t.star` is normal.
+  b <- t0 - mean(t.star)
+  (t0 - b) +/- z(alpha) * se ==
+  (2 * t0 - mean(t.star)) +/- z(alpha) * se
+
+Basic: uses distribution of difference between `t0` and `t.star`; more robust than percentile 
+  to strange tails, but can give values out of range.
+  lo: 2 * t0 - theta((1 - alpha) / 2) 
+  hi: 2 * t0 - theta(1 - (1 - alpha) / 2)
+
+BCa: adjusts both bias and skewness in the distribution of *t. may be best in larger 
+  samples; unstable (high variance) when used with smaller samples. Computationally
+  expensive, since adds jackknifing to the process to in order to 'accelerate' the
+  bias adjustment.
+
+If get agreement between Percentile and BCa, good to go. If BCa blows up, ...
 
 ```
 ## CI on single mean
@@ -270,10 +296,46 @@ confint(fit)['speed', ]
 
 ### Cross-validation
 
-intro here
+intro here; idea; assumptions; with increasing fold (LOOCV is the 
+  extreme), bias decreases but so does precision.
+  For LOOCV, k=n, or k=nrow(dat).
 
 ```
-code here
+library('caret')
+sessionInfo()
+
+rm(list=ls())
+set.seed(1)
+
+idx <- 1 : nrow(wtloss)
+
+(folds <- createMultiFolds(idx, k=10, times=3))
+
+f <- function(idx) {
+
+  ## split into training and testing:
+  dat.trn <- wtloss[idx, ]
+  dat.tst <- wtloss[-idx, ]
+
+  ## fit traditional linear model:
+  fit1 <- lm(Weight ~ Days, data=dat.trn)
+  pred1 <- predict(fit1, newdata=dat.tst)
+
+  ## fit loess model:
+  fit2 <- loess(Weight ~ Days, span=0.5, degree=1, family='symmetric', data=dat.trn)
+  pred2 <- predict(fit2, newdata=dat.tst)
+
+  ## estimate error for each model:
+  mse1 <- mean((dat.tst$Weight - pred1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$Weight - pred2) ^ 2, na.rm=T)
+
+  ## return error estimates:
+  c(mse.lm=mse1, mse.loess=mse2)
+}
+
+rslt <- sapply(folds, f)
+apply(rslt, 1, mean)
+apply(rslt, 1, sd)
 
 ```
 

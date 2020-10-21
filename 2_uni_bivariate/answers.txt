@@ -262,12 +262,12 @@ L4C3:
 
 rm(list=ls())
 dat <- faithful
-n.trn <- round(nrow(dat) / 5)
+(n.tst <- round(nrow(dat) / 5))
 
-idx.trn <- sample(1 : nrow(dat), n.trn, replace=F)
-i.trn <- rep(F, nrow(dat))
-i.trn[idx.trn] <- T
-i.tst <- ! i.trn
+idx.tst <- sample(1 : nrow(dat), n.tst, replace=F)
+i.tst <- rep(F, nrow(dat))
+i.tst[idx.tst] <- T
+i.trn <- ! i.tst
 
 dat.trn <- dat[i.trn, ]
 dat.tst <- dat[i.tst, ]

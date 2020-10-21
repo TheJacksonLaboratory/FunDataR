@@ -307,31 +307,39 @@ sessionInfo()
 rm(list=ls())
 set.seed(1)
 
-idx <- 1 : nrow(wtloss)
-
-(folds <- createMultiFolds(idx, k=10, times=3))
+k <- 5
+times <- 3
+dat <- trees
+frm <- sqrt(Volume) ~ Girth
+fit <- lm(frm, data=dat)
+summary(fit)
 
 f <- function(idx) {
 
   ## split into training and testing:
-  dat.trn <- wtloss[idx, ]
-  dat.tst <- wtloss[-idx, ]
+  dat.trn <- dat[idx, ]
+  dat.tst <- dat[-idx, ]
 
   ## fit traditional linear model:
-  fit1 <- lm(Weight ~ Days, data=dat.trn)
+  fit1 <- lm(frm, data=dat.trn)
   pred1 <- predict(fit1, newdata=dat.tst)
+  pred1 <- pred1 ^ 2
 
   ## fit loess model:
-  fit2 <- loess(Weight ~ Days, span=0.5, degree=1, family='symmetric', data=dat.trn)
+  fit2 <- loess(frm, span=0.5, degree=1, family='symmetric', data=dat.trn)
   pred2 <- predict(fit2, newdata=dat.tst)
+  pred2 <- pred2 ^ 2
 
   ## estimate error for each model:
-  mse1 <- mean((dat.tst$Weight - pred1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$Weight - pred2) ^ 2, na.rm=T)
+  mse1 <- mean((dat.tst$Volume - pred1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$Volume - pred2) ^ 2, na.rm=T)
 
   ## return error estimates:
   c(mse.lm=mse1, mse.loess=mse2)
 }
+
+idx <- 1 : nrow(dat)
+(folds <- createMultiFolds(idx, k=k, times=times))
 
 rslt <- sapply(folds, f)
 apply(rslt, 1, mean)

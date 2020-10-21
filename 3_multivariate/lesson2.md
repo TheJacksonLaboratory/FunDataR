@@ -20,17 +20,58 @@
 
 ### Permutation testing
 
-intro here; assumptions; null tied to exchangeability; randomization vs. permutation testing;
-  randomization: outcomes for one observation not dependent on treatment or
-  ourcome of other observations
-  permutation: 
+We are often interested in knowing whether two variables (e.g. `x` and `y`) are associated with
+  one another. We do this when we conduct a proportion test where we want to know if two
+  group membership variables are associated with one another, the two-sample t-tests or ANOVA 
+  (where we want to know if the variable for group membership is associated with the continuous 
+  variable being investigated). We also did it for two continuous variables when we looked at 
+  correlation measures as well as when we fit linear models and tested whether a coefficient 
+  for an explanatory variable was significant or not. The latter amounts to a test for linear 
+  association between the explanatory variable and the outcome variable. In the more general 
+  case, we are interested whether the value of one variable is in any way (linear or not) 
+  determined by the value of another variable. The null hypothesis would be that there is no 
+  relationship, which would be the same thing as saying that the value of the first variable 
+  has no influence on the second variable. 
 
-random assignment to treatment groups leads to one set of assumptions
-non-random assignment requires further justification for exchangeability assumption.
+Even if there is no association between variables, due to the use of finite samples, there
+  will always be some error in the estimation of population parameters. Therefore, even if
+  the true population correlation of `x` and `y` is zero, in any finite sample, it is likely
+  that the correlation estimated with the sample will be non-zero due to random variation.
+  What we would like to know is whether the non-zero correlation (say `est1`) is non-zero 
+  due to this random finite sampling effect, or due to a true association between variables. 
+  In order to figure out what the chances are that the non-zero correlation was observed 
+  simply by random chance, we can shuffle the values of `y` and re-estimate the correlation 
+  based on the 'permuted' values. If we repeat this say 1000 times, and we observe a 
+  correlation estimate at least as extreme as `est1` only 3 times, then we can say that 
+  there is only about a 3 in 1000 chance that a correlation of size `est1` will be observed
+  by chance when there is no true correlation between `x` and `y`. This idea is behind
+  how we can use permutation testing to put p-values on hypotheses about associations 
+  between variables.
 
-t-test
+The main assumption behind permutation tests is that the observations be 'exchangeable' 
+  under the null hypothesis. This means that we are assuming that under the null, all the 
+  observations are drawn from a single common population where `x` has no influence on 
+  on the distribution of `y` and vice-versa. This imposes a more stringent null hypothesis
+  than we might be used to. For instance, in the case of the two-sample t-test, this means
+  that not only are the means of the two groups assumed to be equal, but every other 
+  aspect of the distributions as well, such as the variance. Therefore, permutation would
+  be a valid way to non-parametrically to a two-sample equal variances t-test, but not
+  a two-sample unequal variances (Welch's) t-test. Fortunately, in the case of designed 
+  experiments, random assignment of experimental units (e.g. test mice) to treatments 
+  ensures the assumption of exchangeability is met. Permutation testing in this context
+  is sometimes called 'randomization testing'. If units have not been randomly assigned
+  to treatment groups (e.g. in the case of observational studies), establishing 
+  exchangeability is more complicated. For complex experimental designs, permutation 
+  strategies can be similarly complicated in order to ensure the exchangeability 
+  condition is met.
 
-sampling without replacement...
+In the examples below, we will use the R `sample()` function again, with `replace=F` 
+  to conduct the permutations. This simply takes all the values in one variable, 
+  scrambles them, and returns them. Each value will appear exactly as many times 
+  in the permutation as it did in the original list: only the order changes. We
+  will first demonstrate permutation testing with the two-sample equal variances 
+  t-test. We will conduct a Bartlett test to ensure that obvious departures from
+  exchangeability are observed:
 
 ```
 ## two-sample equal-variances t-test:
@@ -83,10 +124,12 @@ fit$p.value                       ## compare to parametric (finer grained)
 
 ```
 
-Simple linear regression or other models with a single predictor (including polynomial
-  terms and multiple levels for a factor predictor):
-
-Can use lmperm() or coin().
+We can employ the same strategy used for the two-sample t-test to apply 
+  permutation testing to proportion tests and correlation tests. Resampling
+  the group variable makes the one-factor ANOVAs we've used thus far also
+  amenable to permutation testing. For simple linear regression or other 
+  models with a single predictor we can just scramble the values for that
+  predictor: 
 
 ```
 ## p-value on coefficient from lm():
@@ -133,6 +176,40 @@ summary(rslts)
 ---
 
 ### Empirical boostrap
+
+When we conduct a parametric test, we typically use estimates of e.g. the mean
+  and variance of a sample to 'parameterize' a known family of distributions,
+  such as parameterizing a normal distribution with a mean and variance estimated
+  from the sample. That is we assume a normal distribution is the reality and then
+  use some summary measures from the sample to specify the center and spread of 
+  the distribution. However, we are often wrestling with the question of whether
+  the distribution we are interested really is normal or not. We may do tests for
+  normality for small samples, or assume the CLT applies in larger samples making
+  estimates normally distributed even when the variable being estimated is not
+  normally distributed. This way of doing business has been around for a long time
+  and has resulted in many successes. However, for small and intermediate sized
+  samples, we are often unsure if the distribution of our estimates is really 
+  normal enough to justify invoking the CLT.
+
+One alternative approach that can be particularly useful for generating confidence
+  intervals in the case of small and intermediate sized samples is the 'empirical
+  bootstrap'. The idea here is that instead of measuring e.g. two summary statistics
+  (mean and sd) to parameterize an assumed underlying distribution (e.g. normal), 
+  why don't we abandon any preconceptions about the population distribution and use 
+  the sample to estimate not only the mean and sd, but the entire shape of the 
+  population distribution. If the sample distribution is skewed, assume the 
+  population distribution is similarly skewed. If the sample seems to have two
+  peaks, then assume the population distribution has two peaks, etc. The only 
+  assumption behind this method is that the sample has been drawn randomly (and
+  independently) from the population of interest. In practice, what we do is 
+  resample the sample observations with replacement, that is individual observations
+  can appear more than once or not at all in the resampled dataset. The idea
+  here is that we are using the sample as the 'surrogate' population, and 
+  drawing from it should be like sampling a population without altering the 
+  composition of that population (wording that we've seen several times before
+  when discussing the assumptions behind statistical inference in general).
+
+Sample with replacement: mimics sampling the population.
 
 Assumptions. Idea like sampling population. Sample is best estimate of population
   distribution.
@@ -295,6 +372,59 @@ confint(fit)['speed', ]
 ---
 
 ### Cross-validation
+
+Previously, we split data into a training-set and test-set, then used the
+  training-set to fit a model and the test-set to evaluate the resulting
+  model. If we select one fifth of the data for our test-set we can get
+  a performance estimate from those data. However, if we were to repeat
+  the experiment and pick a different fifth of the data for our test-set,
+  we expect we would get a similar, but somewhat different result. That 
+  is, our results are somewhat unstable, and depend on exactly how we 
+  split the data into a training-set and test-set. The idea behind
+  cross-validation is that if we average the results over the different
+  possible held-out test-sets, the final result will be more stable
+  and therefore a more reliable (less noisy) estimate of true model
+  performance. The data can be split into fifths in a way in which each
+  observation appears exactly once in a test set, and other ways in 
+  which individual observations can appear in more than one test set.
+  In the first case, the observation order is randomized and the first
+  fifth used for test-set and the rest for training-set. In the next 
+  iteration, the second fifth of observations are reserved for the 
+  test-set, and in the fifth iteration, the last fifth of observations 
+  are used for testing. However, this procedure depends on the 
+  original randomization order. By repeating the entire process
+  several times, randomizing observation order at the start of each
+  repetition, we can get a much larger assortment of test-sets with
+  20% of the observations:
+
+```
+rm(list=ls())
+set.seed(1)
+
+x <- 1:20
+x <- sample(x, length(x), replace=F)
+x[1:5]
+x[6:10]
+x[11:15]
+x[16:20]
+
+x <- sample(x, length(x), replace=F)
+x[1:5]
+x[6:10]
+x[11:15]
+x[16:20]
+
+x <- sample(x, length(x), replace=F)
+x[1:5]
+x[6:10]
+x[11:15]
+x[16:20]
+
+```
+
+Bias high and precision low with 
+
+In cross-validation, we
 
 intro here; idea; assumptions; with increasing fold (LOOCV is the 
   extreme), bias decreases but so does precision.

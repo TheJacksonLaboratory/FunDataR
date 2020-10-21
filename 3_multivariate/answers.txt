@@ -153,3 +153,133 @@ pred.loess <- predict(fit.loess, newdata=dat.tst)
 mean((dat.tst$density - pred.lm) ^ 2)
 mean((dat.tst$density - pred.loess) ^ 2)
 
+
+###################################################################################################
+## Lesson 2 : Check 1
+
+## warpbreaks, breaks in wool 'A' tension 'L' vs wool 'B', tension 'M'.
+##   (no need for bartlett's test). T-test. Parametric p-value.
+##   Permutation p-value with 9999 permutations.
+
+rm(list=ls())
+set.seed(1)
+
+dat <- warpbreaks
+i.x <- dat[, 'wool'] == 'A' & dat[, 'tension'] == 'L'
+i.y <- dat[, 'wool'] == 'B' & dat[, 'tension'] == 'M'
+
+x <- dat[i.x, 'breaks']
+y <- dat[i.y, 'breaks']
+table(dat[, 'wool'], dat[, 'tension'])
+length(x)
+length(y)
+
+fit <- t.test(x=x, y=y, var.equal=T)
+fit$statistic
+
+grps = c(rep('A', length(x)), rep('B', length(y)))
+bartlett.test(x=c(x, y), g=grps)
+
+R <- 9999
+rslts <- rep(as.numeric(NA), R)
+(dat <- data.frame(x=c(x, y), grp=grps))
+
+for(i in 1 : R) {
+  dat.i <- dat
+  dat.i$grp <- sample(dat.i$grp, nrow(dat.i), replace=F)
+  x.i <- dat.i$x[dat.i$grp == 'A']
+  y.i <- dat.i$x[dat.i$grp == 'B']
+  fit.i <- t.test(x=x.i, y=y.i, var.equal=T)
+  rslts[i] <- fit.i$statistic
+}
+
+fit$statistic
+summary(rslts)
+(n.exceed <- sum(abs(rslts) >= abs(fit$statistic)))
+(n.exceed + 1) / (R + 1)
+fit$p.value
+
+
+###################################################################################################
+## Lesson 2 : Check 2
+
+Fit sqrt(Volume) ~ Girth with data trees. 
+Paramtric 95% CI on coefficient for Girth. 
+Paramtric 95% CI on coefficient for Girth.
+Compare to parametric estimate.
+
+library(boot)
+rm(list=ls())
+set.seed(1)
+
+fit <- lm(sqrt(Volume) ~ Girth, data=trees)
+summary(fit)
+
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
+
+f <- function(dat, i) {
+  fit.i <- lm(sqrt(Volume) ~ Girth, data=dat[i, ])
+  coef(fit.i)['Girth']
+}
+f(trees, rep(T, nrow(trees)))
+
+R <- 999
+out <- boot(trees, f, R)
+par(mfrow=c(1, 1))
+plot(out)
+jack.after.boot(out)
+(ci <- boot.ci(out))
+confint(fit)['Girth', ]
+
+
+###################################################################################################
+## Lesson 2 : Check 3
+
+library('caret')
+sessionInfo()
+
+rm(list=ls())
+set.seed(1)
+
+k <- 5
+times <- 3
+dat <- trees
+frm1 <- Volume ~ Girth
+frm2 <- sqrt(Volume) ~ Girth
+
+fit1 <- lm(frm1, data=dat)
+fit2 <- lm(frm2, data=dat)
+summary(fit1)
+summary(fit2)
+
+f <- function(idx) {
+
+  ## split into training and testing:
+  dat.trn <- dat[idx, ]
+  dat.tst <- dat[-idx, ]
+
+  ## fit Volume ~ Girth:
+  fit1 <- lm(frm1, data=dat.trn)
+  pred1 <- predict(fit1, newdata=dat.tst)
+
+  ## fit sqrt(Volume) ~ Girth:
+  fit2 <- lm(frm2, data=dat.trn)
+  pred2 <- predict(fit2, newdata=dat.tst)
+  pred2 <- pred2 ^ 2
+
+  ## estimate error for each model:
+  mse1 <- mean((dat.tst$Volume - pred1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$Volume - pred2) ^ 2, na.rm=T)
+
+  ## return error estimates:
+  c(mse.lm=mse1, mse.loess=mse2)
+}
+
+idx <- 1 : nrow(dat)
+(folds <- createMultiFolds(idx, k=k, times=times))
+
+rslt <- sapply(folds, f)
+apply(rslt, 1, mean)
+apply(rslt, 1, sd)
+

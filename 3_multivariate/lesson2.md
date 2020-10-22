@@ -383,7 +383,7 @@ Previously, we split data into a training-set and test-set, then used the
   split the data into a training-set and test-set. The idea behind
   cross-validation is that if we average the results over the different
   possible held-out test-sets, the final result will be more stable
-  and therefore a more reliable (less noisy) estimate of true model
+  and therefore a more reliable (less noisy) estimate of model
   performance. The data can be split into fifths in a way in which each
   observation appears exactly once in a test set, and other ways in 
   which individual observations can appear in more than one test set.
@@ -394,8 +394,8 @@ Previously, we split data into a training-set and test-set, then used the
   are used for testing. However, this procedure depends on the 
   original randomization order. By repeating the entire process
   several times, randomizing observation order at the start of each
-  repetition, we can get a much larger assortment of test-sets with
-  20% of the observations:
+  repetition, we can get a much larger assortment of test-sets 
+  containing 20% of the observations:
 
 ```
 rm(list=ls())
@@ -440,38 +440,43 @@ set.seed(1)
 k <- 5
 times <- 3
 dat <- trees
-frm <- sqrt(Volume) ~ Girth
-fit <- lm(frm, data=dat)
-summary(fit)
+frm1 <- Volume ~ Girth
+frm2 <- Volume ~ 1
+fit1 <- lm(frm1, data=dat)
+fit2 <- lm(frm2, data=dat)
+summary(fit1)
+summary(fit2)
+mean(dat$Volume)
 
-f <- function(idx) {
+plot(Volume ~ Girth, data=trees)
+abline(fit1, lty=2, col='cyan')
+abline(fit2, lty=3, col='magenta')
+
+f <- function(idx.trn) {
 
   ## split into training and testing:
-  dat.trn <- dat[idx, ]
-  dat.tst <- dat[-idx, ]
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
 
   ## fit traditional linear model:
-  fit1 <- lm(frm, data=dat.trn)
+  fit1 <- lm(frm1, data=dat.trn)
   pred1 <- predict(fit1, newdata=dat.tst)
-  pred1 <- pred1 ^ 2
 
   ## fit loess model:
-  fit2 <- loess(frm, span=0.5, degree=1, family='symmetric', data=dat.trn)
+  fit2 <- lm(frm2, data=dat.trn)
   pred2 <- predict(fit2, newdata=dat.tst)
-  pred2 <- pred2 ^ 2
 
   ## estimate error for each model:
   mse1 <- mean((dat.tst$Volume - pred1) ^ 2, na.rm=T)
   mse2 <- mean((dat.tst$Volume - pred2) ^ 2, na.rm=T)
 
   ## return error estimates:
-  c(mse.lm=mse1, mse.loess=mse2)
+  c(mse1=mse1, mse2=mse2)
 }
 
 idx <- 1 : nrow(dat)
 (folds <- createMultiFolds(idx, k=k, times=times))
-
-rslt <- sapply(folds, f)
+(rslt <- sapply(folds, f))
 apply(rslt, 1, mean)
 apply(rslt, 1, sd)
 

@@ -175,7 +175,7 @@ summary(rslts)
 
 ---
 
-### Empirical boostrap
+### Empirical bootstrap
 
 When we conduct a parametric test, we typically use estimates of e.g. the mean
   and variance of a sample to 'parameterize' a known family of distributions,
@@ -363,6 +363,10 @@ confint(fit)['speed', ]
 
 ```
 
+[Return to index](#index)
+
+---
+
 ### Check your understanding 2
 
 1) question here
@@ -463,26 +467,32 @@ On the other hand, making the test-sets too small will tend to make the
 The general advice is to use a smaller portion of observations for your
   test-sets when your initial sample size is small and a larger portion
   when initial samples sizes are large. In cases other than LOOCV (where
-  it is not possible), it is best to repeat the cross-validation process
+  it is not meaningful), it is best to repeat the cross-validation process
   several times, randomizing the observation order for each repetition, 
   and averaging the results. This further improves precisions by reducing 
   dependency of the final result on the original randomization order.
-  For very small samples (n <= 10), LOOCV can be a reasonable option. In 
-  medium sized samples (n <= 30) ten-fold CV (where training-set size
+  For very small samples (n <= 10), LOOCV may well be the best option. In 
+  medium sized samples (n <= 50) ten-fold CV (where training-set size
   is about 10% of the initial sample size) with at least three repetitions
   after re-randomization appears to be a good strategy. For larger 
   samples, as much as 50% of the data (2-fold CV) can be in the test-set, 
   again with some repetitions after re-randomization to smooth-out the 
-  results. Two-fold CV also opens up the possibility of doing paired-sample
-  t-tests to estimate p-values (including non-parametric permutation-based 
+  results. 
+
+Two-fold CV also opens up the possibility of doing paired-sample t-tests 
+  to estimate p-values (including non-parametric permutation-based 
   p-values) and (parametric) confidence intervals on performance estimates. 
-  In order to do something similar for other than 2-fold CV, one can wrap 
+  In order to do something similar in a general way for CV, one can wrap 
   the entire CV process within an empirical bootstrap procedure, which 
-  allows estimation of confidence intervals as well as performance estimate
-  bias for the CV process. However, this process can require many tens of
-  thousands of model fits to be performed, which can be prohibitive for
-  computationally expensive model fits or where many individual models 
-  must be evaluated.
+  allows estimation of confidence intervals. We can then do the equivalent
+  of hypothesis testing by seeing if hypothetical values corresponding to 
+  whatever our null hypothesis is (e.g. testing slope vs. hypothetical 
+  value of 0) lie within the confidence interval. Bootstrapping also 
+  allows us to estimate and correct for the bias in the CV performance
+  measure. However, enclosing CV within a bootstrap process can require 
+  many tens of thousands of model fits to be performed, which can be 
+  prohibitive for computationally expensive model fits or where many 
+  individual models must be evaluated.
 
 ```
 library('caret')

@@ -169,7 +169,29 @@ summary(rslts)
 
 ### Check your understanding 1
 
-1) question here
+1) From the built-in `warpbreaks` dataset, split out the `breaks` values where `wool == 'A'` 
+   and `tension == 'L'` as one variable (say `x`). Split out the `breaks` values where 
+   `wool == 'B'` and `tension == 'M'` as another variable (say `y`). 
+
+2) Rearrange the data to be in a data-frame with `length(x) + length(y)` rows and two columns. The 
+   first column should be the `breaks` and the second column should be a new indicator, of type
+   `character` or `factor`, representing group membership. The first group (maybe labeled 'A') is
+   the data with `wool == 'A'` and `tension == 'L'`, and the other (maybe 'B') is the data with
+   `wool == 'B'` and `tension == 'M'`. Hint: concatenate `x` and `y` to make the first column; 
+   use their lengths to specify the group variable.
+
+3) Conduct a Bartlett test to see if the variances between the two groups is different.
+
+4) We will assume the Bartlett test showed no evidence of unequal variances, so conduct a 
+   two-sample equal variances t-test on the null hypothesis that the mean `breaks` of 
+   group `A` and group `B` (or equivalently, `x` and `y`) are different. Return the 
+   statistic (t-statistic in this case) and p-value from the test.
+
+5) Conduct 9999 permutations of group labels, conducting the same `t.test()` described 
+   above, saving the statistic for each iteration. Compare the distribution of permutation
+   results to the original unpermuted result in order to calculate a permutation p-value. 
+   Does it corroborate or contradict the parametric test? Hint: this will likely be 
+   easier if you use the data.frame you created above and permute the group labels.
 
 [Return to index](#index)
 
@@ -242,7 +264,8 @@ For each bootstrap resample, we perform the entire analysis we are interested in
 
 There are many methods for generating confidence intervals from the distribution 
   of bootstrap results `t.star` and the estimate using the whole sample `t0`. The 
-  default ones provided by the `boot::boot.ci()` function are briefly described below:
+  default ones provided by the `boot::boot.ci()` function are briefly described 
+  below. Unless otherwise indicated, all are 95% CIs (the default):
 
 Percentile: this is the most straight-forward method. We estimate the 95% confidence
   interval for `t0` by taking the 2.5th percentile value and 97.5th percentile value
@@ -254,6 +277,13 @@ Percentile: this is the most straight-forward method. We estimate the 95% confid
   convergence toward the asymptotic results described by the CLT. Therefore some may 
   question the value over simply using asymptotically correct parametric methods,
   when the latter are available (they often are not).
+
+```
+## Percentile intervals:
+ci95.lo <- quantile(t.star, prob=0.025)
+ci95.hi <- quantile(t.star, prob=0.975)
+
+```
 
 Normal: this method is a hybrid of sorts, in that it uses `t.star` to estimate the 
   standard error of the estimates and their bias. But then it uses the standard normal 
@@ -297,7 +327,9 @@ BCa: adjusts `t0` for both the bias and skewness observed in the distribution of
   interval can be a good choice if `t.star` does not appear quite normal and
   if the potential range of `t0` is not bounded. Otherwise the percentile method
   can be used. More typically, all four methods will produce fairly comparable
-  results, supporting the robustness of the overall final result.
+  results, supporting the robustness of the overall final result. We will not
+  review the formulas as they are relatively complicated and not necessarily
+  intuitive.
 
 First we will conduct a bootstrap analysis to generate a confidence interval
   for the population mean based on a single sample. In particular, we'll 
@@ -351,7 +383,7 @@ jack.after.boot(out)              ## are their outliers affecting point estimate
 
 out$t0                            ## the estimate from the original sample
 f(dat, T)                         ## test our function (should produce out$t0)
-length(out$t)                     ## out$t is t.star
+length(out$t)                     ## out$t is t.star (from the discussion above)
 summary(out$t)
 head(out$t)
 
@@ -457,7 +489,12 @@ confint(fit)['speed', ]
 
 ### Check your understanding 2
 
-1) question here
+1) Fit a linear model with the formula `sqrt(Volume) ~ Girth` to the built-in trees dataset.
+
+2) Generate a parametric 95% confidence interval for the for the Girth coefficient.
+
+3) Generate a bootstrap 95% confidence interval (BCa if it works, otherwise Percentile) on the
+   Girth coefficient. Does it generally corroborate or contradict the parametric interval?
 
 [Return to index](#index)
 
@@ -640,7 +677,13 @@ apply(rslt, 1, sd)
 
 ### Check your understanding 3
 
-1) question here
+1) Fit a linear model to the formula `Volume ~ Girth` for the built-in `trees` dataset. Fit a 
+   second linear model to the formula `sqrt(Volume) ~ Girth`. Generate summaries for each fit.
+
+2) Use 5-fold cross-validation with 3 repetitions (use the `caret::createMultiFolds()` parameter 
+   `times` to set the repetitions) to compare the two formulas above in terms of mean-squared 
+   error of the resulting models. Consider both the mean and standard deviations of the results 
+   for each formula to decide if the `sqrt()` transformation is worthwhile.
 
 [Return to index](#index)
 

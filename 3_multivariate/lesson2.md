@@ -381,7 +381,7 @@ Previously, we split data into a training-set and test-set, then used the
   we expect we would get a similar, but somewhat different result. That 
   is, our results are somewhat unstable, and depend on exactly how we 
   split the data into a training-set and test-set. The idea behind
-  cross-validation is that if we average the results over the different
+  cross-validation (CV) is that if we average the results over the different
   possible held-out test-sets, the final result will be more stable
   and therefore a more reliable (less noisy) estimate of model
   performance. The data can be split into fifths in a way in which each
@@ -422,13 +422,67 @@ x[16:20]
 
 ```
 
-Bias high and precision low with 
+The size of the held-out test-set for each iteration of cross-validation
+  has to be carefully considered. In general, assuming that observations 
+  are drawn at random from the population of interest and that the model 
+  has some predictive value (it need not be perfect; no model is), the 
+  larger the sample used to train the model, the better the model will 
+  fit the population and therefore the better it will tend to perform. 
+  So when we only use a subset of the sample for training, as in the 
+  case of cross-validation, the model will tend to be somewhat worse 
+  than it would have been had we used all the available data to train 
+  the model. The larger the test-set, the less data is available for
+  training the model, and the worse we expect the model to perform. This
+  means that performance estimates from a CV are downwardly biased, that 
+  is, they will tend to underestimate the performance one would expect 
+  if the full dataset was used to fit the model.
 
-In cross-validation, we
+On the other hand, making the test-sets too small will tend to make the
+  training-sets too similar to one another, which makes the performance
+  estimate more dependent on the particular sample one began with. That
+  is, if the experiment were repeated with another random sample, the
+  result might be quite different, since that result will also be highly
+  dependent on the particular observations in that sample. An extreme
+  case of this is seen when the test-set size is one, which is sometimes
+  called 'Leave-one-out cross-validation', or 'LOOCV'. In this case 
+  there is one iteration per observation, with that single observation
+  being the test-set and the rest of the observations in the training-set.
+  This means that the training-set is as large as can be for CV, 
+  minimizing the downward bias in performance estimates mentioned in the
+  previous paragraph. On the other hand, the test-sets are very similar
+  to each other and the original sample: they only differ by one 
+  observation. That means that the models produced are all very similar 
+  to one another, and strongly reflect the composition of the original 
+  sample. That is, if we started with a different sample, we would
+  expect a different result reflective of that particular sample. This
+  means that there is a lot of variation in results that would be 
+  expected if the experiment was repeated many times with new random
+  samples. Therefore the precision of estimates based on CV with small 
+  test-sets tends to be low.
 
-intro here; idea; assumptions; with increasing fold (LOOCV is the 
-  extreme), bias decreases but so does precision.
-  For LOOCV, k=n, or k=nrow(dat).
+The general advice is to use a smaller portion of observations for your
+  test-sets when your initial sample size is small and a larger portion
+  when initial samples sizes are large. In cases other than LOOCV (where
+  it is not possible), it is best to repeat the cross-validation process
+  several times, randomizing the observation order for each repetition, 
+  and averaging the results. This further improves precisions by reducing 
+  dependency of the final result on the original randomization order.
+  For very small samples (n <= 10), LOOCV can be a reasonable option. In 
+  medium sized samples (n <= 30) ten-fold CV (where training-set size
+  is about 10% of the initial sample size) with at least three repetitions
+  after re-randomization appears to be a good strategy. For larger 
+  samples, as much as 50% of the data (2-fold CV) can be in the test-set, 
+  again with some repetitions after re-randomization to smooth-out the 
+  results. Two-fold CV also opens up the possibility of doing paired-sample
+  t-tests to estimate p-values (including non-parametric permutation-based 
+  p-values) and (parametric) confidence intervals on performance estimates. 
+  In order to do something similar for other than 2-fold CV, one can wrap 
+  the entire CV process within an empirical bootstrap procedure, which 
+  allows estimation of confidence intervals as well as performance estimate
+  bias for the CV process. However, this process can require many tens of
+  thousands of model fits to be performed, which can be prohibitive for
+  computationally expensive model fits or where many individual models 
+  must be evaluated.
 
 ```
 library('caret')

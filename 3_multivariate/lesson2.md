@@ -179,68 +179,142 @@ summary(rslts)
 
 When we conduct a parametric test, we typically use estimates of e.g. the mean
   and variance of a sample to 'parameterize' a known family of distributions,
-  such as parameterizing a normal distribution with a mean and variance estimated
-  from the sample. That is we assume a normal distribution is the reality and then
-  use some summary measures from the sample to specify the center and spread of 
-  the distribution. However, we are often wrestling with the question of whether
-  the distribution we are interested really is normal or not. We may do tests for
-  normality for small samples, or assume the CLT applies in larger samples making
-  estimates normally distributed even when the variable being estimated is not
-  normally distributed. This way of doing business has been around for a long time
-  and has resulted in many successes. However, for small and intermediate sized
-  samples, we are often unsure if the distribution of our estimates is really 
-  normal enough to justify invoking the CLT.
+  such the family of normal distributions, `N(mean, sd)`. That is we assume a 
+  normal distribution is the real shape of the distribution of the parameter of
+  interest, and then use some summary measures from the sample to specify the 
+  center and spread of that normal shape. However, we are often wrestling with 
+  the question of whether the distribution we are interested really has the shape
+  of a normal distribution or not. In the case of small samples, we may do tests 
+  for normality to justify parametric estimation. For largers samples, we might
+  assume the CLT applies, making estimates normally distributed even when the 
+  data used for estimation is itself not normally distributed. This way of doing 
+  business has been around for a long time and has resulted in many successful
+  discoveries and general advance of human knowledge about the universe. However, 
+  for small and intermediate sized samples, as you may have noticed, it can be 
+  hard to be sure if the distribution of our estimates is really normal enough 
+  to justify invoking the CLT.
 
 One alternative approach that can be particularly useful for generating confidence
   intervals in the case of small and intermediate sized samples is the 'empirical
   bootstrap'. The idea here is that instead of measuring e.g. two summary statistics
-  (mean and sd) to parameterize an assumed underlying distribution (e.g. normal), 
-  why don't we abandon any preconceptions about the population distribution and use 
-  the sample to estimate not only the mean and sd, but the entire shape of the 
-  population distribution. If the sample distribution is skewed, assume the 
+  (mean and sd) to parameterize an assumed underlying distribution (e.g. normal)
+  of our data, why don't we abandon any preconceptions about the population
+  distribution and instead use the sample to estimate not only the mean and sd
+  of an assumed distribution shape, but instead estimate the entire shape of the 
+  distribution from that sample. If the sample distribution is skewed, assume the 
   population distribution is similarly skewed. If the sample seems to have two
   peaks, then assume the population distribution has two peaks, etc. The only 
   assumption behind this method is that the sample has been drawn randomly (and
-  independently) from the population of interest. In practice, what we do is 
-  resample the sample observations with replacement, that is individual observations
-  can appear more than once or not at all in the resampled dataset. The idea
-  here is that we are using the sample as the 'surrogate' population, and 
-  drawing from it should be like sampling a population without altering the 
-  composition of that population (wording that we've seen several times before
-  when discussing the assumptions behind statistical inference in general).
+  independently) from the population of interest. 
 
-Sample with replacement: mimics sampling the population.
+In order to carry out a bootstrap analysis, we treat the sample as the specification
+  of the population distribution. Then we take random samples (let's call them
+  'resamples') from the original sample, as if the resamples were drawn from the 
+  original population. Because sampling is not supposed to change the population 
+  being sampled, the resampling is done 'with replacement'. That is, each time we 
+  draw an observation from the original sample, the observation is replaced, so 
+  the original sample remains unchanged. This means that subsequent draws from the
+  sample can result in individual observations occurring once, more than once, or 
+  not at all in the resample. One can use the R `sample()` function to do this 
+  resampling, setting `replace=T`, but we will demonstrate an easier way using 
+  the R `boot` package.
 
-Assumptions. Idea like sampling population. Sample is best estimate of population
-  distribution.
+For each bootstrap resample, we perform the entire analysis we are interested in
+  evaluating. We are seeing how well that analysis process is at describing the
+  parameter of interest in the original population. To get at this question, we use
+  the set of bootstrap results `t.star` (one result per bootstrap iteration) as 
+  a surrogate for the set of results we would have gotten had we repeated the 
+  original non-bootstrap analysis with many different identically sized samples 
+  from the original population. This set of bootstrap results allows estimation 
+  of the shape of the distribution of parameter estimate `t0` we make when using 
+  the whole original sample. This is exactly the shape we were trying to assume 
+  was normal in the case of parametric statistical inference about e.g. group 
+  means or linear model coefficients. Now we can use the bootstrap-based estimate 
+  of the shape in order to estimate confidence intervals for our parameters. 
+  Also, we can compare the mean of `t.star` with `t0` to see if `t0` is a biased
+  estimate of the corresponding population parameter. That is, if `mean(t.star)`
+  is 5, but `t0` is 10, this suggests that estimates are downwardly biased, since
+  estimates `t.star` of the parameter in the original sample `t0`, based on 
+  resamples appear downwardly biased. This suggests that `t0` is itself a biased
+  estimate of the true population parameter, since it was arrived at using a 
+  virtually identical process of sampling and calculation as was carried out 
+  with the resamples. 
 
-Confidence interval on single mean. 
+There are many methods for generating confidence intervals from the distribution 
+  of bootstrap results `t.star` and the estimate using the whole sample `t0`. The 
+  default ones provided by the `boot::boot.ci()` function are briefly described below:
 
-Percentile: whatever the percentile of `t.star`; may be sensitive to unusual distribution 
-  tails, but otherwise not too bad, and super-simple to interpret/implement.
-  lo: theta((1 - alpha) / 2) 
-  hi: theta(1 - (1 - alpha) / 2)
+Percentile: this is the most straight-forward method. We estimate the 95% confidence
+  interval for `t0` by taking the 2.5th percentile value and 97.5th percentile value
+  of `t.star`. That is, 95% of the values of `t.star` lie between the 2.5th and 97.5th
+  percentiles, so we use those as confidence bounds. This method has no adjustment
+  for bias, and tends to underestimate confidence bound width when used with small 
+  samples. The calculated confidence limits tend to converge to their nominal coverage
+  approximately with the square-root of the sample size, similar to the speed of
+  convergence toward the asymptotic results described by the CLT. Therefore some may 
+  question the value over simply using asymptotically correct parametric methods,
+  when the latter are available (they often are not).
 
-Normal: uses the z-distribution (semi-parametric) and estimated se to get percentiles.
-  Assumes your plot of `t.star` is normal.
-  b <- t0 - mean(t.star)
-  (t0 - b) +/- z(alpha) * se ==
-  (2 * t0 - mean(t.star)) +/- z(alpha) * se
-
-Basic: uses distribution of difference between `t0` and `t.star`; more robust than percentile 
-  to strange tails, but can give values out of range.
-  lo: 2 * t0 - theta((1 - alpha) / 2) 
-  hi: 2 * t0 - theta(1 - (1 - alpha) / 2)
-
-BCa: adjusts both bias and skewness in the distribution of *t. may be best in larger 
-  samples; unstable (high variance) when used with smaller samples. Computationally
-  expensive, since adds jackknifing to the process to in order to 'accelerate' the
-  bias adjustment.
-
-If get agreement between Percentile and BCa, good to go. If BCa blows up, ...
+Normal: this method is a hybrid of sorts, in that it uses `t.star` to estimate the 
+  standard error of the estimates and their bias. But then it uses the standard normal 
+  distribution `N(0, 1)` to calculate the the confidence bounds. This is essentially
+  assuming that `t.star` is normally distributed, which can be checked either graphically,
+  or by conducting a formal test for normality.
 
 ```
-## CI on single mean
+## Normal intervals:
+bias <- t0 - mean(t.star)
+ci95.lo <- (t0 - bias) - qnorm(0.025, mean=0, sd=1) * sd(t.star)
+ci95.hi <- (t0 - bias) + qnorm(0.975, mean=0, sd=1) * sd(t.star)
+
+```
+
+Basic: this method uses the distribution of differences between `t0` and `t.star` to 
+  calculate confidence bounds. It can be more robust than the percentile method to 
+  skewness in the tails of the distribution of `t.star`, and incorporates a bias
+  adjustment, but can produce confidence bounds that are out of the possible range 
+  of the parameter being estimated (for instance, it can give a bound less than zero 
+  for a quantity that is always greater than equal to zero). The speed of convergence 
+  of CIs to their nominal coverage is similar to the percentile method.
+
+```
+## Basic intervals:
+ci95.lo <- 2 * t0 - quantile(t.star, prob=0.025)
+ci95.hi <- 2 * t0 - quantile(t.star, prob=0.975)
+
+```
+
+BCa: adjusts `t0` for both the bias and skewness observed in the distribution of 
+  `t.star`. Confidence bounds approach their nominal coverage faster than the other
+  bootstrap methods described above. However, in small samples, the results can
+  be very unstable (are not precise) because the bias and particularly the skewness
+  estimates tend to be unstable with small samples. This method may be the best
+  choice for medium and larger samples, though it is computationally expensive 
+  compared to the other methods, because the skewness estimates are made using
+  jackknifing, which is another resampling method. In addition, the computations
+  may simply fail for some datasets. With small samples, if the distribution
+  of `t.star` appears normal, the normal method may be a good choice. The basic 
+  interval can be a good choice if `t.star` does not appear quite normal and
+  if the potential range of `t0` is not bounded. Otherwise the percentile method
+  can be used. More typically, all four methods will produce fairly comparable
+  results, supporting the robustness of the overall final result.
+
+First we will conduct a bootstrap analysis to generate a confidence interval
+  for the population mean based on a single sample. In particular, we'll 
+  estimate the mean sepal length in the `virginica` species in the `iris`
+  dataset. The `boot::boot()` function requires a function as an argument.
+  Functions can be passed by simply passing the names of the functions, 
+  without any quotes. The function passed needs to accept the original
+  dataset as the first argument, and an integer index of observations in
+  the bootstrap resample as the second argument. The index of bootstrap
+  observations is created and passed to your function by the `boot::boot()`
+  function. Your function is supposed to take the index, subset the data
+  using that index, then conduct the analysis on that subset and return 
+  the result. The `boot::boot()` function repeats this process, passing in
+  a new index, with every bootstrap iteration:
+
+```
+## CI on population mean
 library(boot)
 sessionInfo()
 
@@ -256,7 +330,7 @@ qqline(dat$Sepal.Length)
 (fit1 <- t.test(dat$Sepal.Length))
 
 ## function needs to take original data as first argument,
-##   and integer index of observations in bootstrap sample
+##   and integer index of observations in the bootstrap sample
 ##   (generated and passed by boot()) as the second argument.
 ##   It then needs to split the data based on the index and
 ##   compute + return the statistic of interest:
@@ -272,12 +346,12 @@ is.list(out)
 attributes(out)
 
 out                               ## note estimated bias about zero
-plot(out)
-jack.after.boot(out)
+plot(out)                         ## bias, skew; normal enough for normal intervals?
+jack.after.boot(out)              ## are their outliers affecting point estimate or CIs?
 
-out$t0
-f(dat, T)
-length(out$t)
+out$t0                            ## the estimate from the original sample
+f(dat, T)                         ## test our function (should produce out$t0)
+length(out$t)                     ## out$t is t.star
 summary(out$t)
 head(out$t)
 
@@ -291,7 +365,20 @@ fit1
 
 ```
 
-CI and bias for variance.
+As we mentioned previously, bootstrap analysis can also detect and adjust for biases
+  in the original parameter estimator formula used. For instance, we have discussed
+  how applying the formula for a population variance to a sample will result in a 
+  downwardly biased estimate of the variance of the population from which the sample
+  was drawn. We know this because many mathematicians have carefully studied the
+  properties of the variance formula, and cleverly figured out how to adjust that
+  formula to generate unbiased estimates of the population variance by replacing
+  the sample size used in the denominator when calculating an average, with the
+  samples size minus one. However, you may be interested in estimating a population 
+  parameter based on a sample and not know if the sample-based calculation will 
+  be a biased estimator or how to adjust it if it is biased. Bootstrapping provides
+  a convenient way to estimate and adjust for the bias. We will demonstrate using
+  the population formula for variance to estimate population variance based on a 
+  sample randomly drawn from the population: 
 
 ```
 ## CI and bias for variance.
@@ -320,8 +407,8 @@ R <- 9999
 out <- boot(x, f, R)
 
 out                               ## note bias
-plot(out)
-jack.after.boot(out)
+plot(out)                         ## check for skew, bias, and normality
+jack.after.boot(out)              ## check for outlier effects on point estimate and CIs
 
 (bias <- out$t0 - mean(out$t, na.rm=T))
 (est <- out$t0 + bias)
@@ -332,7 +419,8 @@ f.var.pop(x)
 
 ```
 
-CI for lm() coefficient.
+Finally, we will show how to estimate confidence intervals for a coefficient
+  from a linear model:
 
 ```
 ## CI for lm() coefficient.

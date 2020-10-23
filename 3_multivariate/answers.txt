@@ -153,3 +153,167 @@ pred.loess <- predict(fit.loess, newdata=dat.tst)
 mean((dat.tst$density - pred.lm) ^ 2)
 mean((dat.tst$density - pred.loess) ^ 2)
 
+
+###################################################################################################
+## Lesson 2 : Check 1
+
+1. From the built-in `warpbreaks` dataset, split out the `breaks` values where `wool == 'A'` 
+   and `tension == 'L'` as one variable (say `x`). Split out the `breaks` values where 
+   `wool == 'B'` and `tension == 'M'` as another variable (say `y`). 
+
+rm(list=ls())
+
+dat <- warpbreaks
+i.x <- dat[, 'wool'] == 'A' & dat[, 'tension'] == 'L'
+i.y <- dat[, 'wool'] == 'B' & dat[, 'tension'] == 'M'
+
+x <- dat[i.x, 'breaks']
+y <- dat[i.y, 'breaks']
+table(dat[, 'wool'], dat[, 'tension'])
+length(x)
+length(y)
+
+2. Rearrange the data to be in a data-frame with `length(x) + length(y)` rows and two columns. The 
+   first column should be the `breaks` and the second column should be a new indicator, of type
+   `character` or `factor`, representing group membership. The first group (maybe labeled 'A') is
+   the data with `wool == 'A'` and `tension == 'L'`, and the other (maybe 'B') is the data with
+   `wool == 'B'` and `tension == 'M'`. Hint: concatenate `x` and `y` to make the first column; 
+   use their lengths and `rep()` to specify the group variable.
+
+grps = c(rep('A', length(x)), rep('B', length(y)))
+(dat <- data.frame(x=c(x, y), grp=grps))
+
+3. Conduct a Bartlett test to see if the variances between the two groups is different.
+
+bartlett.test(x=c(x, y), g=grps)
+
+4. We will assume the Bartlett test showed no evidence of unequal variances, so conduct a 
+   two-sample equal variances t-test on the null hypothesis that the mean `breaks` of 
+   group `A` and group `B` (or equivalently, `x` and `y`) are different. Return the 
+   statistic (t-statistic in this case) and p-value from the test.
+
+fit <- t.test(x=x, y=y, var.equal=T)
+fit$statistic
+fit$p.value
+
+5. Conduct 9999 permutations of group labels, conducting the same `t.test()` described 
+   above, saving the statistic for each iteration. Compare the distribution of permutation
+   results to the original unpermuted result in order to calculate a permutation p-value. 
+   Does it corroborate or contradict the parametric test? Hint: this will likely be 
+   easier if you use the data.frame you created above and permute the group labels.
+
+set.seed(1)                       ## make pseudo-random process reproducible
+R <- 9999                         ## number of permutations
+rslts <- rep(as.numeric(NA), R)   ## to hold results; pre-extended for efficiency
+
+for(i in 1 : R) {
+  dat.i <- dat
+  dat.i$grp <- sample(dat.i$grp, nrow(dat.i), replace=F)
+  x.i <- dat.i$x[dat.i$grp == 'A']
+  y.i <- dat.i$x[dat.i$grp == 'B']
+  fit.i <- t.test(x=x.i, y=y.i, var.equal=T)
+  rslts[i] <- fit.i$statistic
+}
+
+fit$statistic                     ## test statistic from non-permuted (original) data
+summary(rslts)                    ## should be no NAs: if there are, need to adjust for them
+(n.exceed <- sum(abs(rslts) >= abs(fit$statistic)))
+(n.exceed + 1) / (R + 1)          ## permutation p-value (should never be 0!!!)
+fit$p.value
+
+
+###################################################################################################
+## Lesson 2 : Check 2
+
+1. Fit a linear model with the formula `sqrt(Volume) ~ Girth` to the built-in trees dataset.
+
+rm(list=ls())
+fit <- lm(sqrt(Volume) ~ Girth, data=trees)
+summary(fit)
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
+
+2. Generate a parametric 95% confidence interval for the for the Girth coefficient.
+
+confint(fit)['Girth', ]           ## the parametric confidence interval
+
+3. Generate a bootstrap 95% confidence interval (BCa if it works, otherwise Percentile) on the
+   Girth coefficient. Does it generally corroborate or contradict the parametric interval?
+
+library(boot)
+set.seed(1)
+
+## boot() needs function taking data and integer index, returning estimate:
+
+f <- function(dat, i) {
+  fit.i <- lm(sqrt(Volume) ~ Girth, data=dat[i, ])
+  coef(fit.i)['Girth']
+}
+
+f(trees, rep(T, nrow(trees)))     ## check: should return the same estimate as the original fit
+
+R <- 999                          ## number of bootstrap iterations
+out <- boot(trees, f, R)          ## the bootstrapping
+par(mfrow=c(1, 1))
+plot(out)                         ## bias? skew? normal? 
+jack.after.boot(out)              ## outliers affect point estimate or CIs?
+(ci <- boot.ci(out))              ## bootstrap confidence intervals; BCa preferred
+confint(fit)['Girth', ]           ## the parametric confidence interval
+
+###################################################################################################
+## Lesson 2 : Check 3
+
+1. Fit a linear model to the formula `Volume ~ Girth` for the built-in `trees` dataset. Fit a 
+   second linear model to the formula `sqrt(Volume) ~ Girth`. Generate summaries for each fit.
+
+rm(list=ls())
+
+fit1 <- lm(Volume ~ Girth, data=trees)
+fit2 <- lm(sqrt(Volume) ~ Girth, data=trees)
+summary(fit1)
+summary(fit2)
+
+2) Use 5-fold cross-validation with 3 repetitions (use the `caret::createMultiFolds()` parameter 
+   `times` to set the repetitions) to compare the two formulas above in terms of mean-squared 
+   error of the resulting models. Examine the mean and standard deviations of the results 
+   for each formula to decide if the `sqrt()` transformation is worthwhile. 
+
+library('caret')
+set.seed(1)
+
+k <- 5
+times <- 3
+dat <- trees
+frm1 <- Volume ~ Girth
+frm2 <- sqrt(Volume) ~ Girth
+
+f <- function(idx) {
+
+  ## split into training and testing:
+  dat.trn <- dat[idx, ]
+  dat.tst <- dat[-idx, ]
+
+  ## fit Volume ~ Girth:
+  fit1 <- lm(frm1, data=dat.trn)
+  pred1 <- predict(fit1, newdata=dat.tst)
+
+  ## fit sqrt(Volume) ~ Girth:
+  fit2 <- lm(frm2, data=dat.trn)
+  pred2 <- predict(fit2, newdata=dat.tst)
+  pred2 <- pred2 ^ 2
+
+  ## estimate error for each model:
+  mse1 <- mean((dat.tst$Volume - pred1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$Volume - pred2) ^ 2, na.rm=T)
+
+  ## return error estimates:
+  c(mse.lm=mse1, mse.loess=mse2)
+}
+
+idx <- 1 : nrow(dat)
+folds <- createMultiFolds(idx, k=k, times=times)
+
+rslt <- sapply(folds, f)
+apply(rslt, 1, mean)
+apply(rslt, 1, sd)
+

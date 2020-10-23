@@ -58,20 +58,20 @@ The main assumption behind permutation tests is that the observations be 'exchan
   be a valid way to non-parametrically to a two-sample equal variances t-test, but not
   a two-sample unequal variances (Welch's) t-test. Fortunately, in the case of designed 
   experiments, random assignment of experimental units (e.g. test mice) to treatments 
-  ensures the assumption of exchangeability is met. Permutation testing in this context
-  is sometimes called 'randomization testing'. If units have not been randomly assigned
-  to treatment groups (e.g. in the case of observational studies), establishing 
-  exchangeability is more complicated. For complex experimental designs, permutation 
-  strategies can be similarly complicated in order to ensure the exchangeability 
-  condition is met.
+  (a fundamental requirement for a valid experimental design) ensures the assumption of 
+  exchangeability is met. Permutation testing in this context is sometimes called 
+  'randomization testing'. If units have not been randomly assigned to treatment groups 
+  (e.g. in the case of observational studies), establishing exchangeability is more 
+  complicated. For complex experimental designs, permutation strategies can be similarly 
+  complicated in order to ensure the exchangeability condition is met.
 
-In the examples below, we will use the R `sample()` function again, with `replace=F` 
-  to conduct the permutations. This simply takes all the values in one variable, 
+In the examples below, we will use the R `sample()` function to conduct the 
+  permutations, sampling the same number of observations as in the original dataset
+  without replacement. This simply takes all the values in the input vector,
   scrambles them, and returns them. Each value will appear exactly as many times 
-  in the permutation as it did in the original list: only the order changes. We
+  in the permutation as it did in the original vector: only the order changes. We
   will first demonstrate permutation testing with the two-sample equal variances 
-  t-test. We will conduct a Bartlett test to ensure that obvious departures from
-  exchangeability are observed:
+  t-test:
 
 ```
 ## two-sample equal-variances t-test:
@@ -94,7 +94,7 @@ qqline(x)
 qqnorm(y, main='y')
 qqline(y)
 
-## however homogeneous enough to try permutation as check on parametrics:
+## however homogeneous enough to try permutation:
 bartlett.test(mpg ~ cyl, data=dat)
 
 ## set up permutation:
@@ -209,12 +209,11 @@ When we conduct a parametric test, we typically use estimates of e.g. the mean
   of a normal distribution or not. In the case of small samples, we may do tests 
   for normality to justify parametric estimation. For largers samples, we might
   assume the CLT applies, making estimates normally distributed even when the 
-  data used for estimation is itself not normally distributed. This way of doing 
-  business has been around for a long time and has resulted in many successful
-  discoveries and general advance of human knowledge about the universe. However, 
+  data used for estimation is itself not normally distributed. However, 
   for small and intermediate sized samples, as you may have noticed, it can be 
   hard to be sure if the distribution of our estimates is really normal enough 
-  to justify invoking the CLT.
+  to justify invoking the CLT. Most situations fall in a gray zone where subjective
+  judgements by the analyst have to be made.
 
 One alternative approach that can be particularly useful for generating confidence
   intervals in the case of small and intermediate sized samples is the 'empirical
@@ -259,15 +258,15 @@ For each bootstrap resample, we perform the entire analysis we are interested in
   estimates `t.star` of the parameter in the original sample `t0`, based on 
   resamples appear downwardly biased. This suggests that `t0` is itself a biased
   estimate of the true population parameter, since it was arrived at using a 
-  virtually identical process of sampling and calculation as was carried out 
-  with the resamples. 
+  virtually identical process of sampling (except the population was sampled) and 
+  calculation as was carried out with the bootstrapped resamples. 
 
 There are many methods for generating confidence intervals from the distribution 
   of bootstrap results `t.star` and the estimate using the whole sample `t0`. The 
   default ones provided by the `boot::boot.ci()` function are briefly described 
   below. Unless otherwise indicated, all are 95% CIs (the default):
 
-Percentile: this is the most straight-forward method. We estimate the 95% confidence
+**Percentile:** this is the most straight-forward method. We estimate the 95% confidence
   interval for `t0` by taking the 2.5th percentile value and 97.5th percentile value
   of `t.star`. That is, 95% of the values of `t.star` lie between the 2.5th and 97.5th
   percentiles, so we use those as confidence bounds. This method has no adjustment
@@ -285,7 +284,7 @@ ci95.hi <- quantile(t.star, prob=0.975)
 
 ```
 
-Normal: this method is a hybrid of sorts, in that it uses `t.star` to estimate the 
+**Normal:** this method is a hybrid of sorts, in that it uses `t.star` to estimate the 
   standard error of the estimates and their bias. But then it uses the standard normal 
   distribution `N(0, 1)` to calculate the the confidence bounds. This is essentially
   assuming that `t.star` is normally distributed, which can be checked either graphically,
@@ -299,7 +298,7 @@ ci95.hi <- (t0 - bias) + qnorm(0.975, mean=0, sd=1) * sd(t.star)
 
 ```
 
-Basic: this method uses the distribution of differences between `t0` and `t.star` to 
+**Basic:** this method uses the distribution of differences between `t0` and `t.star` to 
   calculate confidence bounds. It can be more robust than the percentile method to 
   skewness in the tails of the distribution of `t.star`, and incorporates a bias
   adjustment, but can produce confidence bounds that are out of the possible range 
@@ -314,7 +313,7 @@ ci95.hi <- 2 * t0 - quantile(t.star, prob=0.975)
 
 ```
 
-BCa: adjusts `t0` for both the bias and skewness observed in the distribution of 
+**BCa:** adjusts `t0` for both the bias and skewness observed in the distribution of 
   `t.star`. Confidence bounds approach their nominal coverage faster than the other
   bootstrap methods described above. However, in small samples, the results can
   be very unstable (are not precise) because the bias and particularly the skewness

@@ -316,22 +316,22 @@ ci95.hi <- 2 * t0 - quantile(t.star, prob=0.975)
 **BCa:** adjusts `t0` for both the bias and skewness observed in the distribution of 
   `t.star`. Confidence bounds approach their nominal coverage faster than the other
   bootstrap methods described above. However, in small samples, the results can
-  be very unstable (are not precise) because the bias and particularly the skewness
-  estimates tend to be unstable with small samples. This method may be the best
-  choice for medium and larger samples, though it is computationally expensive 
-  compared to the other methods, because the skewness estimates are made using
-  jackknifing, which is another resampling method. In addition, the computations
-  may simply fail for some datasets. With small samples, if the distribution
-  of `t.star` appears normal, the normal method may be a good choice. The basic 
-  interval can be a good choice if `t.star` does not appear quite normal and
-  if the potential range of `t0` is not bounded. Otherwise the percentile method
-  can be used. More typically, all four methods will produce fairly comparable
-  results, supporting the robustness of the overall final result. We will not
-  review the formulas as they are relatively complicated and not necessarily
-  intuitive.
+  be unstable (are not precise) because the bias and particularly the skewness
+  estimates tend to be unstable with small samples. We will not review the calculations
+  as they are relatively complicated and not not very intuitive.
+
+The BCa method may be the best choice for medium and larger samples, though it is 
+  computationally expensive compared to the other methods, because the skewness 
+  estimates are made using jackknifing, which introduces another level of resampling. 
+  In addition, the computations may simply fail for some datasets. With small samples, 
+  if the distribution of `t.star` appears normal, the normal method may be a good 
+  choice. The basic interval can be a good choice if `t.star` does not appear quite 
+  normal and if the potential range of `t0` is not bounded. Otherwise the percentile 
+  method can be used. Ideally, all four methods will produce fairly comparable
+  results, supporting the robustness of the overall final result.
 
 First we will conduct a bootstrap analysis to generate a confidence interval
-  for the population mean based on a single sample. In particular, we'll 
+  for the population mean based on a single sample. In particular, we will 
   estimate the mean sepal length in the `virginica` species in the `iris`
   dataset. The `boot::boot()` function requires a function as an argument.
   Functions can be passed by simply passing the names of the functions, 
@@ -355,8 +355,8 @@ set.seed(1)
 dat <- iris[iris$Species == 'virginica', ]
 dat
 par(mfrow=c(1, 1))
-qqnorm(dat$Sepal.Length)
-qqline(dat$Sepal.Length)
+qqnorm(dat$Sepal.Length)          ## data seem non-normal; will CLT save us?
+qqline(dat$Sepal.Length)          ## data seem non-normal; will CLT save us?
 
 (fit1 <- t.test(dat$Sepal.Length))
 
@@ -376,7 +376,7 @@ class(out)
 is.list(out)
 attributes(out)
 
-out                               ## note estimated bias about zero
+out                               ## note estimated bias approximately zero
 plot(out)                         ## bias, skew; normal enough for normal intervals?
 jack.after.boot(out)              ## are their outliers affecting point estimate or CIs?
 
@@ -405,9 +405,11 @@ As we mentioned previously, bootstrap analysis can also detect and adjust for bi
   formula to generate unbiased estimates of the population variance by replacing
   the sample size used in the denominator when calculating an average, with the
   samples size minus one. However, you may be interested in estimating a population 
-  parameter based on a sample and not know if the sample-based calculation will 
-  be a biased estimator or how to adjust it if it is biased. Bootstrapping provides
-  a convenient way to estimate and adjust for the bias. We will demonstrate using
+  parameter based on a sample and not know if the formula used for calculating the 
+  parameter in the population will result in a biased estimate if applied to a sample
+  from that population. In addition, if it is biased, it is not completely clear how
+  to estimate and adjust for that bias. Bootstrapping provides a convenient way to 
+  estimate and adjust for bias in arbitrary estimators. We will demonstrate using
   the population formula for variance to estimate population variance based on a 
   sample randomly drawn from the population: 
 
@@ -418,10 +420,11 @@ library('boot')
 rm(list=ls())
 set.seed(1)
 
-n <- 15
+n <- 15                           ## sample size
 x <- iris[iris$Species == 'virginica', 'Sepal.Length']
-x <- sample(x, n, replace=F)
+## x <- sample(x, n, replace=F)      ## 
 
+## variance based on (biased) population formula (literally the mean of the squared deviations):
 f.var.pop <- function(x) {
   m <- mean(x, na.rm=T)
   mean((x - m) ^ 2, na.rm=T)
@@ -430,19 +433,21 @@ f.var.pop <- function(x) {
 var(x)                            ## sample formula for variance (unbiased)
 f.var.pop(x)                      ## population formula (biased)
 
+## function for bootstrap: x is data; i is integer index:
 f <- function(x, i) {
   f.var.pop(x[i])
 }
 
-R <- 9999
-out <- boot(x, f, R)
+R <- 9999                         ## number of bootstrap iterations
+out <- boot(x, f, R)              ## execute bootstrap iterations
 
 out                               ## note bias
-plot(out)                         ## check for skew, bias, and normality
-jack.after.boot(out)              ## check for outlier effects on point estimate and CIs
+plot(out)                         ## bias, skew and non-normality evident (so don't use normal intervals)
+jack.after.boot(out)              ## one datapoint widens interval but does not change point estimate
 
+## calculate and adjust for bias (note bias same as returned by out):
 (bias <- out$t0 - mean(out$t, na.rm=T))
-(est <- out$t0 + bias)
+(est <- out$t0 + bias)            ## how the bias is adjusted for
 var(x)
 f.var.pop(x)
 
@@ -469,15 +474,16 @@ f <- function(dat, i) {
 }
 
 fit <- lm(dist ~ speed, data=cars)
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
 coef(fit)['speed']
-f(cars, T)
+f(cars, T)                        ## check our function on original data (T recycled)
 
-R <- 999
-out <- boot(cars, f, R)
-plot(out)
-jack.after.boot(out)
+R <- 9999                         ## number of bootstrap iterations
+(out <- boot(cars, f, R))
+plot(out)                         ## symmetric, unbiased, normal
+jack.after.boot(out)              ## observation 49 widens interval but doesn't change estimate
 (ci <- boot.ci(out))
-
 confint(fit)['speed', ]
 
 ```
@@ -490,10 +496,10 @@ confint(fit)['speed', ]
 
 1) Fit a linear model with the formula `sqrt(Volume) ~ Girth` to the built-in trees dataset.
 
-2) Generate a parametric 95% confidence interval for the for the Girth coefficient.
+2) Generate a parametric 95% confidence interval for the for the `Girth` coefficient.
 
 3) Generate a bootstrap 95% confidence interval (BCa if it works, otherwise Percentile) on the
-   Girth coefficient. Does it generally corroborate or contradict the parametric interval?
+   `Girth` coefficient. Does it generally corroborate or contradict the parametric interval?
 
 [Return to index](#index)
 
@@ -512,18 +518,16 @@ Previously, we split data into a training-set and test-set, then used the
   cross-validation (CV) is that if we average the results over the different
   possible held-out test-sets, the final result will be more stable
   and therefore a more reliable (less noisy) estimate of model
-  performance. The data can be split into fifths in a way in which each
-  observation appears exactly once in a test set, and other ways in 
-  which individual observations can appear in more than one test set.
-  In the first case, the observation order is randomized and the first
-  fifth used for test-set and the rest for training-set. In the next 
-  iteration, the second fifth of observations are reserved for the 
+  performance. In the first case, the observation order is randomized and 
+  the first fifth used for test-set and the rest for training-set. In the 
+  next iteration, the second fifth of observations are reserved for the 
   test-set, and in the fifth iteration, the last fifth of observations 
   are used for testing. However, this procedure depends on the 
   original randomization order. By repeating the entire process
   several times, randomizing observation order at the start of each
   repetition, we can get a much larger assortment of test-sets 
-  containing 20% of the observations:
+  containing 20% of the observations, further stabilizing our final
+  performance estimate:
 
 ```
 rm(list=ls())
@@ -568,20 +572,20 @@ The size of the held-out test-set for each iteration of cross-validation
 On the other hand, making the test-sets too small will tend to make the
   training-sets too similar to one another, which makes the performance
   estimate more dependent on the particular sample one began with. That
-  is, if the experiment were repeated with another random sample, the
-  result might be quite different, since that result will also be highly
-  dependent on the particular observations in that sample. An extreme
-  case of this is seen when the test-set size is one, which is sometimes
-  called 'Leave-one-out cross-validation', or 'LOOCV'. In this case 
-  there is one iteration per observation, with that single observation
-  being the test-set and the rest of the observations in the training-set.
-  This means that the training-set is as large as can be for CV, 
-  minimizing the downward bias in performance estimates mentioned in the
-  previous paragraph. On the other hand, the test-sets are very similar
-  to each other and the original sample: they only differ by one 
-  observation. That means that the models produced are all very similar 
-  to one another, and strongly reflect the composition of the original 
-  sample. That is, if we started with a different sample, we would
+  is, if the experiment were repeated with a different random sample from
+  the population of interest, the result might be quite different, since 
+  that result will also be highly dependent on the particular observations 
+  in that sample. An extreme case of this is seen when the test-set size 
+  is one, which is sometimes called 'Leave-one-out cross-validation', or 
+  'LOOCV'. In this case there is one iteration per observation, with that 
+  single observation being the test-set and the rest of the observations 
+  in the training-set. This means that the training-set is as large as 
+  can be for CV, minimizing the downward bias in performance estimates 
+  mentioned in the previous paragraph. On the other hand, the test-sets 
+  are very similar to each other and the original sample: they only differ 
+  by one observation. That means that the models produced are all very 
+  similar to one another, and strongly reflect the composition of the 
+  original sample. That is, if we started with a different sample, we would
   expect a different result reflective of that particular sample. This
   means that there is a lot of variation in results that would be 
   expected if the experiment was repeated many times with new random
@@ -625,17 +629,18 @@ sessionInfo()
 rm(list=ls())
 set.seed(1)
 
-k <- 5
-times <- 3
+k <- 5                            ## number of CV 'folds'
+times <- 3                        ## number of times to repeat CV after randomizing observation order
 dat <- trees
-frm1 <- Volume ~ Girth
-frm2 <- Volume ~ 1
+frm1 <- Volume ~ Girth            ## Volume depends on Girth (conditional mean)
+frm2 <- Volume ~ 1                ## Intercept-only model: Estimate volume based on global mean alone
 fit1 <- lm(frm1, data=dat)
 fit2 <- lm(frm2, data=dat)
 summary(fit1)
 summary(fit2)
-mean(dat$Volume)
+mean(dat$Volume)                  ## matches coefficient estimate for intercept from fit2
 
+par(mfrow=c(1, 1))
 plot(Volume ~ Girth, data=trees)
 abline(fit1, lty=2, col='cyan')
 abline(fit2, lty=3, col='magenta')
@@ -665,8 +670,8 @@ f <- function(idx.trn) {
 idx <- 1 : nrow(dat)
 (folds <- createMultiFolds(idx, k=k, times=times))
 (rslt <- sapply(folds, f))
-apply(rslt, 1, mean)
-apply(rslt, 1, sd)
+apply(rslt, 1, mean)              ## mean accuracy for fit1 much better
+apply(rslt, 1, sd)                ## stability of fit1 performance much better too
 
 ```
 
@@ -680,9 +685,10 @@ apply(rslt, 1, sd)
    second linear model to the formula `sqrt(Volume) ~ Girth`. Generate summaries for each fit.
 
 2) Use 5-fold cross-validation with 3 repetitions (use the `caret::createMultiFolds()` parameter 
-   `times` to set the repetitions) to compare the two formulas above in terms of mean-squared 
-   error of the resulting models. Consider both the mean and standard deviations of the results 
-   for each formula to decide if the `sqrt()` transformation is worthwhile.
+   `times` to set the repetitions) to compare the two formulas above (with and without taking
+   square-root of `Volume` in terms of mean-squared error of the resulting models. Consider both 
+   the mean and standard deviations of the results for each formula to decide if the `sqrt()` 
+   transformation is worthwhile.
 
 [Return to index](#index)
 

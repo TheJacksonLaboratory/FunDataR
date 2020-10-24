@@ -60,9 +60,7 @@ smry3 <- summary(fit3)
 coef(smry3)
 smry3$adj.r.squared
 par(mfrow=c(2, 3))
-plot(fit3, which=1:6)
-
-## Much better!
+plot(fit3, which=1:6)             ## Much better!
 
 ## plot the fits: 
 
@@ -318,34 +316,36 @@ plot(fit6, which=1:6)
 
 ```
 
-a real example with a smaller but still significant interaction:
-
+a real example with a smaller but still significant interaction 
+  between a numeric and categorical variable:
 
 ```
-library('MASS')
 rm(list=ls())
 
-dat <- mpg[, c('hwy', 'displ', 'cyl')]
+dat <- mtcars[, c('mpg', 'wt', 'gear')]
+dat$gear <- factor(dat$gear)
+summary(dat)
 par(mfrow=c(1, 1))
 plot(dat)
-summary(dat)
-cor(dat)
 
-fit1 <- lm(hwy ~ displ, data=dat)
-summary(fit1)                     ## highly significant
+fit1 <- lm(mpg ~ wt, data=dat)
+summary(fit1)
 par(mfrow=c(2, 3))
-plot(fit1, which=1:6)             ## not too bad, but residuals non-normal
+plot(fit1, which=1:6)
 
-fit2 <- lm(hwy ~ cyl, data=dat)
-summary(fit2)                     ## highly significant
-plot(fit2, which=1:6)             ## not bad
+fit2 <- lm(mpg ~ wt + gear, data=dat)
+summary(fit2)
+par(mfrow=c(2, 3))
+plot(fit2, which=1:6)
 
-fit3 <- lm(hwy ~ displ + cyl, data=dat)
-summary(fit3)                     ## both significant, better adj.r.squared
-plot(fit3, which=1:6)             ## like fit1
+fit3 <- lm(mpg ~ wt * gear, data=dat)
+summary(fit3)
+par(mfrow=c(2, 3))
+plot(fit3, which=1:6)
 
-fit4 <- lm(hwy ~ displ * cyl, data=dat)
+fit4 <- lm(mpg ~ wt / gear, data=dat)
 summary(fit4)
+par(mfrow=c(2, 3))
 plot(fit4, which=1:6)
 
 ```
@@ -361,45 +361,29 @@ f <- function(idx.trn) {
   dat.trn <- dat[idx.trn, ]
   dat.tst <- dat[-idx.trn, ]
 
-  fit1 <- lm(hwy ~ displ, data=dat.trn)
-  fit2 <- lm(hwy ~ cyl, data=dat.trn)
-  fit3 <- lm(hwy ~ displ + cyl, data=dat.trn)
-  fit4 <- lm(hwy ~ displ * cyl, data=dat.trn)
+  fit1 <- lm(mpg ~ wt, data=dat.trn)
+  fit2 <- lm(mpg ~ wt + gear, data=dat.trn)
+  fit3 <- lm(mpg ~ wt * gear, data=dat.trn)
 
   prd1 <- predict(fit1, newdata=dat.tst)
   prd2 <- predict(fit2, newdata=dat.tst)
   prd3 <- predict(fit3, newdata=dat.tst)
-  prd4 <- predict(fit4, newdata=dat.tst)
 
-  mse1 <- mean((dat.tst$hwy - prd1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$hwy - prd2) ^ 2, na.rm=T)
-  mse3 <- mean((dat.tst$hwy - prd3) ^ 2, na.rm=T)
-  mse4 <- mean((dat.tst$hwy - prd4) ^ 2, na.rm=T)
+  mse1 <- mean((dat.tst$mpg - prd1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$mpg - prd2) ^ 2, na.rm=T)
+  mse3 <- mean((dat.tst$mpg - prd3) ^ 2, na.rm=T)
 
-  c(mse1=mse1, mse2=mse2, mse3=mse3, mse4=mse4)
+  c(mse1=mse1, mse2=mse2, mse3=mse3)
 }
 
-k <- 2                            ## since n >> p, bias likely low
-times <- 50                       ## repeat k-fold CV this many times
+k <- 10                           ## since n >> p, bias likely low
+times <- 7                        ## repeat k-fold CV this many times
 
 idx <- 1 : nrow(dat)
 folds <- createMultiFolds(idx, k=k, times=times)
 mse <- sapply(folds, f)
 apply(mse, 1, mean)               ## improvement small, but appears real
 apply(mse, 1, sd)                 ## also corroborates improvement
-
-```
-
-[Return to index](#index)
-
----
-
-### Hierarchical models
-
-intro here
-
-```
-code here
 
 ```
 

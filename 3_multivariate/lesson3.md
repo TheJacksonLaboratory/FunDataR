@@ -181,7 +181,7 @@ f <- function(idx.trn) {
 
 k <- 10
 times <- 7
-idx <- 1:nrow(wtloss)
+idx <- 1:nrow(dat)
 
 ## make list of k * times folds; elements are training-set indices:
 folds <- createMultiFolds(idx, k=k, times=times)
@@ -191,6 +191,14 @@ apply(rslt, 1, mean)              ## best: mpg ~ wt + I(wt ^ 2) + hp
 apply(rslt, 1, sd)                ## best: mpg ~ wt + I(wt ^ 2) + hp; but SEs are large!
 
 ```
+
+[Return to index](#index)
+
+---
+
+### Check your understanding 1
+
+1) question here
 
 [Return to index](#index)
 
@@ -261,7 +269,7 @@ coef(summary(fit3))               ## standard errors, t-values, p-values much wo
 
 ---
 
-### Check your understanding 1
+### Check your understanding 2
 
 1) question here
 
@@ -279,8 +287,8 @@ synthetic example:
 rm(list=ls())
 set.seed(1)
 
-h <- runif(100, min=1, max=10)   ## heights
-w <- runif(100, min=1, max=10)   ## widths
+h <- runif(100, min=1, max=10)    ## heights
+w <- runif(100, min=1, max=10)    ## widths
 e <- rnorm(100, 0, 0.2)           ## 'measurement error'
 a <- h * w + e                    ## measurements of rectangle areas
 dat <- data.frame(area=a, h=h, w=w)
@@ -390,77 +398,6 @@ apply(mse, 1, sd)                 ## also corroborates improvement
 [Return to index](#index)
 
 ---
-
-### Check your understanding 2
-
-1) question here
-
-[Return to index](#index)
-
----
-
-### Mixed effects models
-
-intro here
-
-```
-library('nlme')
-library('caret')
-rm(list=ls())
-
-k <- 5
-times <- 3
-
-f <- function(idx.trn) {
-
-  dat.trn <- ChickWeight[idx.trn, ]
-  dat.tst <- ChickWeight[-idx.trn, ]
-
-  fit1 <- lm(weight ~ Time, data=dat.trn)
-  fit2 <- lm(log(weight) ~ Time, data=dat.trn)
-  fit3 <- lm(log(weight) ~ Time * Diet, data=dat.trn)
-  fit4 <- lm(log(weight) ~ Time / Diet, data=dat.trn)
-
-  prd1 <- predict(fit1, newdata=dat.tst)
-  prd2 <- exp(predict(fit2, newdata=dat.tst))
-  prd3 <- exp(predict(fit3, newdata=dat.tst))
-  prd4 <- exp(predict(fit4, newdata=dat.tst))
-
-  mse1 <- mean((dat.tst$weight - prd1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$weight - prd2) ^ 2, na.rm=T)
-  mse3 <- mean((dat.tst$weight - prd3) ^ 2, na.rm=T)
-  mse4 <- mean((dat.tst$weight - prd4) ^ 2, na.rm=T)
-
-  c(mse1=mse1, mse2=mse2, mse3=mse3, mse4=mse4)
-}
-
-idx <- 1 : nrow(ChickWeight)
-folds <- createMultiFolds(idx, k=k, times=times)
-mse <- sapply(folds, f)
-apply(mse, 1, mean)
-apply(mse, 1, sd)
-
-fit1 <- lm(weight ~ Time, data=ChickWeight)
-summary(fit1)
-par(mfrow=c(2, 3))
-plot(fit1, which=1:6)
-
-fit2 <- lm(log(weight) ~ Time, data=ChickWeight)
-summary(fit2)
-par(mfrow=c(2, 3))
-plot(fit2, which=1:6)
-
-fit3 <- lm(log(weight) ~ Time * Diet, data=ChickWeight)
-summary(fit3)
-par(mfrow=c(2, 3))
-plot(fit3, which=1:6)
-
-fit4 <- lm(log(weight) ~ Time / Diet, data=ChickWeight)
-summary(fit4)
-par(mfrow=c(2, 3))
-plot(fit4, which=1:6)
-
-```
 
 ### Check your understanding 3
 

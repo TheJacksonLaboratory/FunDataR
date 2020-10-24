@@ -317,3 +317,101 @@ rslt <- sapply(folds, f)
 apply(rslt, 1, mean)
 apply(rslt, 1, sd)
 
+###################################################################################################
+## Lesson 3 : Check 1
+
+rm(list=ls())
+
+dat <- mtcars[, c('mpg', 'wt', 'disp', 'hp')]
+par(mfrow=c(1, 1))
+plot(dat)
+cor(dat)
+
+fit1 <- lm(mpg ~ disp, data=dat)
+summary(fit1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+fit2 <- lm(mpg ~ disp + hp, data=dat)
+summary(fit2)
+par(mfrow=c(2, 3))
+plot(fit2, which=1:6)
+
+f <- function(idx.trn) {
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+  fit1 <- lm(mpg ~ disp, data=dat.trn)
+  fit2 <- lm(mpg ~ disp + hp, data=dat.trn)
+  prd1 <- predict(fit1, newdata=dat.tst)
+  prd2 <- predict(fit2, newdata=dat.tst)
+  mse1 <- mean((dat.tst$mpg - prd1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$mpg - prd2) ^ 2, na.rm=T)
+  mse1 - mse2                     ## will produce more precise comparison
+}
+
+library(caret)
+set.seed(1)
+
+k <- 10
+times <- 7
+idx <- 1:nrow(dat)
+
+## make list of k * times folds; elements are training-set indices:
+folds <- createMultiFolds(idx, k=k, times=times)
+
+rslt <- sapply(folds, f)          ## run f() on each training-set index in folds
+mean(rslt)
+sd(rslt)
+
+###################################################################################################
+## Lesson 3 : Check 2
+
+correlation stuff here
+
+###################################################################################################
+## Lesson 3 : Check 3
+
+rm(list=ls())
+
+dat <- mtcars[, c('mpg', 'wt', 'disp', 'hp')]
+par(mfrow=c(1, 1))
+plot(dat)
+cor(dat)
+
+fit1 <- lm(mpg ~ disp + hp, data=dat)
+summary(fit1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+fit2 <- lm(mpg ~ disp * hp, data=dat)
+summary(fit2)
+par(mfrow=c(2, 3))
+plot(fit2, which=1:6)
+
+f <- function(idx.trn) {
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+  fit1 <- lm(mpg ~ disp + hp, data=dat.trn)
+  fit2 <- lm(mpg ~ disp * hp, data=dat.trn)
+  prd1 <- predict(fit1, newdata=dat.tst)
+  prd2 <- predict(fit2, newdata=dat.tst)
+  mse1 <- mean((dat.tst$mpg - prd1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$mpg - prd2) ^ 2, na.rm=T)
+  mse1 - mse2                     ## will produce more precise comparison
+}
+
+library(caret)
+set.seed(1)
+
+k <- 10
+times <- 7
+idx <- 1:nrow(dat)
+
+## make list of k * times folds; elements are training-set indices:
+folds <- createMultiFolds(idx, k=k, times=times)
+
+rslt <- sapply(folds, f)          ## run f() on each training-set index in folds
+mean(rslt)
+sd(rslt)
+
+

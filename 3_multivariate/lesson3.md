@@ -22,7 +22,62 @@
 
 ### Multiple regression
 
-intro here
+So far we have looked at estimating population parameters based on random
+  samples, where those parameters have described either the distribution of
+  a single variable, or the joint distribution of two variables. For instance,
+  in the univariate case, we used the proportion test to estimate the 
+  proportion of the population belonging to individual mutually-exclusive 
+  categories, and we used
+  the t-test to estimate a population mean for a continuous variable. In the
+  bivariate case, we used the proportion test to look for associations between
+  two categorical variables, the t-test and ANOVA for associations between
+  a categorical variable (group/treatment) and a continuous variable. We used
+  correlation tests to estimate the association between two continuous variables.
+  We then extended the idea of correlation to the linear model, where we learned
+  how to predict or explain the values of a continuous variable based on another
+  variable that could be either continuous or categorical. We also showed that
+  linear models fit (by least-squares) to minimize the mean-squared error of the 
+  training data relative to the prediction line were equivalent to ANOVA and the
+  equal-variances t-test, when the predictor variable was categorical.
+
+When fitting a simple linear regression model with a continuous predictor `x`, we saw
+  that two coefficients would be estimated. One was the coefficient for the 
+  continuous predictor `b1`, which is equivalent to the slope of the prediction line.
+  The other coefficient was the intercept `b0`, which is a constant term in the
+  prediction formula that describes the value of the response `y` when `x`
+  is zero. This value sets the vertical position of the prediction line. Knowing
+  these two values alone allows us to make predictions for future values:
+  `y = b0 + b1 * x1`. The accuracy of predictions would depend on the accuracy
+  of the assumption that the true relationship was linear, the accuracy with
+  which the coefficients were estimated, and the magnitude of the error term,
+  which describes the spread of data points about the prediction line.
+
+When fitting a simple linear regression model with a categorical predictor `x`,
+  we saw that the number of coefficients estimated for `x` would depend on how
+  many categories or 'levels' `x` contains. In general, the number of coefficients
+  would be the number of categories minus one, plus one coefficient for the 
+  intercept. For instance, if there were two categories, say 'A' and 'B', we would 
+  estimate the intercept `b0` and one group coefficient `b1B` for group 'B'. In 
+  this case, `b0` is the mean of group 'A' and `b1B` is the difference between
+  the group mean of 'B' and the group represented by the intercept `b0`. Then
+  predictions for any observation with group membership 'A' is simply: 
+  `y = b0`; while predictions for observations with group membership 'B' will
+  be `y = b0 + b1B`. In the case of three groups ('A', 'B' and 'C'), we will end 
+  up with an estimate of the intercept `b0`, which represents the mean for the 
+  first group ('A', though we can specify which group is represented by the 
+  intercept), and two additional coefficients, `b1B` representing the difference
+  in means between group 'A' and group 'B', as well as `b1C`, representing 
+  the difference between the mean of group 'C' and the mean of group 'A'. 
+  Now prediction for observations belonging to group 'A' are `y = b0`, 
+  predictions for group 'B' are `y =  b0 + b1B` and for group 'C', predictions
+  are `y = b0 + b1C`.
+
+We are often dealing with response variables whose value depends on more than one 
+  explanatory variable. For instance, the area of a rectangle depends on not only
+  the height, but also the width. We can extend the linear model to multiple 
+  explanatory variables, including combinations of continuous and categorical 
+  variables. It can also include the addition of polynomial terms for explanatory
+  variables:
 
 ```
 library('caret')
@@ -53,7 +108,9 @@ smry2$adj.r.squared
 par(mfrow=c(2, 3))
 plot(fit2, which=1:6)
 
-## Residuals vs Fitted plot suggests model still has wrong shape
+## Residuals vs Fitted plot suggests model still has wrong shape.
+##   Normally, unless theory dictates otherwise, we include
+##   all the lower powers of the variable as well:
 
 fit3 <- lm(Weight ~ Days + I(Days ^ 2), data=wtloss)
 smry3 <- summary(fit3)
@@ -62,8 +119,31 @@ smry3$adj.r.squared
 par(mfrow=c(2, 3))
 plot(fit3, which=1:6)             ## Much better!
 
-## plot the fits: 
+```
 
+Now we see our list of coefficients has grown to three, with one `b0` (we'll call
+  it that here for notational convenience, but it is actually labeled
+  `(Intercept)` in the output) for the intercept, another `b1` for `Days` 
+  (labeled `Days`) and a last one `b2` for `Days ^ 2` (labeled `I(Days^2)`).
+  Predictions for new observations would then be made as: 
+  `y = b0 + b1 * Days + b2 * (Days ^ 2)`:
+
+```
+b0 <- coef(smry3)['(Intercept)', 'Estimate']
+b1 <- coef(smry3)['Days', 'Estimate']
+b2 <- coef(smry3)['I(Days^2)', 'Estimate']
+
+days <- seq(from=min(wtloss$Days), to=max(wtloss$Days), length.out=100)
+
+y1 <- predict(fit3, newdata=data.frame(Days=days))
+y2 <- b0 + b1 * days + b2 * (days ^ 2)
+all(y1 == y2)
+
+```
+
+Let's plot the three fits to see the differences graphically:
+
+```
 ## for plotting: predictions on dense grid of Days:
 days <- seq(from=min(wtloss$Days), to=max(wtloss$Days), length.out=10000)
 newdata <- data.frame(Days=days)
@@ -83,6 +163,18 @@ legend(
   lty=c(2, 3, 4)
 )
 
+```
+
+Clearly the addition of both linear and quadratic terms is better than either
+  alone. It is interesting that the quadratic only fit `fit3` actually is 
+  actually curved the wrong way! In general, unless theory suggests the 
+  lower order polynomial terms are not needed, we usually include them if
+  any higher order term is significant. 
+
+Finally, let's see what cross-validation has to say about the choice of
+  `fit3`:
+
+```
 ## cross-validate the models:
 
 f <- function(idx.trn) {
@@ -110,7 +202,8 @@ apply(rslt, 1, sd)                ## spread of results; stability of performance
 
 ```
 
-Another example:
+We'll now look at an example where we'll try including different variables, as
+  well as polynomial terms for one of them:
 
 ```
 rm(list=ls())
@@ -124,12 +217,13 @@ plot(mtcars[, c('mpg', 'wt', 'disp', 'hp')])
 ## correlation between variables:
 cor(mtcars[, c('mpg', 'wt', 'disp', 'hp')])
 
+## let's start w/ variable w/ highest cor to mpg:
 fit1 <- lm(mpg ~ wt, data=mtcars)
 summary(fit1)                     ## wt coefficient significant
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)             ## Residuals vs Fitted suggests quadratic
 
-## add wt^2 quadratic component:
+## maybe add wt^2 quadratic component:
 fit2 <- lm(mpg ~ wt + I(wt ^ 2), data=mtcars)
 summary(fit2)                     ## adj.r.squared improves, wt^2 coef significant
 par(mfrow=c(2, 3))
@@ -152,14 +246,15 @@ plot(fit5, which=1:6)             ## plot still looks ok
 
 ```
 
-So what happened? disp had higher correlation with mpg than hp, but hp ended up 
-  being a more useful predictor.
-
-Since residual plots seem weird, what do CV have to say about this? 
+Interestingly, even though `disp` has a higher correlation with `mpg` than `hp`, the latter 
+  appears to be a more useful predictor. We will return to this phenomena shortly, but
+  first, since residual plots seem weird, let's see if CV supports our choice of `fit3`: 
 
 ```
 library(caret)
 set.seed(1)
+
+dat <- mtcars[, c('mpg', 'wt', 'disp', 'hp')]
 
 f.mse <- function(frm, dat.trn, dat.tst) {
   fit <- lm(frm, data=dat.trn)
@@ -192,6 +287,42 @@ apply(rslt, 1, sd)                ## best: mpg ~ wt + I(wt ^ 2) + hp; but SEs ar
 
 ```
 
+Finally, we'll look at an example of using both a continuous and categorical 
+  predictor. In this case, the number of coefficients estimated for the categorical
+  vector will be the number of categories minus one. The 'reference' category, will
+  by default be the first categorical label alphabetically, but this can be changed by
+  the user. In this case, the intercept term represents the reference category and
+  all the other category coefficients represent constant vertical (along the response 
+  variable axis) displacements of the prediction line for each group. That is, the
+  slope of the response vs the continuous variable remains constant, but the intercept
+  becomes group-specific, so there is one line per group, with all lines parallel, having
+  the same slope, but vertically displaced by the group coefficient, so each group 
+  effectively ends up with a different intercept.
+
+```
+rm(list=ls())
+
+dat <- iris[iris$Species %in% c('virginica', 'setosa'), ]
+fit1 <- lm(Sepal.Length ~ Sepal.Width + Species, data=dat)
+summary(fit1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+w <- seq(from=min(dat$Sepal.Width), to=max(dat$Sepal.Width), length.out=10000)
+pred1 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='virginica'))
+pred2 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='setosa'))
+
+par(mfrow=c(1, 1))
+plot(x=range(w), y=range(c(pred1, pred2)), type='n')
+i.v <- dat$Species == 'virginica'
+i.s <- dat$Species == 'setosa'
+points(Sepal.Length ~ Sepal.Width, data=dat[i.v, ], pch='+', col='cyan')
+points(Sepal.Length ~ Sepal.Width, data=dat[i.s, ], pch='o', col='magenta')
+lines(x=w, y=pred1, lty=2, col='cyan')
+lines(x=w, y=pred2, lty=3, col='magenta')
+
+```
+
 [Return to index](#index)
 
 ---
@@ -206,7 +337,30 @@ apply(rslt, 1, sd)                ## best: mpg ~ wt + I(wt ^ 2) + hp; but SEs ar
 
 ### Correlated predictors
 
-intro here
+When we include multiple explanatory variables in a conventional linear
+  regression, correlations between the explanatory variables can cause problems
+  with the calculation of the model fit. You will typically see that the
+  inclusion of correlated variables tends to increase the standard errors of
+  coefficient estimates, sometimes to the point of making otherwise very
+  significant variables non-significant. In addition, the correlation means
+  the information in each variable is redundant, and therefore the effects of
+  both variables on the response are not easy to tease apart: it is hard to 
+  know how much of the change in `y` to assign to changes in `x1` instead of
+  `x2` when `x1` and `x2` are highly correlated, because every time `x1` changes,
+  `x2` is changing in a related pattern. This can lead to nearly all the 
+  'responsibility' for changes in `y` being assigned to `x1` and nearly none
+  to `x2`, which means that the coefficient estimates can be quite far from
+  their true population values (in this case, the `x1` coefficient will be 
+  inflated and the `x2` coefficient deflated). 
+
+We saw some hint of this going on in the previous example. When we included 
+  the `I(wt ^ 2)` term, which is correlated with `wt` itself, it increased the
+  standard error for the `wt` coefficient estimate, decreasing the corresponding
+  t-statistic and coefficient significance. Although `hp` had a lower pairwise
+  correlation with `mpg` than `disp`, it was a more useful predictor, because
+  it added more 'new' information to the fit, because `hp` had a lower correlation
+  with `wt` than did `disp`. That is, much of the information `disp` had to 
+  offer was already included with `wt`.
 
 ```
 rm(list=ls())
@@ -232,7 +386,16 @@ coef(summary(fit5))
 
 ```
 
-A synthetic example:
+We can use a synthetic example to demonstrate this more dramatically. In the first
+  case we will use an example with two uncorrelated predictors, and we will see that
+  inclusion of the second predictor greatly improves the standard error and 
+  significance of the first predictor coefficient, because inclusion of the second
+  predictor adds unique explanatory value that decreases the deviations of the 
+  observations from the conditional mean, thereby decreasing the magnitude of the
+  estimated error term for the model, which improves the standard error for all
+  individual coefficients. In the second example, we use two highly correlated
+  predictors and show how adding the second predictor to the model actually can
+  make the model worse:
 
 ```
 rm(list=ls())
@@ -252,7 +415,7 @@ coef(summary(fit2))               ## coefficient estimate about right
 coef(summary(fit3))               ## improved coef estimates, std errors, and p-values!!!
 
 x1 <- runif(100, 0, 1)
-x2 <- 0.95 * x1 + 0.05 * runif(100, 0, 1)
+x2 <- 0.99 * x1 + 0.01 * runif(100, 0, 1)
 y <- x1 + x2 + e
 cor(cbind(y, x1, x2, y))          ## x1 and x2 highly correlated; info redundant!
 
@@ -279,9 +442,49 @@ coef(summary(fit3))               ## standard errors, t-values, p-values much wo
 
 ### Interactions
 
-intro here
+So far, we have looked at adding polynomial terms for a single explanatory
+  variable, as well as adding additional variables to a linear regression.
+  However, we have only looked at how to include terms in an additive way.
+  But sometimes we want to model a multiplicative relationship between 
+  variables. We mentioned earlier in the course that we can convert 
+  multiplicative relationships into additive ones by taking the log
+  of the multiplicative formula. However, this can result in a non-linear
+  relationship in some cases, or problems with the residual distribution, 
+  or simply may make the relationship harder to interpret because of the 
+  tranformation. In cases of a multiplicative relationship between
+  explanatory variables, we can introduce 'interactions' between those
+  variables. In the case of two continuous variables, this essentially 
+  amounts to including the product of the two variables as a new variable 
+  in the regression formula. 
 
-synthetic example:
+Here we will use the synthetic example of rectangle areas, where the area
+  is the product of the height and width of the rectangle. We know this
+  formula from primary school, so we could pick the right formula a priori,
+  but if we were looking at some new data where the underlying phenomena
+  and relationships were not understood, we might have to arrive at the right
+  formula through some trial and error. In general, we would want to do
+  this with some pilot data, rather than with the main experiment we would 
+  like to ultimately analyze. Once the choice of model is made based on the
+  pilot data, we should still with that model for the primary analysis of 
+  the main experiment: hunting for a good fitting model during the main 
+  experiment drastically increases the likelihood that we will find a model 
+  that fits our sample well based on chance, but actually fits the underlying
+  population poorly, leading to poor reproducibility of our conclusions.
+  In formulas and coefficient naming, the `:` symbol between variables 
+  indicates an interaction term. In formulas, the `*` operator, when not
+  protected by the `I()` function, serves to include both terms plus their
+  interaction. That is `y ~ x1 * x2` is equivalent to `y ~ x1 + x2 + x1:x2`.
+  But `y ~ x1 * x2 * x3` is equivalent to 
+  `y ~ x1 + x2 + x3 + x1:x2 + x1:x3 + x2:x3 + x1:x2:x3`. With many variables, 
+  this can result in trying to estimate too many parameters for the available
+  data, decreasing the stability of all the estimates. In order to limit or
+  otherwise specify the maximal degree of interactions to include, we can use 
+  the `^` operator. For instance, `y ~ (x1 + x2 + x3) ^ 2` is equivalent to
+  `y ~ x1 + x2 + x3 + x1:x2 + x1:x3 + x2:x3`. The three-way interaction 
+  `x1:x2:x3` was excluded because it is of degree three. One can also nest 
+  variables using `y ~ x1 / x2`, where `x2` is a categorical variable, which 
+  results in a different `y ~ x1` slope for each category in `x2` without 
+  introducing an additive effect for `x2`. 
 
 ```
 rm(list=ls())
@@ -324,14 +527,71 @@ plot(fit6, which=1:6)
 
 ```
 
-a real example with a smaller but still significant interaction 
-  between a numeric and categorical variable:
+An interaction between two continuous variables is modeled as the product
+  of the two variables times the coefficient for the interaction term. 
+  Therefore, predictions for `fit4` proceed from the coefficients as 
+  follows:
+
+```
+smry <- summary(fit4)
+(coefs <- coef(smry))
+b0 <- coefs['(Intercept)', 'Estimate']
+b1 <- coefs['h', 'Estimate']
+b2 <- coefs['w', 'Estimate']
+b12 <- coefs['h:w', 'Estimate']
+
+pred1 <- b0 + b1 * h + b2 * w + b12 * h * w
+pred2 <- predict(fit4, newdata=dat)
+names(pred2) <- NULL
+all.equal(pred1, pred2)
+
+```
+
+Categorical:continuous interaction: the additive categorical term can change
+  the intercept. The interaction between categorical and continous will
+  change the coefficient of the continous in each group. That is, there
+  is potentially a different slope for each group.
 
 ```
 rm(list=ls())
 
+dat <- iris[iris$Species %in% c('virginica', 'setosa'), ]
+fit1 <- lm(Sepal.Length ~ Sepal.Width * Species, data=dat)
+summary(fit1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+w <- seq(from=min(dat$Sepal.Width), to=max(dat$Sepal.Width), length.out=10000)
+pred1 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='virginica'))
+pred2 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='setosa'))
+
+par(mfrow=c(1, 1))
+plot(x=range(w), y=range(c(pred1, pred2)), type='n')
+i.v <- dat$Species == 'virginica'
+i.s <- dat$Species == 'setosa'
+points(Sepal.Length ~ Sepal.Width, data=dat[i.v, ], pch='+', col='cyan')
+points(Sepal.Length ~ Sepal.Width, data=dat[i.s, ], pch='o', col='magenta')
+lines(x=w, y=pred1, lty=2, col='cyan')
+lines(x=w, y=pred2, lty=3, col='magenta')
+
+```
+
+Now we will take a look at an example in the `mtcars` dataset with a smaller 
+  but still apparently significant interaction, this time between numeric 
+  variable `wt` (weight of the vehicle) and the categorical variable `gear`,
+  which specifies the number of gears the vehicle has. Since we have no idea
+  if the response variable `mpg` (miles-per-gallon) should have a monotonic
+  relationship with `gear`, and since there are only three distinct values
+  for `gear`, we will model it as a categorical variable. This will allow the
+  effect of gear to follow an arbitrary pattern.
+
+```
+rm(list=ls())
+
+## get the data together:
 dat <- mtcars[, c('mpg', 'wt', 'gear')]
-dat$gear <- factor(dat$gear)
+table(dat$gear)
+dat$gear <- factor(dat$gear)      ## not clear what t
 summary(dat)
 par(mfrow=c(1, 1))
 plot(dat)
@@ -339,26 +599,143 @@ plot(dat)
 fit1 <- lm(mpg ~ wt, data=dat)
 summary(fit1)
 par(mfrow=c(2, 3))
-plot(fit1, which=1:6)
+plot(fit1, which=1:6)             ## maybe quadratic?
 
+## lets try adding other variables:
 fit2 <- lm(mpg ~ wt + gear, data=dat)
 summary(fit2)
 par(mfrow=c(2, 3))
-plot(fit2, which=1:6)
+plot(fit2, which=1:6)             ## similar residuals vs fitted as fit1
 
+## allow for an interaction:
 fit3 <- lm(mpg ~ wt * gear, data=dat)
 summary(fit3)
 par(mfrow=c(2, 3))
-plot(fit3, which=1:6)
+plot(fit3, which=1:6)             ## residuals look better 
 
+## here is an example of a nested relationship: gear has no direct
+##   effect, but only an effect on the slope of mpg vs wt:
 fit4 <- lm(mpg ~ wt / gear, data=dat)
 summary(fit4)
 par(mfrow=c(2, 3))
 plot(fit4, which=1:6)
 
 ```
+In the above example, the coefficient for `wt` captures the slope of the 
+  relationship between `mpg` and `wt` for the 'reference' group, which was
+  selected by default to be the observations where `dat$gear == '3'`. For
+  this group, the intercept and this slope are all that is required for 
+  making predictions. For observations where `dat$gear == '4'`, we add
+  a constant additive effect, corresponding to `coefs['gear4', 'Estimate']`,
+  plus an interaction effect between `gear` and `wt`, which has the net 
+  effect of changing the slope of `mpg` vs `wt` for the `gear4` group.
+  A constant additive effect and effect on slope of `mpg` vs `wt` are also
+  modeled for the `gear5` group. 
 
-Since non-normal residuals, lets look to CV for corroboration:
+This case allows us to demonstrate how predictions are made when there are
+  interactions between a continuous and categorical variable:
+
+```
+prd2 <- predict(fit3, data=dat)
+
+coefs <- coef(summary(fit3))
+b0 <- coefs['(Intercept)', 'Estimate']
+b1 <- coefs['wt', 'Estimate']
+b24 <- coefs['gear4', 'Estimate']
+b25 <- coefs['gear5', 'Estimate']
+b34 <- coefs['wt:gear4', 'Estimate']
+b35 <- coefs['wt:gear5', 'Estimate']
+
+wt <- dat$wt
+gr <- dat$gear
+
+i4 <- gr == '4'                    ## only true for gear4
+i5 <- gr == '5'                    ## only true for gear5
+
+effect.wt <- b1 * wt
+
+## 0 for gear3; b24 for gear4; b25 for gear5:
+effect.gear <- i4 * b24 + i5 * b25
+
+## 0 for gear3; (b34 * wt) for gear4; (b35 * wt) for gear5
+effect.inter <- i4 * b34 * wt + i5 * b35 * wt
+
+prd1 <- b0 + effect.wt + effect.gear + effect.inter
+prd2 <- predict(fit3, data=dat)
+names(prd2) <- NULL
+all.equal(prd1, prd2)
+
+```
+
+two categoricals:
+
+```
+rm(list=ls())
+
+dat <- quine
+
+par(mfrow=c(1, 1))
+plot(dat)
+
+fit1 <- lm(Days ~ Age * Sex, data=dat)
+summary(fit1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+```
+
+```
+rm(list=ls())
+library('caret')
+
+dat <- diamonds
+dat <- as.data.frame(dat)
+dat <- dat[dat$carat == 1, c('price', 'color', 'clarity')] 
+dat <- dat[dat$color %in% c('E', 'G'), ]
+dat <- dat[dat$clarity %in% c('SI1', 'VS2'), ]
+dat$color <- factor(dat$color)
+dat$clarity <- factor(dat$clarity)
+
+summary(dat)
+par(mfrow=c(1, 1))
+plot(dat)
+nrow(dat)
+
+fit1 <- lm(price ~ color * clarity, data=dat)
+summary(fit1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+coefs <- coef(fit1)
+b0 <- coefs['(Intercept)']
+b1 <- coefs['color.L']
+b2 <- coefs['clarity.L']
+b12 <- coefs['color.L:clarity.L']
+
+i.G <- dat$color == 'G'
+i.VS2 <- dat$clarity == 'VS2'
+
+table(i.G)
+table(i.VS)
+summary(dat)
+
+prd1 <- b0 + i.G * b1 + i.VS2 * b2 + (i.G & i.VS2) * b12
+prd2 <- predict(fit1, newdata=dat)
+
+fit1 <- lm(price ~ color + clarity, data=dat)
+
+coef(fit1)
+
+fit1 <- lm(price ~ color, data=dat)
+(coefs <- coef(fit1))
+(b0 <- coefs['(Intercept)'])
+(b1 <- coefs['color.L'])
+predict(fit1, newdata=dat[1, ])
+dat[1, ]
+
+```
+
+EXERCISE:
 
 ```
 library('caret')

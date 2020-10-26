@@ -422,7 +422,7 @@ set.seed(1)
 
 n <- 15                           ## sample size
 x <- iris[iris$Species == 'virginica', 'Sepal.Length']
-## x <- sample(x, n, replace=F)      ## 
+x <- sample(x, n, replace=F)      ## make dataset smaller, so bias is more pronounced
 
 ## variance based on (biased) population formula (literally the mean of the squared deviations):
 f.var.pop <- function(x) {
@@ -651,11 +651,11 @@ f <- function(idx.trn) {
   dat.trn <- dat[idx.trn, ]
   dat.tst <- dat[-idx.trn, ]
 
-  ## fit traditional linear model:
+  ## fit first formula with Girth:
   fit1 <- lm(frm1, data=dat.trn)
   pred1 <- predict(fit1, newdata=dat.tst)
 
-  ## fit loess model:
+  ## fit second formula; intercept only:
   fit2 <- lm(frm2, data=dat.trn)
   pred2 <- predict(fit2, newdata=dat.tst)
 

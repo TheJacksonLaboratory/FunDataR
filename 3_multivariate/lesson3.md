@@ -307,6 +307,10 @@ w <- seq(from=min(dat$Sepal.Width), to=max(dat$Sepal.Width), length.out=10000)
 pred1 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='virginica'))
 pred2 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='setosa'))
 
+## note lines are parallel:
+pred1[1] - pred2[1]
+pred1[length(pred1)] - pred2[length(pred2)]
+
 par(mfrow=c(1, 1))
 plot(x=range(w), y=range(c(pred1, pred2)), type='n')
 i.v <- dat$Species == 'virginica'
@@ -582,7 +586,7 @@ plot(fit6, which=1:6)
 
 An interaction between **two continuous variables** is modeled as the product
   of the two variables times the coefficient for the interaction term. 
-  Therefore, predictions for `fit4` proceed from the coefficients as 
+  Therefore, **predictions** for `fit4` proceed from the coefficients as 
   follows:
 
 ```
@@ -696,8 +700,8 @@ In the above example, the coefficient for `wt` captures the slope of the
   A constant additive effect and effect on slope of `mpg` vs `wt` are also
   modeled for the `gear5` group. 
 
-This case allows us to demonstrate how predictions are made when there are
-  interactions between a continuous and categorical variable:
+This case allows us to demonstrate how **predictions** are made when there are
+  interactions between a **continuous and categorical** variable:
 
 ```
 prd2 <- predict(fit3, data=dat)
@@ -733,12 +737,13 @@ all.equal(prd1, prd2)
 
 ```
 
-Now we will look at a dataset with a possible interaction between two categorical 
-  variables. In this case, a significant interaction coefficient would suggest that
+Now we will look at a dataset with a possible interaction between **two categorical 
+  variables**. In this case, a significant interaction coefficient would suggest that
   the contribution of each categorical variable is conditional on the value
-  of the other variable. Therefore, the effects of the variables involved in the
-  interaction are modeled as constants whose value depends on the other variable, 
-  rather than as constants whose values only depend on the first variable.
+  of the other variable. Therefore, for **prediction**, the effects of the variables 
+  involved in the interaction are modeled as constants whose value depends on the 
+  other variable, rather than as constants whose values only depend on the first 
+  variable.
 
 ```
 rm(list=ls())

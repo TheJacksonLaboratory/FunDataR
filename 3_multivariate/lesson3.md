@@ -42,7 +42,7 @@ So far we have looked at estimating population parameters based on random
   correlation test and the t-test to use linear regression to estimate the 
   conditional mean of one continuous variable based on the value of another 
   continuous variable. We saw that linear regression could also incorporate 
-  categorical variables, in which case it could be shown to be equivalent to 
+  categorical predictors, in which case it could be shown to be equivalent to 
   the equal variances t-test and ANOVA procedures.
 
 When fitting a simple linear regression model with a **continuous predictor** `x`, 
@@ -68,7 +68,7 @@ When fitting a simple linear regression model with a **categorical predictor** `
   possible ways of specifying the same relationship using two coefficients that 
   result in identical predictions, even though each way results in different
   values for the coefficients. The different ways of encoding the relationship
-  with the coefficients is called the 'contrast' used during the regression
+  with the coefficients is called the **contrast** used during the regression
   (or ANOVA). One simple to interpret (and the default for unordered factor 
   categories) contrast is the **treatment contrast**. In this case, `b0` is the 
   mean of a 'reference' group (say 'A', though we can designate any group), and 
@@ -77,7 +77,7 @@ When fitting a simple linear regression model with a **categorical predictor** `
   while predictions for observations with group membership 'B' will be 
   `y = b0 + b1`. In the case of three groups ('A', 'B' and 'C'), we will end up 
   with an estimate of the intercept `b0`, which represents the mean for the 
-  **'reference' group** (for instance group 'A', though we can specify which group), 
+  **reference group** (for instance group 'A', though we can specify which group), 
   and two additional coefficients, `b1` representing the difference in means between 
   group 'A' and group 'B', as well as `b2`, representing the difference between the 
   mean of group 'C' and the mean of group 'A'. Now prediction for observations 
@@ -90,8 +90,8 @@ We are often dealing with response variables whose value depends on more than on
   explanatory variable. For instance, the area of a rectangle depends on not only
   the height, but also the width. We can extend the linear model to multiple 
   explanatory variables, including combinations of continuous and categorical 
-  variables. It can also include the addition of polynomial terms for explanatory
-  variables. We will begin with this latter case:
+  variables. It can also include the addition of multiple polynomial terms for a 
+  single explanatory variable. We will begin with this latter case:
 
 ```
 library('caret')
@@ -231,7 +231,8 @@ plot(fit5, which=1:6)             ## plot still looks ok
 
 Interestingly, even though `disp` has a higher correlation with `mpg` than `hp`, the latter 
   appears to be a more useful predictor. We will return to this phenomena shortly, but
-  first, since residual plots seem weird, let's see if CV supports our choice of `fit3`: 
+  first, since the residual plots don't look that great, let's see if CV supports our choice 
+  of `fit3`: 
 
 ```
 library(caret)
@@ -355,7 +356,8 @@ When we include multiple explanatory variables in a conventional linear
   all the 'responsibility' for changes in `y` being assigned to `x1` and nearly 
   none to `x2`, or vice-versa, which means that the coefficient estimates can be 
   quite far from their true population values (in this case, the `x1` 
-  coefficient will be inflated and the `x2` coefficient deflated). Or the 
+  coefficient will be inflated and the `x2` coefficient deflated). When the two
+  variables are redundant, the 
   two coefficients can both end up being inflated in a way that they offset 
   each other. That is, if `x1` is approximately the same as `x2`, then the
   predictions made by the formula `y = x1 + x2` will be approximatly the same
@@ -365,6 +367,16 @@ When we include multiple explanatory variables in a conventional linear
   extremely unstable (partially reflected in the standard errors rising). We 
   will discuss methods for dealing with highly correlated predictors in the 
   machine learning section of this course.
+
+```
+x1 <- 3
+x2 <- x1 * 1.0001
+
+3 * x1 - x2
+4 * x1 - 2 * x2
+300 * x1 - 298 * x2
+
+```
 
 We saw some hint of this going on in the previous example. When we included 
   the `I(wt ^ 2)` term, which is correlated with `wt` itself, it increased the
@@ -501,7 +513,7 @@ We mentioned earlier in the course that we can convert multiplicative
 
 Here we will use the synthetic example of rectangle areas, where the area
   is the product of the height and width of the rectangle. We know this
-  formula from primary school, so we could pick the right formula a priori,
+  formula from primary school, so we could pick the right formula *a priori*,
   but if we were looking at some new data where the underlying phenomena
   and relationships were not understood, we might have to arrive at the right
   formula through some trial and error. In general, we would want to do
@@ -541,7 +553,7 @@ One can also nest variables using `y ~ x1 / x2`, where `x2` is a categorical
   grade was assigned. So we can have a formula like: `days_absent ~ grade / school`, 
   which would generate a different `days_absent` vs `grade` slope for each 
   `school`, but all the schools have the same intercept (so `school` does not 
-  have an effect except to qualify the impact of `grade`).
+  have an effect except to qualify the meaning and effect of `grade`).
 
 ```
 rm(list=ls())

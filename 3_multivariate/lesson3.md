@@ -24,24 +24,29 @@
 
 So far we have looked at estimating population parameters based on random
   samples, where those parameters have described either the distribution of
-  a single variable, or the joint distribution of two variables. For instance,
-  in the univariate case, we used the proportion test to estimate the 
-  proportion of the population belonging to individual mutually-exclusive 
-  categories, and we used
-  the t-test to estimate a population mean for a continuous variable. In the
-  bivariate case, we used the proportion test to look for associations between
-  two categorical variables, the t-test and ANOVA for associations between
-  a categorical variable (group/treatment) and a continuous variable. We used
-  correlation tests to estimate the association between two continuous variables.
-  We then extended the idea of correlation to the linear model, where we learned
-  how to predict or explain the values of a continuous variable based on another
-  variable that could be either continuous or categorical. We also showed that
-  linear models fit (by least-squares) to minimize the mean-squared error of the 
-  training data relative to the prediction line were equivalent to ANOVA and the
-  equal-variances t-test, when the predictor variable was categorical.
+  a single variable considered in isolation (e.g. the one-sample t-test
+  and one-sample proportion test), or how the distribution of one variable 
+  depends on the value of another. When two variables are independent,
+  the value of one variable has no impact on the distribution of the other. 
+  When they are not independent, then the distribution of one of the variables
+  is conditional on the value of the other. For instance, the t-test tests 
+  whether the value of a categorical variable (designating which one of the 
+  two groups being compared an observation belongs to) affects some aspect
+  (in particular, the mean) of the distribution of the continuous variable.
+  The ANOVA extends this analysis to the case of a categorical variable with
+  more than two categories. We also used the proportion test for two 
+  categorical variables to see if the group proportions of one variable
+  was independent of the group value of the other variable. We used
+  correlation tests to see if the distribution of two continuous variables
+  were independent of one another. We extended the ideas of the correlation
+  test and the t-test to use linear regression to estimate the conditional
+  mean of one continuous variable based on the value of another continuous
+  variable. We saw that linear regression could also incorporate categorical
+  variables, in which case it could be shown to be equivalent to the equal
+  variances t-test and ANOVA.
 
-When fitting a simple linear regression model with a continuous predictor `x`, we saw
-  that two coefficients would be estimated. One was the coefficient for the 
+When fitting a simple linear regression model with a **continuous predictor** `x`, 
+  we saw that two coefficients would be estimated. One was the coefficient for the 
   continuous predictor `b1`, which is equivalent to the slope of the prediction line.
   The other coefficient was the intercept `b0`, which is a constant term in the
   prediction formula that describes the value of the response `y` when `x`
@@ -52,32 +57,38 @@ When fitting a simple linear regression model with a continuous predictor `x`, w
   which the coefficients were estimated, and the magnitude of the error term,
   which describes the spread of data points about the prediction line.
 
-When fitting a simple linear regression model with a categorical predictor `x`,
+When fitting a simple linear regression model with a **categorical predictor** `x`,
   we saw that the number of coefficients estimated for `x` would depend on how
   many categories or 'levels' `x` contains. In general, the number of coefficients
   would be the number of categories minus one, plus one coefficient for the 
   intercept. For instance, if there were two categories, say 'A' and 'B', we would 
-  estimate the intercept `b0` and one group coefficient `b1B` for group 'B'. In 
-  this case, `b0` is the mean of group 'A' and `b1B` is the difference between
-  the group mean of 'B' and the group represented by the intercept `b0`. Then
-  predictions for any observation with group membership 'A' is simply: 
-  `y = b0`; while predictions for observations with group membership 'B' will
-  be `y = b0 + b1B`. In the case of three groups ('A', 'B' and 'C'), we will end 
-  up with an estimate of the intercept `b0`, which represents the mean for the 
-  first group ('A', though we can specify which group is represented by the 
-  intercept), and two additional coefficients, `b1B` representing the difference
-  in means between group 'A' and group 'B', as well as `b1C`, representing 
-  the difference between the mean of group 'C' and the mean of group 'A'. 
-  Now prediction for observations belonging to group 'A' are `y = b0`, 
-  predictions for group 'B' are `y =  b0 + b1B` and for group 'C', predictions
-  are `y = b0 + b1C`.
+  estimate the intercept `b0` and one group coefficient `b1`. There are many 
+  possible ways of specifying the same relationship using two coefficients that 
+  result in identical predictions, even though each way results in different
+  values for the coefficients. The different ways of encoding the relationship
+  with the coefficients is called the 'contrast' used during the regression
+  (or ANOVA). One simple to interpret (though not the default) contrast is the 
+  **treatment contrast**. In this case, `b0` is the mean of a 'reference' group 
+  (say 'A', though we can designate any group), and `b1` is the difference between 
+  the mean of group 'B' and the group mean of 'A'. Predictions for any observation 
+  with group membership 'A' is simply: `y = b0`; while predictions for observations 
+  with group membership 'B' will be `y = b0 + b1`. In the case of three groups ('A', 
+  'B' and 'C'), we will end up with an estimate of the intercept `b0`, which 
+  represents the mean for the first group ('A', though we can specify which group 
+  is represented by the intercept), and two additional coefficients, `b1` 
+  representing the difference in means between group 'A' and group 'B', as well 
+  as `b2`, representing the difference between the mean of group 'C' and the mean 
+  of group 'A'. Now prediction for observations belonging to group 'A' are `y = b0`, 
+  predictions for group 'B' are `y =  b0 + b1` and for group 'C', predictions
+  are `y = b0 + b2`. That is, each prediction is a horizontal line with an intercept
+  that depends on the group.
 
 We are often dealing with response variables whose value depends on more than one 
   explanatory variable. For instance, the area of a rectangle depends on not only
   the height, but also the width. We can extend the linear model to multiple 
   explanatory variables, including combinations of continuous and categorical 
   variables. It can also include the addition of polynomial terms for explanatory
-  variables:
+  variables. We will begin with this latter case:
 
 ```
 library('caret')
@@ -121,8 +132,8 @@ plot(fit3, which=1:6)             ## Much better!
 
 ```
 
-Now we see our list of coefficients has grown to three, with one `b0` (we'll call
-  it that here for notational convenience, but it is actually labeled
+Now we see our list of coefficients has grown to three, with one `b0` (we'll 
+  call it that here for notational convenience, but it is actually labeled
   `(Intercept)` in the output) for the intercept, another `b1` for `Days` 
   (labeled `Days`) and a last one `b2` for `Days ^ 2` (labeled `I(Days^2)`).
   Predictions for new observations would then be made as: 
@@ -166,10 +177,10 @@ legend(
 ```
 
 Clearly the addition of both linear and quadratic terms is better than either
-  alone. It is interesting that the quadratic only fit `fit3` actually is 
-  actually curved the wrong way! In general, unless theory suggests the 
-  lower order polynomial terms are not needed, we usually include them if
-  any higher order term is significant. 
+  alone. It is interesting that the quadratic only fit `fit3` is curved the 
+  wrong way! In general, unless theory suggests the lower order polynomial 
+  terms are not needed, we usually include them if any higher order term is 
+  significant. 
 
 Finally, let's see what cross-validation has to say about the choice of
   `fit3`:
@@ -308,6 +319,18 @@ summary(fit1)
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
 
+## intercepts (Sepal.Length where Sepal.Width==0) differ, 
+##   but slope is the same (prediction lines parallel):
+
+coefs <- coef(fit1)
+predict(fit1, newdata=data.frame(Sepal.Width=0, Species='setosa'))
+coefs['(Intercept)']
+
+predict(fit1, newdata=data.frame(Sepal.Width=0, Species='virginica'))
+coefs['(Intercept)'] + coefs['Speciesvirginica']
+
+## let's compare the prediction lines graphically:
+
 w <- seq(from=min(dat$Sepal.Width), to=max(dat$Sepal.Width), length.out=10000)
 pred1 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='virginica'))
 pred2 <- predict(fit1, newdata=data.frame(Sepal.Width=w, Species='setosa'))
@@ -349,9 +372,18 @@ When we include multiple explanatory variables in a conventional linear
   `x2` when `x1` and `x2` are highly correlated, because every time `x1` changes,
   `x2` is changing in a related pattern. This can lead to nearly all the 
   'responsibility' for changes in `y` being assigned to `x1` and nearly none
-  to `x2`, which means that the coefficient estimates can be quite far from
-  their true population values (in this case, the `x1` coefficient will be 
-  inflated and the `x2` coefficient deflated). 
+  to `x2`, or vice-versa, which means that the coefficient estimates can be 
+  quite far from their true population values (in this case, the `x1` 
+  coefficient will be inflated and the `x2` coefficient deflated). Or the 
+  two coefficients can both end up being inflated in a way that they offset 
+  each other. That is, if `x1` is approximately the same as `x2`, then the
+  predictions made by the formula `y = x1 + x2` will be approximatly the same
+  as `y = 3 * x1 - x2` or `y = 4 * x1 - 2 * x2`,  or even 
+  `y = 300 * x1 - 298 * x2`, etc. That is, very similar predictions can be 
+  produced with wildly different coefficients, which makes the fitting process 
+  extremely unstable (reflected in the standard errors rising). We will discuss 
+  methods for dealing with highly correlated predictors in the machine learning 
+  section of this course.
 
 We saw some hint of this going on in the previous example. When we included 
   the `I(wt ^ 2)` term, which is correlated with `wt` itself, it increased the
@@ -389,13 +421,13 @@ coef(summary(fit5))
 We can use a synthetic example to demonstrate this more dramatically. In the first
   case we will use an example with two uncorrelated predictors, and we will see that
   inclusion of the second predictor greatly improves the standard error and 
-  significance of the first predictor coefficient, because inclusion of the second
-  predictor adds unique explanatory value that decreases the deviations of the 
-  observations from the conditional mean, thereby decreasing the magnitude of the
-  estimated error term for the model, which improves the standard error for all
-  individual coefficients. In the second example, we use two highly correlated
-  predictors and show how adding the second predictor to the model actually can
-  make the model worse:
+  significance of the first predictor coefficient. This is because inclusion of the 
+  second predictor adds unique explanatory value that improves prediction and thereby 
+  decreases the deviations of the observations from the conditional mean, resulting
+  in a reduction in the magnitude of the estimated error term for the model, which 
+  improves the standard error for all individual coefficients. In the second example, 
+  we use two highly correlated predictors and show how adding the second predictor 
+  to the model actually can make the model worse:
 
 ```
 rm(list=ls())
@@ -443,19 +475,26 @@ coef(summary(fit3))               ## standard errors, t-values, p-values much wo
 ### Interactions
 
 So far, we have looked at adding polynomial terms for a single explanatory
-  variable, as well as adding additional variables to a linear regression.
-  However, we have only looked at how to include terms in an additive way.
-  But sometimes we want to model a multiplicative relationship between 
-  variables. We mentioned earlier in the course that we can convert 
-  multiplicative relationships into additive ones by taking the log
-  of the multiplicative formula. However, this can result in a non-linear
-  relationship in some cases, or problems with the residual distribution, 
-  or simply may make the relationship harder to interpret because of the 
-  tranformation. In cases of a multiplicative relationship between
-  explanatory variables, we can introduce 'interactions' between those
-  variables. In the case of two continuous variables, this essentially 
-  amounts to including the product of the two variables as a new variable 
-  in the regression formula. 
+  variable, as well as adding additional continuous or categorical 
+  variables to a linear regression. However, we have only looked at how to 
+  include terms in an additive way. That is, we considered cases where
+  the contribution of a term to the net effect was additive relative to
+  other terms in the model. Therefore, the effect of a variable depended
+  only on the value of that variable, but not any other. But sometimes we 
+  want to model a multiplicative relationship between variables, or a 
+  relationship where the value of a categorical variable changes not only
+  the intercept, but also the slope of the response vs. the continuous
+  variable. 
+
+We mentioned earlier in the course that we can convert multiplicative 
+  relationships into additive ones by taking the log of the multiplicative 
+  formula. However, this can result in a non-linear relationship in some 
+  cases, or problems with the residual distribution, or simply may make 
+  the relationship harder to interpret because of the tranformation. In 
+  cases of a multiplicative relationship between explanatory variables, 
+  we can introduce 'interactions' between those variables. In the case of 
+  two continuous variables, this essentially amounts to including the 
+  product of the two variables as a new variable in the regression formula. 
 
 Here we will use the synthetic example of rectangle areas, where the area
   is the product of the height and width of the rectangle. We know this
@@ -473,18 +512,20 @@ Here we will use the synthetic example of rectangle areas, where the area
   In formulas and coefficient naming, the `:` symbol between variables 
   indicates an interaction term. In formulas, the `*` operator, when not
   protected by the `I()` function, serves to include both terms plus their
-  interaction. That is `y ~ x1 * x2` is equivalent to `y ~ x1 + x2 + x1:x2`.
-  But `y ~ x1 * x2 * x3` is equivalent to 
+  interaction. That is `y ~ x1 * x2` is equivalent to `y ~ x1 + x2 + x1:x2`,
+  where `x1:x2` represents the interaction. However, the number of possible 
+  interactions grows very rapidly with the number of variables. For instance,
+  `y ~ x1 * x2 * x3` is equivalent to 
   `y ~ x1 + x2 + x3 + x1:x2 + x1:x3 + x2:x3 + x1:x2:x3`. With many variables, 
   this can result in trying to estimate too many parameters for the available
-  data, decreasing the stability of all the estimates. In order to limit or
-  otherwise specify the maximal degree of interactions to include, we can use 
-  the `^` operator. For instance, `y ~ (x1 + x2 + x3) ^ 2` is equivalent to
-  `y ~ x1 + x2 + x3 + x1:x2 + x1:x3 + x2:x3`. The three-way interaction 
-  `x1:x2:x3` was excluded because it is of degree three. One can also nest 
-  variables using `y ~ x1 / x2`, where `x2` is a categorical variable, which 
-  results in a different `y ~ x1` slope for each category in `x2` without 
-  introducing an additive effect for `x2`. 
+  data, decreasing the stability/reliability of all the estimates. In order 
+  to limit or otherwise specify the maximal degree of interactions to include,
+  we can use the `^` formula operator. For instance, `y ~ (x1 + x2 + x3) ^ 2` 
+  is equivalent to `y ~ x1 + x2 + x3 + x1:x2 + x1:x3 + x2:x3`. The three-way 
+  interaction `x1:x2:x3` was excluded because it is of degree three. One can 
+  also nest variables using `y ~ x1 / x2`, where `x2` is a categorical 
+  variable, which results in a different `y ~ x1` slope for each category in 
+  `x2` without introducing an additive effect for `x2`. 
 
 ```
 rm(list=ls())
@@ -527,7 +568,7 @@ plot(fit6, which=1:6)
 
 ```
 
-An interaction between two continuous variables is modeled as the product
+An interaction between two **continuous variables** is modeled as the product
   of the two variables times the coefficient for the interaction term. 
   Therefore, predictions for `fit4` proceed from the coefficients as 
   follows:
@@ -547,10 +588,14 @@ all.equal(pred1, pred2)
 
 ```
 
-Categorical:continuous interaction: the additive categorical term can change
-  the intercept. The interaction between categorical and continous will
-  change the coefficient of the continous in each group. That is, there
-  is potentially a different slope for each group.
+An interaction between **categorical and continuous** variables results in the
+  slope of the response vs. the continuous variable changing from group
+  to group. If the categorical variables are also included as individual terms
+  (they normally would be, if the interaction is included and theory does not
+  provide justification for removing the individual terms), the intercepts
+  will also be different in different groups. In the following example, we will
+  look at how the slope of `Sepal.Length` vs `Sepal.Width` varies between two
+  iris species:
 
 ```
 rm(list=ls())
@@ -573,6 +618,12 @@ points(Sepal.Length ~ Sepal.Width, data=dat[i.v, ], pch='+', col='cyan')
 points(Sepal.Length ~ Sepal.Width, data=dat[i.s, ], pch='o', col='magenta')
 lines(x=w, y=pred1, lty=2, col='cyan')
 lines(x=w, y=pred2, lty=3, col='magenta')
+
+## notice lines are more spread out at the end of the range than at the
+##   beginning, reflecting the differing slopes (lines are not parallel!!!):
+
+pred1[1] - pred2[1]
+pred1[length(pred1)] - pred2[length(pred2)]
 
 ```
 
@@ -654,10 +705,12 @@ i5 <- gr == '5'                    ## only true for gear5
 
 effect.wt <- b1 * wt
 
-## 0 for gear3; b24 for gear4; b25 for gear5:
+## constant additive effects of gear:
+##   0 for gear3; b24 for gear4; b25 for gear5:
 effect.gear <- i4 * b24 + i5 * b25
 
-## 0 for gear3; (b34 * wt) for gear4; (b35 * wt) for gear5
+## interaction between gear and wt; equiv to a change in slope;
+##   0 for gear3; (b34 * wt) for gear4; (b35 * wt) for gear5
 effect.inter <- i4 * b34 * wt + i5 * b35 * wt
 
 prd1 <- b0 + effect.wt + effect.gear + effect.inter
@@ -667,34 +720,29 @@ all.equal(prd1, prd2)
 
 ```
 
-two categoricals:
-
-```
-rm(list=ls())
-
-dat <- quine
-
-par(mfrow=c(1, 1))
-plot(dat)
-
-fit1 <- lm(Days ~ Age * Sex, data=dat)
-summary(fit1)
-par(mfrow=c(2, 3))
-plot(fit1, which=1:6)
-
-```
+Now we will look for a possible interaction between two categorical variables.
+  In this case, a significant interaction coefficient would suggest that
+  the contribution of each categorical variable is conditional on the value
+  of the other variable. Therefore, a different group mean will be modeled for
+  each distinct combination of the two categorical variables, and the differences
+  between group means will not necessarily be . That is, if
+  the first variable encodes two categories and the second variable encodes
+  two categories, 
 
 ```
 rm(list=ls())
 library('caret')
 
+## subset some data:
 dat <- diamonds
 dat <- as.data.frame(dat)
 dat <- dat[dat$carat == 1, c('price', 'color', 'clarity')] 
 dat <- dat[dat$color %in% c('E', 'G'), ]
 dat <- dat[dat$clarity %in% c('SI1', 'VS2'), ]
-dat$color <- factor(dat$color)
-dat$clarity <- factor(dat$clarity)
+
+## make unordered, so default contrasts are 'treatment':
+dat$color <- factor(dat$color, ordered=F)
+dat$clarity <- factor(dat$clarity, ordered=F)
 
 summary(dat)
 par(mfrow=c(1, 1))
@@ -706,32 +754,25 @@ summary(fit1)
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
 
+## how coefficients become predictions:
+
 coefs <- coef(fit1)
 b0 <- coefs['(Intercept)']
-b1 <- coefs['color.L']
-b2 <- coefs['clarity.L']
-b12 <- coefs['color.L:clarity.L']
+b1 <- coefs['colorG']
+b2 <- coefs['clarityVS2']
+b3 <- coefs['colorG:clarityVS2']
 
 i.G <- dat$color == 'G'
 i.VS2 <- dat$clarity == 'VS2'
 
 table(i.G)
-table(i.VS)
+table(i.VS2)
 summary(dat)
 
-prd1 <- b0 + i.G * b1 + i.VS2 * b2 + (i.G & i.VS2) * b12
+prd1 <- b0 + i.G * b1 + i.VS2 * b2 + (i.G & i.VS2) * b3
 prd2 <- predict(fit1, newdata=dat)
-
-fit1 <- lm(price ~ color + clarity, data=dat)
-
-coef(fit1)
-
-fit1 <- lm(price ~ color, data=dat)
-(coefs <- coef(fit1))
-(b0 <- coefs['(Intercept)'])
-(b1 <- coefs['color.L'])
-predict(fit1, newdata=dat[1, ])
-dat[1, ]
+names(prd2) <- NULL
+all.equal(prd1, prd2)
 
 ```
 

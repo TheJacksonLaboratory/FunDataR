@@ -9,8 +9,6 @@
 - [Multiple regression](#multiple-regression)
 - [Correlated predictors](#correlated-predictors)
 - [Interactions](#interactions)
-- [Hierarchical models](#hierarchical-models)
-- [Mixed models](#mixed-models)
 
 ### Check your understanding
 

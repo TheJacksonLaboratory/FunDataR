@@ -176,42 +176,11 @@ legend(
 
 ```
 
-Clearly the addition of both linear and quadratic terms is better than either
+The addition of both linear and quadratic terms looks to be better than either
   alone. It is interesting that the quadratic only fit `fit3` is curved the 
   wrong way! In general, unless theory suggests the lower order polynomial 
   terms are not needed, we usually include them if any higher order term is 
-  significant. 
-
-Finally, let's see what cross-validation has to say about the choice of
-  `fit3`:
-
-```
-## cross-validate the models:
-
-f <- function(idx.trn) {
-  dat.trn <- wtloss[idx.trn, ]
-  dat.tst <- wtloss[-idx.trn, ]
-  fit1 <- lm(Weight ~ Days, data=dat.trn)
-  fit2 <- lm(Weight ~ I(Days ^ 2), data=dat.trn)
-  fit3 <- lm(Weight ~ Days + I(Days ^ 2), data=dat.trn)
-  prd1 <- predict(fit1, newdata=dat.tst)
-  prd2 <- predict(fit2, newdata=dat.tst)
-  prd3 <- predict(fit3, newdata=dat.tst)
-  mse1 <- mean((dat.tst$Weight - prd1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$Weight - prd2) ^ 2, na.rm=T)
-  mse3 <- mean((dat.tst$Weight - prd3) ^ 2, na.rm=T)
-  c(mse1=mse1, mse2=mse2, mse3=mse3)
-}
-
-k <- 10                           ## number of folds
-times <- 7                        ## number of repetitions
-idx <- 1:nrow(wtloss)             ## vector of index positions of observations
-folds <- createMultiFolds(idx, k=k, times=times)
-rslt <- sapply(folds, f)          ## folds is list of indices to training-set observations
-apply(rslt, 1, mean)              ## average mse over folds
-apply(rslt, 1, sd)                ## spread of results; stability of performance
-
-```
+  significant.
 
 We'll now look at an example where we'll try including different variables, as
   well as polynomial terms for one of them:
@@ -352,7 +321,12 @@ lines(x=w, y=pred2, lty=3, col='magenta')
 
 ### Check your understanding 1
 
-1) question here
+1) Use 10-fold cross-validation repeated 7 times to see which of the following formula best fit
+     the wtloss training set: `Weight ~ Days`, `Weight ~ I(Days ^ 2)`, or 
+     `Weight ~ Days + I(Days ^ 2)`? Examine both the mean prediction error as well as its spread.
+
+2) How does the improvement in performance offered by the best fit compare to the standard 
+     deviation of the performance of the best fit?
 
 [Return to index](#index)
 
@@ -466,7 +440,29 @@ coef(summary(fit3))               ## standard errors, t-values, p-values much wo
 
 ### Check your understanding 2
 
-1) question here
+1) Peform the following variable generation pattern and two fits 1000 times. Return the 
+     standard deviation of the estimates of the coefficient for `x1` separately for `fit1` 
+     and for `fit2`:
+
+```
+rm(list=ls())
+
+e <- rnorm(100, mean=0, sd=0.1)   ## error
+x1 <- runif(100, min=0, max=1)    ## predictor 1
+x2 <- runif(100, min=0, max=1)    ## uncorrelated second predictor
+
+## correlated third predictor:
+x3 <- 0.999 * x1 + 0.001 * runif(100, min=0, max=1)
+
+## rescale to ensure w/i interval [0, 1]:
+x3 <- (x3 - min(x3)) / max(x3)
+
+y1 <- x1 + x2 + e
+y2 <- x1 + x3 + e
+fit1 <- lm(y1 ~ x1 + x2)
+fit2 <- lm(y2 ~ x1 + x3)
+
+```
 
 [Return to index](#index)
 
@@ -642,7 +638,7 @@ rm(list=ls())
 ## get the data together:
 dat <- mtcars[, c('mpg', 'wt', 'gear')]
 table(dat$gear)
-dat$gear <- factor(dat$gear)      ## not clear what t
+dat$gear <- factor(dat$gear, ordered=F)
 summary(dat)
 par(mfrow=c(1, 1))
 plot(dat)
@@ -776,50 +772,29 @@ all.equal(prd1, prd2)
 
 ```
 
-EXERCISE:
-
-```
-library('caret')
-set.seed(1)
-
-f <- function(idx.trn) {
-
-  dat.trn <- dat[idx.trn, ]
-  dat.tst <- dat[-idx.trn, ]
-
-  fit1 <- lm(mpg ~ wt, data=dat.trn)
-  fit2 <- lm(mpg ~ wt + gear, data=dat.trn)
-  fit3 <- lm(mpg ~ wt * gear, data=dat.trn)
-
-  prd1 <- predict(fit1, newdata=dat.tst)
-  prd2 <- predict(fit2, newdata=dat.tst)
-  prd3 <- predict(fit3, newdata=dat.tst)
-
-  mse1 <- mean((dat.tst$mpg - prd1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$mpg - prd2) ^ 2, na.rm=T)
-  mse3 <- mean((dat.tst$mpg - prd3) ^ 2, na.rm=T)
-
-  c(mse1=mse1, mse2=mse2, mse3=mse3)
-}
-
-k <- 10                           ## since n >> p, bias likely low
-times <- 7                        ## repeat k-fold CV this many times
-
-idx <- 1 : nrow(dat)
-folds <- createMultiFolds(idx, k=k, times=times)
-mse <- sapply(folds, f)
-apply(mse, 1, mean)               ## improvement small, but appears real
-apply(mse, 1, sd)                 ## also corroborates improvement
-
-```
-
 [Return to index](#index)
 
 ---
 
 ### Check your understanding 3
 
-1) question here
+Using the following dataset:
+
+```
+dat <- mtcars[, c('mpg', 'wt', 'gear')]
+table(dat$gear)
+dat$gear <- factor(dat$gear, ordered=F)
+summary(dat)
+
+```
+
+1) Plot the variables against one another.
+
+2) Fit the linear model with formula `mpg ~ wt * gear` to the data. Are the individual variable
+     coefficients significantly different from zero? Are the interaction coefficients significantly
+     different from zero?
+
+3) Plot separate regression lines for three values of `gear`.
 
 [Return to index](#index)
 

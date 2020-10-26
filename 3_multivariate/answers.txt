@@ -320,98 +320,154 @@ apply(rslt, 1, sd)
 ###################################################################################################
 ## Lesson 3 : Check 1
 
+## 1. Use 10-fold cross-validation repeated 7 times to see which of the following formula best fit
+##   the wtloss training set: `Weight ~ Days`, `Weight ~ I(Days ^ 2)`, or 
+##   `Weight ~ Days + I(Days ^ 2)`? Examine both the mean prediction error as well as its spread.
+
+library('caret')
+library('MASS')
 rm(list=ls())
-
-dat <- mtcars[, c('mpg', 'wt', 'disp', 'hp')]
-par(mfrow=c(1, 1))
-plot(dat)
-cor(dat)
-
-fit1 <- lm(mpg ~ disp, data=dat)
-summary(fit1)
-par(mfrow=c(2, 3))
-plot(fit1, which=1:6)
-
-fit2 <- lm(mpg ~ disp + hp, data=dat)
-summary(fit2)
-par(mfrow=c(2, 3))
-plot(fit2, which=1:6)
-
-f <- function(idx.trn) {
-  dat.trn <- dat[idx.trn, ]
-  dat.tst <- dat[-idx.trn, ]
-  fit1 <- lm(mpg ~ disp, data=dat.trn)
-  fit2 <- lm(mpg ~ disp + hp, data=dat.trn)
-  prd1 <- predict(fit1, newdata=dat.tst)
-  prd2 <- predict(fit2, newdata=dat.tst)
-  mse1 <- mean((dat.tst$mpg - prd1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$mpg - prd2) ^ 2, na.rm=T)
-  mse1 - mse2                     ## will produce more precise comparison
-}
-
-library(caret)
 set.seed(1)
 
-k <- 10
-times <- 7
-idx <- 1:nrow(dat)
+dat <- wtloss
 
-## make list of k * times folds; elements are training-set indices:
+f <- function(idx.trn) {
+  dat.trn <- wtloss[idx.trn, ]
+  dat.tst <- wtloss[-idx.trn, ]
+  fit1 <- lm(Weight ~ Days, data=dat.trn)
+  fit2 <- lm(Weight ~ I(Days ^ 2), data=dat.trn)
+  fit3 <- lm(Weight ~ Days + I(Days ^ 2), data=dat.trn)
+  prd1 <- predict(fit1, newdata=dat.tst)
+  prd2 <- predict(fit2, newdata=dat.tst)
+  prd3 <- predict(fit3, newdata=dat.tst)
+  mse1 <- mean((dat.tst$Weight - prd1) ^ 2, na.rm=T)
+  mse2 <- mean((dat.tst$Weight - prd2) ^ 2, na.rm=T)
+  mse3 <- mean((dat.tst$Weight - prd3) ^ 2, na.rm=T)
+  c(mse1=mse1, mse2=mse2, mse3=mse3)
+}
+
+k <- 10                           ## number of folds
+times <- 7                        ## number of repetitions
+idx <- 1:nrow(wtloss)             ## vector of index positions of observations
 folds <- createMultiFolds(idx, k=k, times=times)
+rslt <- sapply(folds, f)          ## folds is list of indices to training-set observations
 
-rslt <- sapply(folds, f)          ## run f() on each training-set index in folds
-mean(rslt)
-sd(rslt)
+> apply(rslt, 1, mean)            ## average mse over folds
+      mse1       mse2       mse3 
+13.7152582 88.7467032  0.9426234 
+
+> apply(rslt, 1, sd)              ## spread of results; stability of performance
+      mse1       mse2       mse3 
+ 5.7907744 36.2949816  0.6028187 
+
+
+## 2. How does the improvement in performance offered by the best fit compare to the standard 
+##      deviation of the performance of the best fit?
+
+> (13.7152582 - 0.9426234)  / 0.6028187
+[1] 21.18819
+
 
 ###################################################################################################
 ## Lesson 3 : Check 2
 
-correlation stuff here
+## 1. Peform the following two fits 1000 times and return the standard deviation of the 
+##      estimates of the coefficient for `x1` separately for `fit1` and `fit2`:
+
+rm(list=ls())
+set.seed(1)
+
+R <- 1000
+
+rslt1 <- rep(as.numeric(NA), R)
+rslt2 <- rep(as.numeric(NA), R)
+
+for(i in 1 : R) {
+  e <- rnorm(100, mean=0, sd=0.1)   ## error
+  x1 <- runif(100, min=0, max=1)    ## predictor 1
+  x2 <- runif(100, min=0, max=1)    ## uncorrelated second predictor
+
+  ## correlated third predictor:
+  x3 <- 0.999 * x1 + 0.001 * runif(100, min=0, max=1)
+
+  ## rescale to ensure w/i interval [0, 1]:
+  x3 <- (x3 - min(x3)) / max(x3)
+
+  y1 <- x1 + x2 + e
+  y2 <- x1 + x3 + e
+  fit1 <- lm(y1 ~ x1 + x2)
+  fit2 <- lm(y2 ~ x1 + x3)
+
+  rslt1[i] <- coef(fit1)['x1']
+  rslt2[i] <- coef(fit2)['x1']
+}
+
+> sd(rslt1)
+[1] 0.03545117
+
+> sd(rslt2)
+[1] 33.99997
+
 
 ###################################################################################################
 ## Lesson 3 : Check 3
 
+## Using the following dataset:
+
+## 
+## dat <- mtcars[, c('mpg', 'wt', 'gear')]
+## table(dat$gear)
+## dat$gear <- factor(dat$gear, ordered=F)
+## summary(dat)
+
+## 1) Plot the variables against one another.
+
 rm(list=ls())
 
-dat <- mtcars[, c('mpg', 'wt', 'disp', 'hp')]
+dat <- mtcars[, c('mpg', 'wt', 'gear')]
+table(dat$gear)
+dat$gear <- factor(dat$gear, ordered=F)
+summary(dat)
 par(mfrow=c(1, 1))
 plot(dat)
-cor(dat)
 
-fit1 <- lm(mpg ~ disp + hp, data=dat)
-summary(fit1)
-par(mfrow=c(2, 3))
-plot(fit1, which=1:6)
 
-fit2 <- lm(mpg ~ disp * hp, data=dat)
-summary(fit2)
-par(mfrow=c(2, 3))
-plot(fit2, which=1:6)
+## 2) Fit the linear model with formula `mpg ~ wt * gear` to the data. Are the individual variable
+##      coefficients significantly different from zero? Are the interaction coefficients significantly
+##      different from zero?
 
-f <- function(idx.trn) {
-  dat.trn <- dat[idx.trn, ]
-  dat.tst <- dat[-idx.trn, ]
-  fit1 <- lm(mpg ~ disp + hp, data=dat.trn)
-  fit2 <- lm(mpg ~ disp * hp, data=dat.trn)
-  prd1 <- predict(fit1, newdata=dat.tst)
-  prd2 <- predict(fit2, newdata=dat.tst)
-  mse1 <- mean((dat.tst$mpg - prd1) ^ 2, na.rm=T)
-  mse2 <- mean((dat.tst$mpg - prd2) ^ 2, na.rm=T)
-  mse1 - mse2                     ## will produce more precise comparison
-}
+fit1 <- lm(mpg ~ wt * gear, data=dat)
+coef(summary(fit1))
 
-library(caret)
-set.seed(1)
 
-k <- 10
-times <- 7
-idx <- 1:nrow(dat)
+## 3) Plot separate regression lines for three values of `gear`.
 
-## make list of k * times folds; elements are training-set indices:
-folds <- createMultiFolds(idx, k=k, times=times)
+wt <- seq(from=min(dat$wt), to=max(dat$wt), length.out=10000)
+table(dat$gear)
 
-rslt <- sapply(folds, f)          ## run f() on each training-set index in folds
-mean(rslt)
-sd(rslt)
+pred1 <- predict(fit1, newdata=data.frame(wt=wt, gear='3'))
+pred2 <- predict(fit1, newdata=data.frame(wt=wt, gear='4'))
+pred3 <- predict(fit1, newdata=data.frame(wt=wt, gear='5'))
 
+par(mfrow=c(1, 1))
+plot(x=range(dat$wt), y=range(c(pred1, pred2, pred3)), xlab='wt', ylab='mpg', type='n')
+lines(x=wt, y=pred1, lty=2, col='cyan')
+lines(x=wt, y=pred2, lty=3, col='magenta')
+lines(x=wt, y=pred3, lty=4, col='orangered')
+
+i3 <- dat$gear == '3'
+i4 <- dat$gear == '4'
+i5 <- dat$gear == '5'
+
+points(x=dat$wt[i3], y=dat$mpg[i3], pch='+', col='cyan')
+points(x=dat$wt[i4], y=dat$mpg[i4], pch='x', col='magenta')
+points(x=dat$wt[i5], y=dat$mpg[i5], pch='o', col='orangered')
+
+legend(
+  'bottomleft',
+  legend=c('gear3', 'gear4', 'gear5'),
+  col=c('cyan', 'magenta', 'orangered'),
+  lty=c(2, 3, 4),
+  pch=c('+', 'x', 'o')
+)
 

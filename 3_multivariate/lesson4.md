@@ -158,13 +158,15 @@ fit <- lm(y ~ x)
 plot(x, y, main='y ~ x')
 f.draw(fit, 2, 'cyan')
 
-fit <- lm(y ~ x + I(x^2))
-plot(x, y, main='y ~ x')
+fit <- lm(y ~ x + x^2)
+plot(x, y, main='y ~ x + I(x^2)')
 f.draw(fit, 2, 'cyan')
 
 fit <- lm(y ~ x + I(x^2) + I(x^3))
 plot(x, y, main='y ~ x + x^2 + x^3')
 f.draw(fit, 2, 'cyan')
+
+summary(fit)
 
 ```
 
@@ -195,7 +197,22 @@ code here
 
 ### Model selection
 
-intro here
+Variables vs. terms. Some factor levels may be non-significant alone or in interactions.
+  For polynomials and interactions, when building, add best lowest degree terms first; when
+  pruning, cut worst highest degree terms first.
+
+For instance, y ~ x + x^2 allows horizontal adjustment; y ~ x^2 forces minimum to be at x == 0.
+  An unwarranted assumption under most circumstances, even if not significant -- allows for a 
+  more fine-tuned fit. If theory suggests at x==0, y==minimum (e.g. growth of a seed perhaps), then
+  makes sense to drop x^1.
+
+step function order/outcome for non-orthogonal terms depends on order of terms in formula. may
+  need to permute them a bit to see what effect order has -- should stick to the more stable/frequently
+  appearing model. 
+
+AIC: -2 * log-likelihood + 2 * p
+ 
+Parametric model selection. 
 
 ```
 code here

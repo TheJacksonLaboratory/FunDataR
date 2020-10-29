@@ -206,6 +206,33 @@ For instance, y ~ x + x^2 allows horizontal adjustment; y ~ x^2 forces minimum t
   more fine-tuned fit. If theory suggests at x==0, y==minimum (e.g. growth of a seed perhaps), then
   makes sense to drop x^1.
 
+Can use parametric methods to compare two models, when one is nested within the other:
+
+```
+rm(list=ls())
+
+dat <- mtcars[, c('mpg', 'wt', 'disp', 'gear')]
+dat$gear <- factor(dat$gear, ordered=F)
+
+fit1 <- lm(mpg ~ 1, data=dat)
+fit2 <- lm(mpg ~ wt, data=dat)              ## implicitly mpg ~ 1 + hp, so fit1 nested w/i fit2
+anova(fit1, fit2)
+anova(fit2, fit1)
+summary(fit2)                               ## anova p-value same as for t-test on coefficient
+
+fit3 <- lm(mpg ~ wt + disp, data=dat)       ## fit2 nested w/i fit3
+anova(fit2, fit3)
+summary(fit3)                               ## anova p-value same as for t-test on coefficient
+
+fit4 <- lm(mpg ~ wt * gear, data=dat)
+anova(fit2, fit4)
+summary(fit4)
+
+```
+
+AIC extends to non-nested models. Allows arbitrary model comparisons within the same family 
+  (e.g. linear models vs. linear models; not linear model vs. GLM).
+
 step function order/outcome for non-orthogonal terms depends on order of terms in formula. may
   need to permute them a bit to see what effect order has -- should stick to the more stable/frequently
   appearing model. 
@@ -213,6 +240,38 @@ step function order/outcome for non-orthogonal terms depends on order of terms i
 AIC: -2 * log-likelihood + 2 * p
  
 Parametric model selection. 
+
+```
+rm(list=ls())
+
+par(mfrow=c(2, 3))
+
+fit1a <- lm(mpg ~ ., data=mtcars)
+summary(fit1a)
+plot(fit1a, which=1:6)
+
+fit2a <- step(fit1a)
+summary(fit2a)
+plot(fit2a, which=1:6)
+
+fit1b <- lm(mpg ~ 1, data=mtcars)
+summary(fit1b)
+plot(fit1b, which=1:6)
+
+fit2b <- step(fit1b, scope=list(lower=~1, upper=~.^2))
+summary(fit2b)
+plot(fit2b, which=1:6)
+
+```
+
+Evaluation procedures: CV
+
+```
+code here
+
+```
+
+Tuning procedures: tune k in AIC, using nested CV.
 
 ```
 code here

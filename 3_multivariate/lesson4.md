@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## Multivariate statistics: more about multiple regression
+## Multivariate statistics: model building
 #### Contact: mitch.kostich@jax.org
 
 ---
@@ -20,16 +20,72 @@
 
 ### Multiple testing
 
-intro here
-
-p-values uniformly distributed; dangers of false positives when running hypothesis tests:
+We often test many hypotheses using a single dataset. For instance, when constructing a 
+  multiple regression model, we saw that the summary contains the results of an F-test
+  of the overall model, as well as results of t-tests on individual model coefficients.
+  If the F-test is significant, it suggests the model fits the data better than can be 
+  expected by chance, or, equivalently, that at least one of the coefficients (not 
+  counting the intercept) really is not zero. In the case of simple linear regression 
+  (only one explanatory variable), the this F-test is equivalent to the t-test on the 
+  coefficient on the explanatory variable: the two tests should return identical 
+  results. In the case of multiple regression, the t-tests must be considered
+  individually. As in the case of post-hoc testing following a significant omnibus
+  F-test on an ANOVA model, this testing should control for the effects of multiple
+  testing. For instance, in the example below, there are six separate t-tests being 
+  conducted, and the p-values returned are (unfortunately) not adjusted to reflect 
+  that multiple tests are being performed using the same dataset:
 
 ```
 rm(list=ls())
 
-set.seed(1)
+dat <- mtcars
+dat$gear <- factor(dat$gear, ordered=F)
 
-R <- 10000
+fit <- lm(mpg ~ wt * gear, data=dat)
+summary(fit)
+
+```
+
+We sometimes know from theory what terms should be included in a model, and in this case,
+  we should not reject terms simply because the corresponding coefficient test returned 
+  a non-significant p-value. Nevertheless, there are many times when there is no data to 
+  guide us and we need to empirically determine a good model. In principle, this can be 
+  guided by t-tests on individual coefficients, but the effects of multiple testing must 
+  be accounted for. We mentioned that in the case of variables with significant interaction 
+  coefficients or polynomial coefficients, the coefficients for lower-order terms should 
+  not be excluded from the model, even if the lower-order coefficients were themselves not 
+  significant. Sometimes one or more interaction terms involving particular levels of a 
+  categorical variable will be non-significant, while terms involving other levels are highly 
+  significant. In these case, it is advisable to leave the bare variable and the interaction 
+  term (including the coefficients for all the levels of the categorical variable) in the 
+  model.
+
+However, in all these cases, we must properly adjust the p-values returned to account for 
+  the effects of multiple testing. Multiple testing issues arise from a basic property
+  of p-values: when the null hypothesis is true, p-values will be uniformly
+  distributed on the interval between zero and one. That is, a p-value of 0.5 is just as 
+  likely as a p-value of 0.99 or a p-value of 0.0001. Therefore, in any one test where the 
+  null hypothesis is true, the p-value itself is randomly distributed, with a 95% chance
+  of landing at or above the value 0.05 (since 95% of the space between 0 and 1 is 
+  occupied by the region between 0.05 and 1) and a 5% chance of landing below 0.05 (since
+  only 5% of the space between 0 and 1 lies below 0.05). That is, even when the null 
+  hypothesis is true, there is a one-in-twenty chance that the p-value will be below 0.05
+  anyway. When testing multiple hypotheses using the same dataset, this also means that
+  even if all the null hypotheses are all true, on average, one in twenty tests will 
+  reject the null hypothesis with a p-value < 0.05. For instance, in the example below,
+  we will draw two samples (`x` and `y`) from the same population (a normal distribution 
+  with `mean=0` and `sd=1`) and conduct a t-test to see if the populations each sample
+  was drawn from had different means. Since they were drawn from the same population, the
+  null hypothesis is always true, and significant test results (very close to the 
+  expected proportion of 0.05) are false positives reflecting the distribution of p-values 
+  under the null hypothesis: 
+
+```
+rm(list=ls())
+
+set.seed(3)
+
+R <- 50000
 p.values <- rep(as.numeric(NA), R)
 
 for(i in 1:R) {
@@ -45,8 +101,62 @@ sum(p.values < 0.05) / R
 
 ```
 
-family-wise error rate (Bonferroni and Holm); vs false discovery rates:
-  proportion of false positives among all positives.
+In the broadest sense, there are two approaches to controlling for the
+  effects of multiple testing by 'adjusting' p-values. One approach attempts 
+  to control the **family-wise error rate** or **FWER**, while the other 
+  approach attempts to control the **false discovery rate** or **FDR**. These 
+  approaches differ not only in the algorithms employed, but more importantly, 
+  in the interpretation of the results of the corresponding adjustment. When
+  adjusting for `m` tests, FWER control involves adjusting p-values so they 
+  have the following interpretation: the adjusted p-value represents the 
+  probability that ANY of the `m` tests will reject a null hypothesis by 
+  chance. By contrast, FDR adjustment results in p-values representing the
+  probability that ANY ONE of the `m` tests will reject a null hypothesis
+  by chance. In the case that 1000 tests were being conducted simultaneously
+  (in the case of differential expression analysis of whole transcriptome 
+  data, there will often be 10s of thousands of simultaneous tests, and 
+  in genome-wide association studies, the number of hypotheses can reach into
+  the millions), an FWER cutoff of 0.05 means there is a 5% chance that one or
+  more positive result in the set of positive results will turn out to be 
+  wrong. By contrast, an FDR cutoff of 0.05 means that 5% of all the returned 
+  positive results are expected to be wrong by chance. Therefore, the FWER
+  is the right choice when each individual hypothesis test is considered 
+  equally critical, while the FDR is a better choice in cases where you want
+  to reduce the false positive rate, but are still willing to accept a small
+  proportion of false posivites. The advantage of using FDR is that the 
+  tests retain more power: that is they can detect smaller deviations from
+  the null hypothesis for a given sample size and noise level.
+
+Both approaches have several algorithms associated with them. Two common 
+  algorithms for FWER control are the **Bonferroni** and the **Holm-Bonferroni** 
+  adjustments. The Bonferroni adjustment is particularly easy to perform
+  and understand: one simply multiplies each p-value by the number of tests
+  being performed, and resets all values greater than `1` back to `1` (to
+  keep everything within the interval from zero to one). That is:
+  `p.adjust.bonferroni <- p.values * number.of.tests`. However, in practice,
+  it is better to use the Holm-Bonferroni procedure for FWER control, as it 
+  will always be at least as powerful, but is often more powerful as the 
+  original Bonferroni procedure.
+
+Two popular methods for achieving FDR control are the **Benjamini-Hochberg**
+  or **BH** method, and the **Benjamini-Yekutieli** or **BY** method. The
+  BH method is preferred when the tests are independent of each other, since 
+  it retains more power under those circumstances. However, when tests are
+  not independent (for instance, in an RNA-seq experiment, genes often move
+  up and down together, introducing correlations between the corresponding
+  test results; or in regression, when variables are correlated, their
+  coefficient t-tests are also correlated), the BH method may fail to provide
+  the nominal level of control (e.g. more than 5% of the positive tests may
+  turn out to be wrong), so the BY method should be used, since it controls
+  the FDR at the nominal rate even when tests are positively or negatively
+  correlated.
+
+In the following example, we will take the set of p-values from the last
+  example, where the null hypothesis was always true, but we found about
+  5% of the p-values falling below 0.05, and see what happens when we 
+  apply the adjustments discussed above, using the R `p.adjust()` 
+  function. When all the null hypotheses are true, the procedures tend to 
+  produce fairly comparable results:
 
 ```
 p.adj <- p.values * length(p.values)
@@ -71,7 +181,9 @@ min(p.by)
 
 ```
 
-One more example with about 5% of experiments null is not true:
+One more example with about 5% of experiments null is not true. 
+  The differences between procedures are more evident in this
+  case:
 
 ```
 rm(list=ls())
@@ -103,7 +215,58 @@ sum(p.holm < 0.05)
 sum(p.bh < 0.05)
 sum(p.by < 0.05)
 
+par(mfrow=c(2, 2))
+hist(p.bonf, main='Bonferroni (FWER)')
+hist(p.holm, main='Holm (FWER)')
+hist(p.bh, main='BH (FDR)')
+hist(p.by, main='BY (FDR)')
+
 ```
+
+When working with the p-values returned by t-tests on regression coefficients,
+  the context should be reflected in the approach. Sometimes only a single 
+  coefficient is of interest. This is typically true in the case of simple
+  linear regression, since there is only one explanatory variable. However, it
+  can also be true in the case of multiple regression. Frequently, we are 
+  interested in whether one particular variable or interaction term is useful 
+  for explaining or predicting the response variable, and we include other
+  predictor variables because we already know they are important. For instance,
+  we may be interested in whether there are mortality rate differences between
+  women. So we may have a categorical variable for `Gender` in our model, but
+  we might also include the continuous variable `Age`, because we already know
+  that mortality rate (e.g. proportion of individuals who die within a year)
+  is strongly associated with `Age`. Therefore, we include `Age` because it 
+  reduces the sum-of-squared residuals when fitting the data, which in turn
+  reduces the standard error of all the coefficient estimates, which will make
+  our test on the `Gender` coefficient (in this case) much more powerful.
+  Here, no adjustment of the result from the `Gender` coefficient test is 
+  required. If it is significant, it suggests that `Gender` impacts the 
+  mortality rate. There is no need to pay any attention to the `Age` test in
+  this case. The term can be included regardless, since theory strongly suggests
+  a relationship, and a non-significant test can simply reflect a lack of
+  power due to too small a sample size or too much noise in the data.
+
+If you wish to test multiple variables or terms in a single model, you can focus on
+  the corresponding coefficients alone (e.g. you can still exclude tests on
+  variables introduced to reduce standard errors), however you should adjust
+  for multiplicity of testing. Whether you use FWER or FDR control will 
+  depend on how tolerant you are of false results. If the number of hypotheses
+  is relatively small, FWER often makes more sense, while FDR control may make
+  more sense as the number of tests becomes larger.
+
+If you are trying to select terms for inclusion in your model, FWER control should 
+  typically be applied when the number of coefficient tests is small, and FDR 
+  control used when the number of tests rises. When constructing the model, whenever 
+  possible (sometimes there are too many models required to make this practical), 
+  you should still also take careful account of residual plots as you build the model 
+  and especially when evaluating the final model. If you are working with a linear
+  model with categorical explanatory variables, if you want to achieve similar 
+  interpretability of 'significance' as a post-hoc test from an ANOVA, FWER control
+  should be used on the tests of the corresponding coefficients. It is curious that 
+  virtually every statistics textbook will advise multiple testing control when 
+  conducting post-hoc testing after ANOVA, but rarely mention this in the context 
+  of what are essentially equivalent tests on coefficients of categorical variables 
+  included in a linear regression.  
 
 [Return to index](#index)
 

@@ -36,7 +36,7 @@ We often test many hypotheses using a single dataset. For instance, when constru
   that multiple tests are being performed using the same dataset:
 
 ```
-## A model demoing overall model F-test and multiple coefficient t-tests:
+## A model demonstrating overall model F-test and multiple coefficient t-tests:
 
 rm(list=ls())
 
@@ -360,8 +360,11 @@ f.fit(4, 'y ~ x + I(x^2) + I(x^3)')
 
 ### Model selection
 
-Variables vs. terms. Some factor levels may be non-significant alone or in interactions.
-  For polynomials and interactions, when building, add best lowest degree terms first; when
+We also described the situation, sometimes we can have categorical predictors where some levels may be 
+  non-significant alone or in interactions, while other levels are highly significant.
+
+Along the lines we previously mentioned about retaining for polynomials and interactions, when building a model, one 
+  should add best lowest degree terms first; when
   pruning, cut worst highest degree terms first.
 
 For instance, `y ~ x + x^2` allows horizontal adjustment; `y ~ x^2` forces minimum to be at x == 0.
@@ -369,11 +372,21 @@ For instance, `y ~ x + x^2` allows horizontal adjustment; `y ~ x^2` forces minim
   more fine-tuned fit. If theory suggests at `x==0`, `y==minimum` (e.g. growth of a seed perhaps), then
   makes sense to drop `x^1`.
 
-Can use parametric methods to compare two models, when one is nested within the other. Generally
-  compare how well different models fit the training data, and have a real danger of over-fitting.
+As you may have noticed, manually building a model requires either a solid theoretically-driven
+  mathematical model as a starting point, or tedious and tricky exploration of the possible
+  variables and their interactions. This is a difficult largely subjective process, facilitated 
+  by experience building models and subject-matter knowledge. 
 
-Models from any step-wise model selection procedure will tend to be optimistically biased (R-squared
-  too high, p-values too low) if evaluated with the data used to select the model.
+We can use an **ANOVA** to compare two linear models, when one is nested within the other. Nesting 
+  means that all the terms in the smaller model are included in the larger model. We can use the R
+  `anova()` function to compare two nested linear models. The `anova()` function compares the sum-of-squared
+  residuals (**SSR**) from the smaller model to the SSR from the larger model. The proportion reduction
+  in the SSR with the larger model is compared to the number of coefficients added by the larger 
+  model in order to determine if the larger model is fitting better solely due to increased flexibility
+  (due to inclusion of more coefficients). This procedure makes the same assumptions about random sampling,
+  normally distributed residuals or 'large enough' a sample size as many of the other parametric methods
+  we've looked at. In addition, although it provides some control of overfitting, since it only uses
+  the training-set for evaluation, it still retains substantial potential for overfitting.
 
 ```
 rm(list=ls())
@@ -397,11 +410,38 @@ summary(fit4)
 
 ```
 
-AIC extends to non-nested models evaluated using the same sample. Allows arbitrary model comparisons 
-  within the same family (e.g. linear models vs. other linear models). Assumes normally distributed 
-  residuals.
+The **Akaike Information Criterion** or **AIC** extends the parametric model selection approach to 
+  non-nested models evaluated using the training-set. One can in principle use the AIC to compare 
+  arbitrary models within the same parametric family (e.g. linear models with the usually assumed 
+  normal errors to other linear models with assumed normal errors). This method is also parametric,
+  and normal distributions are assumed at many points in the derivation of the criterion, so for 
+  most real-world datasets, the p-values produced are only asymptotically correct. Nevertheless, 
+  many models have successfully been built using AIC as a guide. For nested models, using the
+  AIC criterion is equivalent to the ANOVA approach, except with an adjusted p-value cutoff. Both
+  methods balance the improvement in model fit to the training data against the difference in the 
+  number of coefficients included in each model. As with ANOVA, AIC testing is designed to resist 
+  overfitting the data, but since only the training-set is used for evaluation, risks of 
+  overfitting remain.
 
-in the nested case, same (chi-square distribution, but different cutoff), except with a different p-value cutoff.
+Manual model building is very tedious and has a substantial subjective component to it. This makes
+  it impractical for building very large models, building very large numbers of models, or for 
+  objective/reproducible model generation. One popular alternative approach is to use an automated 
+  procedure to build the model in a step-wise process. In R, we can use the `step()` function to 
+  do this for linear models. In this case, an initial model is picked, a range of model 
+  complexity to explore is specified, and the direction to explore relative to the initial model
+  (e.g. `direction=backward` to try smaller models only; `direction=forward` to try only larger
+  models, and `direction=both` to try both larger and smaller models). Assuming the `step()` 
+  function is called with `direction=both`, then the `step()` function will try to drop one
+  term at a time from the current model and note the resulting change in AIC. Then it will try 
+  to add one term at a time from the set of terms in the maximal model not included in the 
+  present model, and note the resulting change in the AIC. If any of these model deletions or 
+  additions improve on the AIC of the current model, the change resulting in the largest drop
+  in AIC is made to the model. Then the procedure is repeated, until no further improvement in 
+  the model is achieved through any one-step change. The resulting model can depend on the 
+  initial model selected (especially when terms are correlated), so sometimes it makes sense to 
+  try several starting points and pursue the best overall result. Since the process is step-wise, 
+  it can miss models that can reduce the AIC substantially, but only by adding several terms 
+  simultaneously.
 
 step function order/outcome for non-orthogonal terms depends on order of terms in formula. may
   need to permute them a bit to see what effect order has -- should stick to the more stable/frequently
@@ -409,7 +449,8 @@ step function order/outcome for non-orthogonal terms depends on order of terms i
 
 AIC: -2 * log-likelihood + 2 * p
  
-Parametric model selection. 
+Models from any step-wise model selection procedure will tend to be optimistically biased (R-squared
+  too high, p-values too low) if evaluated with the data used to select the model.
 
 ```
 rm(list=ls())

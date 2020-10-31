@@ -36,6 +36,8 @@ We often test many hypotheses using a single dataset. For instance, when constru
   that multiple tests are being performed using the same dataset:
 
 ```
+## A model demoing overall model F-test and multiple coefficient t-tests:
+
 rm(list=ls())
 
 dat <- mtcars
@@ -81,6 +83,8 @@ However, in all these cases, we must properly adjust the p-values returned to ac
   under the null hypothesis: 
 
 ```
+## Under the null hypothesis, p-values are uniformly distributed:
+
 rm(list=ls())
 
 set.seed(3)
@@ -159,6 +163,8 @@ In the following example, we will take the set of p-values from the last
   produce fairly comparable results:
 
 ```
+## let's adjust the p-values from tests where null hypothesis was always true:
+
 p.adj <- p.values * length(p.values)
 p.adj[p.adj > 1] <- 1
 p.bonf <- p.adjust(p.values, method='bonferroni')
@@ -186,6 +192,8 @@ One more example with about 5% of experiments null is not true.
   case:
 
 ```
+## let's adjust the p-values from tests where null hypothesis is sometimes false:
+
 rm(list=ls())
 set.seed(1)
 
@@ -224,8 +232,8 @@ hist(p.by, main='BY (FDR)')
 ```
 
 When working with the p-values returned by t-tests on regression coefficients,
-  the context should be reflected in the approach. Sometimes only a single 
-  coefficient is of interest. This is typically true in the case of simple
+  the context should be reflected in the approach. Sometimes only a **single 
+  coefficient is of interest**. This is typically true in the case of simple
   linear regression, since there is only one explanatory variable. However, it
   can also be true in the case of multiple regression. Frequently, we are 
   interested in whether one particular variable or interaction term is useful 
@@ -246,7 +254,7 @@ When working with the p-values returned by t-tests on regression coefficients,
   a relationship, and a non-significant test can simply reflect a lack of
   power due to too small a sample size or too much noise in the data.
 
-If you wish to test multiple variables or terms in a single model, you can focus on
+If you wish to **test multiple coefficients** in a single model, you can focus on
   the corresponding coefficients alone (e.g. you can still exclude tests on
   variables introduced to reduce standard errors), however you should adjust
   for multiplicity of testing. Whether you use FWER or FDR control will 
@@ -254,14 +262,14 @@ If you wish to test multiple variables or terms in a single model, you can focus
   is relatively small, FWER often makes more sense, while FDR control may make
   more sense as the number of tests becomes larger.
 
-If you are trying to select terms for inclusion in your model, FWER control should 
+If you are trying to **select terms for inclusion** in your model, FWER control should 
   typically be applied when the number of coefficient tests is small, and FDR 
   control used when the number of tests rises. When constructing the model, whenever 
   possible (sometimes there are too many models required to make this practical), 
   you should still also take careful account of residual plots as you build the model 
   and especially when evaluating the final model. If you are working with a linear
   model with categorical explanatory variables, if you want to achieve similar 
-  interpretability of 'significance' as a post-hoc test from an ANOVA, FWER control
+  interpretability of 'significance' as a **post-hoc test from an ANOVA**, FWER control
   should be used on the tests of the corresponding coefficients. It is curious that 
   virtually every statistics textbook will advise multiple testing control when 
   conducting post-hoc testing after ANOVA, but rarely mention this in the context 
@@ -274,7 +282,7 @@ If you are trying to select terms for inclusion in your model, FWER control shou
 
 ### Check your understanding 1
 
-1) question here
+1) 
 
 [Return to index](#index)
 
@@ -282,10 +290,35 @@ If you are trying to select terms for inclusion in your model, FWER control shou
 
 ### Overfitting
 
-intro here; pick the most parsimonious model consistent with the data; check with independent data.
+Overfitting describes the phenomena of models being fitted to the 'noise' in the
+  training-set more than the 'signal'. That is, for a linear relationship, the linear
+  trend in the relationship between variables is the signal, while the dispersion of 
+  observations around the prediction line (the deviations) represents the noise. This leads 
+  to poor predictive performance on new samples, because the noise in each sample is 
+  different. The more coefficients we add to a model, the more flexible the fit of the 
+  model becomes, which can be very helpful when the true form of the relationship is 
+  complex, but also provides more opportunities to achieve a very good fit to the training 
+  data by adapting to the noise in those data. This is particularly likely when sample 
+  sizes are small or noise is large compared to the signal in the data. However, for any
+  sample of size `n`, a linear model with `p` coefficients will fit the data perfectly 
+  (noise and all) when `p >= n`.
+
+Therefore, it is important to try to use larger samples to train more complex models, 
+  to pick the most parsimonious (fewest coefficients) model consistent with the training 
+  data, and only rely on evaluations performed with an independent test-set.
+
+In the example below, we will generate samples of varying sizes, with each observation
+  having `x` and `y` variables that are independent of each other. We will then see how
+  adding terms increases the flexibility of the model, allowing 'perfect' regression 
+  fits (pass exactly thru each data point in training set) to be found even when there 
+  is no relationship between the variables. In these cases, since the fit is perfect, 
+  the residuals are all zero, so the standard error is zero, which means that none of
+  the statistics can be calculated (you would be dividing by zero) and NA is returned
+  instead:  
 
 ```
 rm(list=ls())
+set.seed(1)
 
 f.draw <- function(fit, lty, col) {
   x.plot <- 1:10000
@@ -293,42 +326,23 @@ f.draw <- function(fit, lty, col) {
   lines(x.plot, y.plot, lty=lty, col=col)
 }
 
+f.fit <- function(n, frm, lty=2, col='cyan') {
+  x <- seq(from=1, to=10, length.out=n)
+  y <- rnorm(n, mean=0, sd=1)
+  fit <- lm(as.formula(frm), data=data.frame(x=x, y=y))
+  plot(x, y, main=frm)
+  f.draw(fit, lty=2, col=col)
+  summary(fit)
+}
+
 par(mfrow=c(2, 3))
 
-n <- 2
-x <- seq(from=1, to=10, length.out=n)
-y <- rnorm(n, mean=0, sd=1)
-fit <- lm(y ~ x)
-plot(x, y, main='y ~ x')
-f.draw(fit, 2, 'cyan')
-
-n <- 3
-x <- seq(from=1, to=10, length.out=n)
-y <- rnorm(n, mean=0, sd=1)
-fit <- lm(y ~ x)
-plot(x, y, main='y ~ x')
-f.draw(fit, 2, 'cyan')
-
-fit <- lm(y ~ x + I(x^2))
-plot(x, y, main='y ~ x + x^2')
-f.draw(fit, 2, 'cyan')
-
-n <- 4
-x <- seq(from=1, to=10, length.out=n)
-y <- rnorm(n, mean=0, sd=1)
-fit <- lm(y ~ x)
-plot(x, y, main='y ~ x')
-f.draw(fit, 2, 'cyan')
-
-fit <- lm(y ~ x + I(x^2))
-plot(x, y, main='y ~ x + x^2')
-f.draw(fit, 2, 'cyan')
-
-fit <- lm(y ~ x + I(x^2) + I(x^3))
-plot(x, y, main='y ~ x + x^2 + x^3')
-f.draw(fit, 2, 'cyan')
-
-summary(fit)
+f.fit(2, 'y ~ x')
+f.fit(3, 'y ~ x')
+f.fit(3, 'y ~ x + I(x^2)')
+f.fit(4, 'y ~ x')
+f.fit(4, 'y ~ x + I(x^2)')
+f.fit(4, 'y ~ x + I(x^2) + I(x^3)')
 
 ```
 
@@ -358,6 +372,9 @@ For instance, `y ~ x + x^2` allows horizontal adjustment; `y ~ x^2` forces minim
 Can use parametric methods to compare two models, when one is nested within the other. Generally
   compare how well different models fit the training data, and have a real danger of over-fitting.
 
+Models from any step-wise model selection procedure will tend to be optimistically biased (R-squared
+  too high, p-values too low) if evaluated with the data used to select the model.
+
 ```
 rm(list=ls())
 
@@ -383,6 +400,8 @@ summary(fit4)
 AIC extends to non-nested models evaluated using the same sample. Allows arbitrary model comparisons 
   within the same family (e.g. linear models vs. other linear models). Assumes normally distributed 
   residuals.
+
+in the nested case, same (chi-square distribution, but different cutoff), except with a different p-value cutoff.
 
 step function order/outcome for non-orthogonal terms depends on order of terms in formula. may
   need to permute them a bit to see what effect order has -- should stick to the more stable/frequently

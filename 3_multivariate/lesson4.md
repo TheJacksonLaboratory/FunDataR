@@ -527,13 +527,13 @@ rm(list=ls())
 (fit1 <- lm(mpg ~ 1, data=mtcars))
 (fit2 <- lm(mpg ~ .^2, data=mtcars))
 
-## add/delete (since direction='both') one 'term' at time, within the bounds 
+## add/delete (since direction='both' by default) one 'term' at time, within the bounds 
 ##   specified by fit1 (intercept only) and fit2 (all predictors and two-way interactions)
 ##   keeping model that drops AIC most; stops when no single step further improves model;
 ##   here start with smaller model, since larger model has too many coefficients to 
 ##   estimate with so few data points:
 
-(fit3 <- step(fit1, scope=list(lower=fit1, upper=fit2), direction='both'))
+(fit3 <- step(fit1, scope=list(lower=fit1, upper=fit2)))
 
 summary(fit3)
 par(mfrow=c(2, 3))
@@ -556,7 +556,6 @@ rm(list=ls())
 set.seed(1)
 
 dat <- mtcars
-mult <- 2                         ## 'k' for AIC
 
 (n <- nrow(dat))                  ## sample size; not a ton of data; try 10-fold CV
 (n.tst <- round(n / 10))          ## test set size
@@ -574,7 +573,7 @@ fit1 <- lm(mpg ~ 1, data=dat.trn)
 fit2 <- lm(mpg ~ .^2, data=dat.trn)
 
 ## trace=1 so we can see the details of the process:
-fit3 <- step(fit1, scope=list(lower=fit1, upper=fit2), k=mult, direction='both', trace=1)
+fit3 <- step(fit1, scope=list(lower=fit1, upper=fit2), direction='both', trace=1)
 
 mpg.trn <- predict(fit3, newdata=dat.trn)
 mpg.tst <- predict(fit3, newdata=dat.tst)
@@ -587,10 +586,8 @@ mpg.int <- predict(fit1, newdata=dat.tst)
 ```
 
 Now we'll make a function out of the code above, so that we can more easily perform a
-  cross-validation to evaluate our procedure. The function will take the arguments
-  `idx.trn`
-
-use to facilitateMake a function for CV, taking `idx.trn`, `dat`, and `mult`:
+  cross-validation to evaluate our procedure. We'll use the function to perform
+  a 10-fold cross-validation with 5 repetitions.
 
 ```
 library('caret')                  ## where createMultiFolds() is found
@@ -602,7 +599,7 @@ set.seed(1)
 idx <- 1 : n                      ## integer indices of all observations
 
 ## folds for 10-fold CV: each fold is integer index of training observations:
-folds <- createMultiFolds(idx, k=10, times=3)
+folds <- createMultiFolds(idx, k=10, times=5)
 
 ## must take idx.trn as first positional argument:
 

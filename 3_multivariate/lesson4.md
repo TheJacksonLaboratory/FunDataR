@@ -87,12 +87,12 @@ for(i in 1:R) {
   p.values[i] <- t.test(x, y, var.equal=F)$p.value
 }
 
-par(mfrow=c(1, 1))
-hist(p.values)
 summary(p.values)
 sum(p.values < 0.05) / R
 probs <- c(0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1)
 round(quantile(p.values, probs=probs), 3)
+par(mfrow=c(1, 1))
+hist(p.values)
 
 ```
 
@@ -111,16 +111,19 @@ In the broadest sense, there are two approaches to controlling for the
   (in the case of differential expression analysis of whole transcriptome 
   data, there will often be 10s of thousands of simultaneous tests, and 
   in genome-wide association studies, the number of hypotheses can reach into
-  the millions), an FWER cutoff of 0.05 means there is a 5% chance that one or
+  the millions), an FWER cutoff of `0.05` means there is a 5% chance that one or
   more positive results in the set of positive results will turn out to be 
-  wrong. By contrast, an FDR cutoff of 0.05 means that 5% of all the returned 
-  positive results are expected to be wrong by chance. Therefore, the FWER
-  is the right choice when each individual hypothesis test is considered 
-  equally critical, while the FDR is a better choice in cases where you want
-  to reduce the false positive rate, but are still willing to accept a small
-  proportion of false posivites. The advantage of using FDR is that the 
-  tests retain more power: that is they can detect smaller deviations from
-  the null hypothesis for a given sample size and noise level.
+  wrong. By contrast, an FDR cutoff of `0.05` means that 5% of all the returned 
+  positive results are expected to be wrong by chance. This generally allows
+  the FDR approach to be less likely to return a false negative result as the 
+  FWER approach, but more likely to return false positives. Therefore, the 
+  FWER approach is preferred when controlling the false positive rate is more 
+  important than controlling the false negative rate, while the FDR is a better 
+  approach when false negatives are a greater concern. Ideally, one should
+  use a preselected cutoff no higher than `0.05` for either approach when 
+  reporting individual positive results. For applications like feature 
+  selection, the cutoff can be tuned to optimize final model performance 
+  (judged with an independent test set). 
 
 Both approaches have several algorithms associated with them. Two common 
   algorithms for FWER control are the **Bonferroni** and the **Holm-Bonferroni** 
@@ -131,7 +134,7 @@ Both approaches have several algorithms associated with them. Two common
   `p.adjust.bonferroni <- max(p.values * number.of.tests, 1)`. However, in 
   practice, it is better to use the closely related, but slightly more complicated,
   Holm-Bonferroni procedure for FWER control, as it will always be at least as 
-  powerful, but is often more powerful as the original Bonferroni procedure.
+  powerful, but is often more powerful than the original Bonferroni procedure.
 
 Two popular methods for achieving FDR control are the **Benjamini-Hochberg**
   or **BH** method, and the **Benjamini-Yekutieli** or **BY** method. The
@@ -151,7 +154,7 @@ In the following example, we will take the set of uniformly distributed
   always true, not surprisingly, we found about 5% of the p-values falling below 
   0.05. Let's see what the distributions of ajusted p-values are after the four
   adjustments described above. We'll use the R `p.adjust()` function to perform 
-  each procedure. When all the null hypotheses are true, as in this case, the 
+  the adjustments. When all the null hypotheses are true, as in this case, the 
   four procedures tend to produce fairly comparable results:
 
 ```
@@ -181,7 +184,16 @@ min(p.by)
 
 Now we'll look at an example where the null hypothesis is not true in about 10% of 
   the similuted experiments. The differences between procedures are more evident in 
-  this case:
+  this case. Here we'll report the number of false positives, the false positive
+  fraction, the number of false negatives and the false negative fraction. In this
+  context, **false positives** are test results where the null hypothesis was true, 
+  but was nevertheless rejected by the test. Similarly, **false negatives** are test 
+  results where the null hypothesis was not true, but the test accepted the null
+  hypothesis anyway. The **false positive fraction** or **FPF** is the fraction of 
+  cases where the null hypothesis was true but was rejected. That is 
+  `FPF <- number.false.pos / number.null.true`. Similarly, the **false negative 
+  fraction** or **FNF** is the fraction of cases where the null hypothesis was
+  not true but was accepted. So, `FNF <- number.false.neg / number.null.false`.
 
 ```
 ## let's adjust the p-values from tests where null hypothesis is sometimes false:
@@ -216,24 +228,28 @@ p.bh <- p.adjust(p.values, method='BH')
 p.by <- p.adjust(p.values, method='BY')
 
 f1 <- function(p) {
-  nfp <- sum(p[!i.diff] <= 0.05)
-  nfn <- sum(p[i.diff] > 0.05)
-  c(nfp=nfp, nfn=nfn)
-
+  fp <- sum(p[!i.diff] <= 0.05)   ## number false positive (negative w/ signif test)
+  fn <- sum(p[i.diff] > 0.05)     ## number false negative (positive w/ non-signif test)
+  c(fp=fp, fn=fn)
 }
 
 f2 <- function(p) {
+
+  ## false positive fraction: false positives / true negatives:
   fpf <- sum(p[!i.diff] <= 0.05) / sum(!i.diff)
+
+  ## false negative fraction: false negatives / true positives:
   fnf <- sum(p[i.diff] > 0.05) / sum(i.diff)
+
   c(fpf=fpf, fnf=fnf)
 }
+
+sum(i.diff)                       ## number really different
+sum(!i.diff)                      ## number really not different
 
 p <- data.frame(p.values, p.bonf, p.holm, p.bh, p.by)
 sapply(p, f1)
 sapply(p, f2)
-
-sum(i.diff)
-sum(!i.diff)
 
 par(mfrow=c(2, 2))
 hist(p.bonf, main='Bonferroni (FWER)')
@@ -267,8 +283,9 @@ Overfitting describes the phenomena of models being fitted to the 'noise' in the
   relationship between variables is complex, but also provides more opportunities to 
   achieve a very good fit to the training data by adapting to the noise in those data. 
   This is particularly likely when sample sizes are small or noise is large compared to 
-  the signal in the data. However, for any sample of size `n`, a linear model with `p` 
-  coefficients will fit the data perfectly (noise and all) when `p >= n`.
+  the signal in the data. For any sample of size `n`, a linear model with `p` 
+  coefficients can be constructed that will fit the data perfectly (noise and all) when 
+  `p >= n`.
 
 Therefore, it is important to try to use larger samples to train more complex models, 
   to pick the most parsimonious (fewest coefficients) model consistent with the training 
@@ -357,7 +374,9 @@ As we build a model empirically, certain rules of thumb should be kept in mind. 
   other hand, sometimes theory suggests that `y == 0` when `x == 0`, or that a minimum of
   the curve is at `x == 0`. For instance, if we were growing trees from seed, it might not
   be unreasonable to assume that the size at time zero is a minimum or in fact essentially 
-  zero. In that sort of case you should remove the lower order terms from the model.
+  zero (considering the population relationship we are trying to model: that does not mean
+  that an individual tree could shrink for some reason). In that sort of case you should feel
+  free to remove the lower order terms from the model.
 
 When working with the p-values returned by t-tests on regression coefficients,
   the context should be reflected upon. Sometimes only a **single coefficient 
@@ -373,8 +392,8 @@ When working with the p-values returned by t-tests on regression coefficients,
   know that mortality rate (e.g. proportion of individuals who die within a year)
   is strongly associated with `Age`. Therefore, we include `Age` because it 
   reduces the sum-of-squared residuals when fitting the data, which in turn
-  reduces the standard error of all the coefficient estimates, which will make
-  our test on the `Gender` coefficient (in this case) more powerful. Here, no 
+  reduces the standard error of all the coefficient estimates, which is expected 
+  to make our test on the `Gender` coefficient more powerful. Here, no 
   adjustment of the result from the `Gender` coefficient test is required, since 
   only a single coefficient is of interest (even though `lm()` will return t-test 
   results for the `Age` coefficient as well, it is not of interest to us: `Age` 
@@ -421,7 +440,7 @@ We can use an **ANOVA** to compare two linear models, when one is nested within 
   but the model `y ~ x3` is not nested within the larger model, since it includes the new variable 
   `x3`. We can use the R `anova()` function to compare two nested linear models. The `anova()` function 
   compares the sum-of-squared residuals (**SSR**) from the smaller model to the SSR from the larger 
-  model. The proportion reduction in the SSR with the larger model is compared to the number of 
+  model. The reduction in the SSR with the larger model is compared to the number of 
   coefficients added by the larger model in order to determine if the larger model is fitting better 
   solely due to increased flexibility (due to inclusion of more coefficients). This procedure makes the 
   same assumptions about random sampling, normally distributed residuals or 'large enough' a sample 
@@ -460,7 +479,7 @@ plot(fit4, which=1:6)
 ```
 
 The **Akaike Information Criterion** or **AIC** extends the parametric model selection approach to 
-  non-nested models evaluated solely using the training-set. One can in principle use the AIC to 
+  non-nested models evaluated solely using the training-set. One can, in principle, use the AIC to 
   compare arbitrary models within the same parametric family (e.g. linear models with the usually 
   assumed normal errors to other linear models with assumed normal errors). This method is also 
   parametric, with normal distributions assumed at many points in the derivation of the criterion, 
@@ -498,17 +517,7 @@ Manual model building is very tedious and has a substantial subjective component
   step `mpg ~ wt + gear` first, and that model did not look like an improvement, so that path
   would have not been further explored, and `mpg ~ wt * gear` would never have been found.
 
-When predictors are correlated, introducing one predictor into the model can make the rest 
-  look less important, because much of the information they had to share was included with 
-  the first predictor. Under these circumstances, the variables included in the initial model 
-  can have a big effect on what other variables get included and the final model chosen. 
-  When dealing with correlated predictors, it is often a good idea to try several different 
-  initial models, and compare results, looking for models that score well and are arrived at 
-  from a variety of starting points. When predictors are not correlated, the choice of the 
-  initial model is less important, as long as the process converges, but it still may be 
-  advisable to try several initial models.
-
-In any case, the final model from any step-wise selection procedure will tend to have a strong
+The final model from any step-wise selection procedure will strongly tend to have an
   optimistic bias (R-squared too high, p-values too low) and should be evaluated with an 
   independent test-set.
 
@@ -532,11 +541,12 @@ plot(fit3, which=1:6)
 
 ```
 
-We can use an independent test set to evaluate the entire procedure. Often the most 
+We should use an independent test set to evaluate the entire procedure. Often the most 
   'independent' data we can muster are a hold-out test-set from the same experiment. 
   Although performance estimates using a hold-out set from the same experiment (or 
   cross-validation, which produces more precise results) are optimistically biased, they 
-  tend to be far less so than similar performance estimates made with the training-set.
+  tend to be far less biased than similar performance estimates made only with the 
+  training-set.
 
 Let's try to evaluate our process with a single hold-out test-set consisting of about 10%
   of the observations, emulating a single fold out of a 10-fold cross-validation:

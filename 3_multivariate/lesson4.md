@@ -26,17 +26,14 @@ We often test many hypotheses using a single dataset. For instance, when constru
   If the F-test is significant, it suggests the model fits the data better than can be 
   expected by chance, or, equivalently, that at least one of the coefficients (not 
   counting the intercept) really is not zero. In the case of simple linear regression 
-  (only one explanatory variable), the this F-test is equivalent to the t-test on the 
+  (only one explanatory variable), this F-test is equivalent to the t-test on the 
   coefficient on the explanatory variable in the sense that the two tests should return 
   identical p-values. In the case of multiple regression, the t-tests must be considered
   individually. As in the case of post-hoc testing following a significant omnibus
   F-test on an ANOVA model, this testing should control for the effects of multiple
   testing. For instance, in the example below, there are six separate t-tests being 
   conducted, and the p-values returned are not adjusted to reflect that multiple tests 
-  are being performed using the same dataset. This is so in part because although 
-  t-tests are performed for each coefficient, the researcher may only be interested in
-  a subset (or only one) of those t-tests. We will discuss this further later in the
-  lesson:
+  are being performed using the same dataset:
 
 ```
 ## A model demonstrating overall model F-test and multiple coefficient t-tests:
@@ -44,64 +41,34 @@ We often test many hypotheses using a single dataset. For instance, when constru
 rm(list=ls())
 
 dat <- mtcars
+
+## make gear an unordered category:
 dat$gear <- factor(dat$gear, ordered=F)
 
+## this is equivalent to mpg ~ wt + gear + gear:wt
 fit <- lm(mpg ~ wt * gear, data=dat)
+
+## note there are six coefficients being tested:
 summary(fit)
 
 ```
 
-We sometimes know from theory what terms should be included in a model, and in this case,
-  we should not reject terms simply because the corresponding coefficient t-test returned 
-  a non-significant p-value. Nevertheless, there are many times when there is no data to 
-  guide us and we need to empirically determine a good model. In principle, this can be 
-  guided by t-tests on individual coefficients, but the effects of multiple testing must 
-  be accounted for. We mentioned that in the case of variables with significant interaction 
-  coefficients or polynomial coefficients, the coefficients for lower-order terms should 
-  kept in the model, even if the lower-order coefficients were themselves not significant. 
-
-We also described the situation, sometimes we can have categorical predictors where some levels may be 
-  non-significant alone or in interactions, while other levels are highly significant.
-
-Along the lines we previously mentioned about retaining for polynomials and interactions, when building a model, one 
-  should add best lowest degree terms first; when
-  pruning, cut worst highest degree terms first.
-
-For instance, `y ~ x + x^2` allows horizontal adjustment; `y ~ x^2` forces minimum to be at x == 0.
-  An unwarranted assumption under most circumstances, even if not significant -- allows for a 
-  more fine-tuned fit. If theory suggests at `x==0`, `y==minimum` (e.g. growth of a seed perhaps), then
-  makes sense to drop `x^1`.
-
-
-  For instance, if one started with the model `y ~ x + I(x^2)` and found that the coefficient
-  for `x` was not significant, while the coefficient for `x^2` was significant, we might
-  be tempted to drop the `x` term, but keep the `x^2` term. However, this make a structural
-  assumption about the model. 
-
-  Sometimes one or more interaction terms involving particular levels of a categorical 
-  variable will be non-significant, while terms involving other levels are highly 
-  significant. In these case, it is advisable to leave the bare variable and the interaction 
-  term (including the coefficients for all the levels of the categorical variable) in the 
-  model.
-
-However, in all these cases, we must properly adjust the p-values returned to account for 
-  the effects of multiple testing. Multiple testing issues arise from the fact that when 
-  the null hypothesis is true, p-values will be uniformly distributed on the interval 
-  between zero and one. That is, a p-value of 0.5 is just as likely as a p-value of 0.99 
-  or a p-value of 0.0001. Therefore, in any one test where the null hypothesis is true, 
-  the p-value itself is randomly distributed, with a 95% chance of landing at or above the 
-  value 0.05 (since 95% of the space between 0 and 1 is occupied by the region between 0.05 
-  and 1) and a 5% chance of landing below 0.05 (since only 5% of the space between 0 and 1 
-  lies below 0.05). That is, even when the null hypothesis is true, there is still a 
-  one-in-twenty (`1 / 20 == 0.05`) chance that the p-value will fall below 0.05. When 
-  testing multiple hypotheses using the same dataset, this also means that even if all the 
-  null hypotheses are all true, on average, one in twenty tests will reject the null 
-  hypothesis with a p-value < 0.05. For instance, in the example below, we will draw two 
+Whenever you are performing simultaneous hypotheses tests based on a common dataset you should 
+  properly adjust the p-values returned to account for the effects of multiple testing. Multiple 
+  testing issues arise from the fact that when the null hypothesis is true, p-values will be 
+  uniformly distributed on the interval between zero and one. That is, a p-value of `0.5` is just 
+  as likely as a p-value of `0.99` or a p-value of `0.0001`. Therefore, in any one test where the 
+  null hypothesis is true, the p-value itself is randomly distributed, with a 95% chance of 
+  landing at or above the value `0.05` (since 95% of the space between `0` and `1` is occupied by the 
+  region between `0.05` and `1`) and a 5% chance of landing below `0.05` (since only 5% of the space 
+  between `0` and `1` lies below `0.05`). That is, even if all the null hypotheses are true, on 
+  average, one in twenty tests will reject the corresonding null hypothesis with a p-value 
+  less than `0.05`. For instance, in the example below, we will draw two 
   samples (`x` and `y`) from the same population (a normal distribution with `mean=0` and 
   `sd=1`) and conduct a t-test on the null hypothesis that the two samples were drawn from
   populations with the same mean. Since we drew both samples from the same population, 
   the null hypothesis is always true, and significant test results (very close to the 
-  expected proportion of 0.05) are false positives reflecting the random distribution of 
+  expected proportion of `0.05`) are false positives reflecting the random distribution of 
   p-values under the null hypothesis: 
 
 ```
@@ -276,53 +243,6 @@ hist(p.by, main='BY (FDR)')
 
 ```
 
-When working with the p-values returned by t-tests on regression coefficients,
-  the context should be reflected upon. Sometimes only a **single coefficient 
-  is of interest**. This is typically true in the case of simple linear 
-  regression, since there is only one explanatory variable. However, it can 
-  also be true in the case of multiple regression. Frequently, we are interested 
-  in whether one particular variable or interaction term is useful for 
-  explaining or predicting the response variable, and we include other predictor 
-  variables because we already know they are important. For instance,
-  we may be interested in whether there are mortality rate differences between
-  women and men. So we may have a categorical variable for `Gender` in our model, 
-  but we might also include the continuous variable `Age`, because we already 
-  know that mortality rate (e.g. proportion of individuals who die within a year)
-  is strongly associated with `Age`. Therefore, we include `Age` because it 
-  reduces the sum-of-squared residuals when fitting the data, which in turn
-  reduces the standard error of all the coefficient estimates, which will make
-  our test on the `Gender` coefficient (in this case) more powerful. Here, no 
-  adjustment of the result from the `Gender` coefficient test is required, since 
-  only a single coefficient is of interest (even though `lm()` will return t-test 
-  results for the `Age` coefficient as well, it is not of interest to us: `Age` 
-  was introduced as a `covariate` to control for a known effect). If the `Gender` 
-  coefficient is significant, it suggests that `Gender` impacts the mortality rate. 
-  A non-significant test on the `Age` coefficient may simply reflect a lack of 
-  power due to too small a sample size or too much noise in the data.
-
-If you wish to **test multiple coefficients** in a single model, you can focus on
-  the corresponding coefficients alone (e.g. you can still exclude tests on
-  variables introduced to reduce standard errors), however you should adjust
-  for multiplicity of coefficient tests you are interested in. Whether you use 
-  FWER or FDR control will depend on how tolerant you are of false positive or false
-  negative results. If the number of hypotheses is relatively small, FWER often makes 
-  more sense, while FDR control may make more sense as the number of tests becomes 
-  larger.
-
-If you are trying to **select terms for inclusion** in your model, FWER control should 
-  typically be applied when the number of coefficient tests is small, and FDR 
-  control used when the number of tests rises. When constructing the model, whenever 
-  possible (sometimes there are too many models required to make this practical), 
-  you should still also take careful account of residual plots as you build the model 
-  and especially when evaluating the final model. If you are working with a linear
-  model with categorical explanatory variables, if you want to achieve similar 
-  interpretability of 'significance' as a **post-hoc test from an ANOVA**, FWER control
-  should be used on the tests of the corresponding coefficients. It is curious that 
-  most statistics textbook will advise multiple testing control when conducting post-hoc 
-  testing after an ANOVA, but rarely mention this advice in the context of what are 
-  essentially equivalent tests on coefficients of categorical variables included in a 
-  linear regression.  
-
 [Return to index](#index)
 
 ---
@@ -406,6 +326,85 @@ f.fit(4, 'y ~ x + I(x^2) + I(x^3)')
 ---
 
 ### Model selection
+
+We sometimes know from theory what terms should be included in a model, and in this case,
+  we should not reject any of those terms simply because the corresponding coefficient t-test 
+  returned a non-significant p-value. Nevertheless, there are many times when there is no 
+  theory to guide us and we need to empirically determine a good model. Deciding which terms
+  to include in the model can be guided by t-tests on individual coefficients, but the 
+  effects of multiple testing must be accounted for.
+
+As we build a model empirically, certain rules of thumb should be kept in mind. Usually, 
+  lower-order terms should be included if one is including any higher order terms (e.g. polynomial
+  terms or interactions) that encompass the lower order terms. For instance, if one wanted to 
+  include the polynomial term `I(x^3)` in a model because the corresponding coefficient was 
+  significant, we should also include the lower order polynomial terms `I(x^2)`, and `x`, even 
+  if the corresponding coefficients are not significant. One reason for this is that omitting the 
+  lower order terms enforces certain assumptions about the form of the model that we have not 
+  established simply by having a coefficient test fail. For instance, if the model `y ~ x + I(x^2)` 
+  was found to have a significant coefficient test for `I(x^2)`, but not `x`, then we might be 
+  tempted to drop `x` from the model. However, this would imply that the model curve (a parabola) 
+  minimum value MUST be at `x == 0`. This would be a strong constraint that is not really warranted 
+  just because the coefficient for `x` is not significant. This non-significant coefficient test
+  just means we cannot assert that the minimum is not at zero, but that is not the same thing as
+  justification to claim it must be at zero. It is better to let the quadratic curve minimum be 
+  estimated from the data itself. This allows the model to follow the data more closely, while 
+  not changing the 'flexibility' and general shape associated with a quadratic model. Similary, 
+  we normally don't drop an intercept term (the lowest order term in the model) from a model just 
+  because the coefficient estimate is not significant, because doing so forces a linear model to 
+  pass through the origin. Letting the intercept remain, allows the axis intercepts to be fitted 
+  from the data without changing the intrinsic flexibility of the shape being modeled. On the
+  other hand, sometimes theory suggests that `y == 0` when `x == 0`, or that a minimum of
+  the curve is at `x == 0`. For instance, if we were growing trees from seed, it might not
+  be unreasonable to assume that the size at time zero is a minimum or in fact essentially 
+  zero. In that sort of case you should remove the lower order terms from the model.
+
+When working with the p-values returned by t-tests on regression coefficients,
+  the context should be reflected upon. Sometimes only a **single coefficient 
+  is of interest**. This is typically true in the case of simple linear 
+  regression, since there is only one explanatory variable. However, it can 
+  also be true in the case of multiple regression. Frequently, we are interested 
+  in whether one particular variable or interaction term is useful for 
+  explaining or predicting the response variable, and we include other predictor 
+  variables because we already know they are important. For instance,
+  we may be interested in whether there are mortality rate differences between
+  women and men. So we may have a categorical variable for `Gender` in our model, 
+  but we might also include the continuous variable `Age`, because we already 
+  know that mortality rate (e.g. proportion of individuals who die within a year)
+  is strongly associated with `Age`. Therefore, we include `Age` because it 
+  reduces the sum-of-squared residuals when fitting the data, which in turn
+  reduces the standard error of all the coefficient estimates, which will make
+  our test on the `Gender` coefficient (in this case) more powerful. Here, no 
+  adjustment of the result from the `Gender` coefficient test is required, since 
+  only a single coefficient is of interest (even though `lm()` will return t-test 
+  results for the `Age` coefficient as well, it is not of interest to us: `Age` 
+  was introduced as a `covariate` to control for a known effect). If the `Gender` 
+  coefficient is significant, it suggests that `Gender` impacts the mortality rate. 
+  A non-significant test on the `Age` coefficient may simply reflect a lack of 
+  power due to too small a sample size or too much noise in the data.
+
+If you wish to **test multiple coefficients** in a single model, you can focus on
+  the corresponding coefficients alone (e.g. you can still exclude tests on
+  variables introduced to reduce standard errors), however you should adjust
+  for multiplicity of coefficient tests you are interested in. Whether you use 
+  FWER or FDR control will depend on how tolerant you are of false positive or false
+  negative results. If the number of hypotheses is relatively small, FWER often makes 
+  more sense, while FDR control may make more sense as the number of tests becomes 
+  larger.
+
+If you are trying to **select terms for inclusion** in your model, FWER control should 
+  typically be applied when the number of coefficient tests is small, and FDR 
+  control used when the number of tests rises. When constructing the model, whenever 
+  possible (sometimes there are too many models required to make this practical), 
+  you should still also take careful account of residual plots as you build the model 
+  and especially when evaluating the final model. If you are working with a linear
+  model with categorical explanatory variables, if you want to achieve similar 
+  interpretability of 'significance' as a **post-hoc test from an ANOVA**, FWER control
+  should be used on the tests of the corresponding coefficients. It is curious that 
+  most statistics textbook will advise multiple testing control when conducting post-hoc 
+  testing after an ANOVA, but rarely mention this advice in the context of what are 
+  essentially equivalent tests on coefficients of categorical variables included in a 
+  linear regression.  
 
 As you may have noticed, manually building a model requires either a solid theoretically-driven
   mathematical model as a starting point, or tedious and tricky exploration of the possible

@@ -471,3 +471,131 @@ legend(
   pch=c('+', 'x', 'o')
 )
 
+###################################################################################################
+## Lesson 4 : Check 1
+
+1) Make a copy of the mtcars dataset and make the 'gears' variable an unordered factor. Fit
+   the linear model formula 'mpg ~ wt * gear' to the data. 
+
+rm(list=ls())
+dat <- mtcars
+dat$gear <- factor(dat$gear, ordered=F)
+fit <- lm(mpg ~ wt * gear, data=dat)
+
+2) Extract the coefficient p-values, not including the intercept from the model you just fit. 
+
+smry <- summary(fit)
+(coefs <- coef(smry))
+(p.values <- coefs[-1, 'Pr(>|t|)'])
+
+3) Adjust the coefficient p-values you extracted using the 'Holm-Bonferroni' FWER procedure, the 
+   'Benjamini-Hochberg' FDR procedure, and with the 'Benjamini-Yekutieli' FDR procedure. Note how 
+   the results compare in this case, when all the p-values are significant.
+
+p.adjust(p.values, method='holm')
+p.adjust(p.values, method='BH')
+p.adjust(p.values, method='BY')
+
+
+###################################################################################################
+## Lesson 4 : Check 2
+
+
+Starting with the following synthetic dataset:
+
+```
+rm(list=ls())
+set.seed(1)
+
+x1 <- rnorm(5, 1, 1)
+x2 <- rnorm(5, 2, 1)
+x3 <- rnorm(5, 3, 1)
+x4 <- rnorm(5, 4, 1)
+e <- rnorm(5, 0, 1)
+y <- 3 + 2 * x1 + e
+(dat <- data.frame(y=y, x1=x1, x2=x2, x3=x3, x4=x4))
+
+```
+
+1) Which variables do you expect 'y' to associated with? Which variables do you expect 'y' to be
+   independent of? Plot all the variables in 'dat' against one another. Make point estimates of the 
+   Pearson correlations of the variables with one another.
+
+plot(dat)
+cor(dat)
+
+2) Use the data to fit a linear model to the formula 'y ~ x1'. What is the R-squared? How about the
+   adjusted R-squared?
+
+fit <- lm(y ~ x1, data=dat)
+(smry <- summary(fit))
+smry$r.squared
+smry$adj.r.squared
+
+3) Use the data to fit a linear model to the following formulas sequentially, comparing the R-squared 
+   and adjusted R-squared across the fits: 'y ~ x1 + x2', 'y ~ x1 + x2 + x3', and 'y ~ x1 + x2 + x3 + x4'. 
+   Does it seem like there is overfitting going on? Is the adjusted R-squared properly adjusting to 
+   compensate for the overfitting?
+
+fit <- lm(y ~ x1 + x2, data=dat)
+smry <- summary(fit)
+smry$r.squared
+smry$adj.r.squared
+
+fit <- lm(y ~ x1 + x2 + x3, data=dat)
+smry <- summary(fit)
+smry$r.squared
+smry$adj.r.squared
+
+fit <- lm(y ~ x1 + x2 + x3 + x4, data=dat)
+smry <- summary(fit)
+smry$r.squared
+smry$adj.r.squared
+
+
+###################################################################################################
+## Lesson 4 : Check 3
+
+1) Using the 'iris' dataset, fit an intercept-only model to the data with 'Sepal.Length' as the
+   response variable.
+
+rm(list=ls())
+fit.lo <- lm(Sepal.Length ~ 1, data=iris)
+
+2) Use the same data to fit a model with 'Sepal.Length' as response, and all the other variables
+   as well as two-way interactions between those variables as predictors. 
+
+fit.up <- lm(Sepal.Length ~ .^2, data=iris)
+
+3) Use the R 'step()' function to explore the formula space between the intercept model and
+   the model with all two-way interactions. Extract the formula for the final model.
+
+fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=1)
+formula(fit)
+
+4) Set up a 10-fold cross-validation, with five repetitions to estimate the performance 
+   (mean-squared error) expected for the final model.
+
+f <- function(idx.trn) {
+  dat.trn <- iris[idx.trn, ]
+  dat.tst <- iris[-idx.trn, ]
+  fit.lo <- lm(Sepal.Length ~ 1, data=dat.trn)
+  fit.hi <- lm(Sepal.Length ~ .^2, data=dat.trn)
+  fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
+  pred.trn <- predict(fit, newdata=dat.trn)
+  pred.tst <- predict(fit, newdata=dat.tst)
+  pred.int <- predict(fit.lo, newdata=dat.tst)
+  mse.trn <- mean((dat.trn$Sepal.Length - pred.trn) ^ 2)
+  mse.tst <- mean((dat.tst$Sepal.Length - pred.tst) ^ 2)
+  mse.int <- mean((dat.tst$Sepal.Length - pred.int) ^ 2)
+  c(mse.trn=mse.trn, mse.tst=mse.tst, mse.int=mse.int)
+}
+
+set.seed(1)
+idx <- 1:nrow(iris)
+folds <- caret::createMultiFolds(idx, k=10, times=5)
+rslt <- sapply(folds, f)
+apply(rslt, 1, mean)
+apply(rslt, 1, sd)
+
+

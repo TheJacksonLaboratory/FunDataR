@@ -265,7 +265,14 @@ hist(p.by, main='BY (FDR)')
 
 ### Check your understanding 1
 
-1) 
+1) Make a copy of the mtcars dataset and make the `gears` variable an unordered factor. Fit
+   the linear model formula `mpg ~ wt * gear` to the data. 
+
+2) Extract the coefficient p-values, not including the intercept from the model you just fit. 
+
+3) Adjust the coefficient p-values you extracted using the 'Holm-Bonferroni' FWER procedure, the 
+   'Benjamini-Hochberg' FDR procedure, and with the 'Benjamini-Yekutieli' FDR procedure. Note how 
+   the results compare in this case, when all the p-values are significant.
 
 [Return to index](#index)
 
@@ -336,7 +343,34 @@ f.fit(4, 'y ~ x + I(x^2) + I(x^3)')
 
 ### Check your understanding 2
 
-1) question here
+Starting with the following synthetic dataset:
+
+```
+rm(list=ls())
+set.seed(1)
+
+x1 <- rnorm(5, 1, 1)
+x2 <- rnorm(5, 2, 1)
+x3 <- rnorm(5, 3, 1)
+x4 <- rnorm(5, 4, 1)
+e <- rnorm(5, 0, 1)
+y <- 3 + 2 * x1 + e
+(dat <- data.frame(y=y, x1=x1, x2=x2, x3=x3, x4=x4))
+
+```
+
+1) Which variables do you expect `y` to be associated with? Which variables do you expect `y` to be
+   independent of? Plot all the variables in `dat` against one another. Make point estimates of the 
+   Pearson correlations of the variables with one another.
+
+2) Use the data to fit a linear model to the formula `y ~ x1`. What is the R-squared? How about the
+   adjusted R-squared?
+
+3) Use the data to fit a linear model to the following formulas sequentially, comparing the R-squared 
+   and adjusted R-squared across the fits: `y ~ x1 + x2`, `y ~ x1 + x2 + x3`, and `y ~ x1 + x2 + x3 + x4`. 
+   Does it seem like there is overfitting going on? Is the adjusted R-squared properly adjusting to 
+   compensate for any overfitting?
+
 
 [Return to index](#index)
 
@@ -643,7 +677,19 @@ t(rslt)
 
 ### Check your understanding 3
 
-1) question here
+1) Using the `iris` dataset, fit an intercept-only model to the data with `Sepal.Length` as the
+   response variable.
+
+2) Use the same data to fit a model with `Sepal.Length` as response, and all the other variables
+   as well as two-way interactions between those variables as predictors. 
+
+3) Use the R `step()` function to explore the formula space between the intercept model and
+   the model with all two-way interactions. Extract the formula for the final model.
+
+4) Set up a 10-fold cross-validation, with five repetitions to estimate the performance 
+   (mean-squared error) expected for the final model.
+
+
 
 [Return to index](#index)
 

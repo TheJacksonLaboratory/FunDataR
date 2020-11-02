@@ -103,9 +103,9 @@ In the broadest sense, there are two approaches to controlling for the
   approaches differ not only in the algorithms employed, but more importantly, 
   in the interpretation of the results of the corresponding adjustment. When
   adjusting for `m` tests, FWER control involves adjusting p-values so they 
-  have the following interpretation: the adjusted p-value represents the 
+  have the following interpretation: the adjusted values represents the 
   probability that ANY of the `m` tests will reject a null hypothesis by 
-  chance. By contrast, FDR adjustment results in p-values representing the
+  chance. By contrast, FDR adjustment results in values representing the
   probability that ANY ONE of the `m` tests will reject a null hypothesis
   by chance. In the case that 1000 tests were being conducted simultaneously
   (in the case of differential expression analysis of whole transcriptome 
@@ -114,7 +114,7 @@ In the broadest sense, there are two approaches to controlling for the
   the millions), an FWER cutoff of `0.05` means there is a 5% chance that one or
   more positive results in the set of positive results will turn out to be 
   wrong. By contrast, an FDR cutoff of `0.05` means that 5% of all the returned 
-  positive results are expected to be wrong by chance. This generally allows
+  positive results are expected to be false positives. This generally allows
   the FDR approach to be less likely to return a false negative result as the 
   FWER approach, but more likely to return false positives. Therefore, the 
   FWER approach is preferred when controlling the false positive rate is more 
@@ -183,17 +183,18 @@ min(p.by)
 ```
 
 Now we'll look at an example where the null hypothesis is not true in about 10% of 
-  the similuted experiments. The differences between procedures are more evident in 
+  the simulated experiments. The differences between procedures are more evident in 
   this case. Here we'll report the number of false positives, the false positive
   fraction, the number of false negatives and the false negative fraction. In this
   context, **false positives** are test results where the null hypothesis was true, 
   but was nevertheless rejected by the test. Similarly, **false negatives** are test 
   results where the null hypothesis was not true, but the test accepted the null
   hypothesis anyway. The **false positive fraction** or **FPF** is the fraction of 
-  cases where the null hypothesis was true but was rejected. That is 
-  `FPF <- number.false.pos / number.null.true`. Similarly, the **false negative 
-  fraction** or **FNF** is the fraction of cases where the null hypothesis was
-  not true but was accepted. So, `FNF <- number.false.neg / number.null.false`.
+  cases for which the null hypothesis was true where the test rejected the null
+  hypothesis (false positives). That is, `FPF <- number.false.pos / number.null.true`. 
+  Similarly, the **false negative fraction** or **FNF** is the fraction of cases for
+  which the null hypothesis was not true, but the test accepted the null hypothesis
+  (false negatives). So, `FNF <- number.false.neg / number.null.false`.
 
 ```
 ## let's adjust the p-values from tests where null hypothesis is sometimes false:
@@ -222,11 +223,6 @@ for(i in 1 : R) {
   p.values[i] <- t.test(x, y, var.equal=T)$p.value
 }
 
-p.bonf <- p.adjust(p.values, method='bonferroni')
-p.holm <- p.adjust(p.values, method='holm')
-p.bh <- p.adjust(p.values, method='BH')
-p.by <- p.adjust(p.values, method='BY')
-
 f1 <- function(p) {
   fp <- sum(p[!i.diff] <= 0.05)   ## number false positive (negative w/ signif test)
   fn <- sum(p[i.diff] > 0.05)     ## number false negative (positive w/ non-signif test)
@@ -247,6 +243,11 @@ f2 <- function(p) {
 sum(i.diff)                       ## number really different
 sum(!i.diff)                      ## number really not different
 
+p.bonf <- p.adjust(p.values, method='bonferroni')
+p.holm <- p.adjust(p.values, method='holm')
+p.bh <- p.adjust(p.values, method='BH')
+p.by <- p.adjust(p.values, method='BY')
+
 p <- data.frame(p.values, p.bonf, p.holm, p.bh, p.by)
 sapply(p, f1)
 sapply(p, f2)
@@ -265,14 +266,14 @@ hist(p.by, main='BY (FDR)')
 
 ### Check your understanding 1
 
-1) Make a copy of the mtcars dataset and make the `gears` variable an unordered factor. Fit
+1) Make a copy of the `mtcars` dataset and make the `gears` variable an unordered factor. Fit
    the linear model formula `mpg ~ wt * gear` to the data. 
 
-2) Extract the coefficient p-values, not including the intercept from the model you just fit. 
+2) Extract the coefficient p-values, not including the intercept, from the model you just fit. 
 
 3) Adjust the coefficient p-values you extracted using the 'Holm-Bonferroni' FWER procedure, the 
    'Benjamini-Hochberg' FDR procedure, and with the 'Benjamini-Yekutieli' FDR procedure. Note how 
-   the results compare in this case, when all the p-values are significant.
+   the results compare in this case, where all the p-values are significant.
 
 [Return to index](#index)
 
@@ -295,17 +296,18 @@ Overfitting describes the phenomena of models being fitted to the 'noise' in the
   `p >= n`.
 
 Therefore, it is important to try to use larger samples to train more complex models, 
-  to pick the most parsimonious (fewest coefficients) model consistent with the training 
-  data, and only rely on evaluations performed with an independent test-set.
+  (so `n` should be much larger than `p`) to pick the most parsimonious (fewest coefficients) 
+  model consistent with the training data, and only rely on evaluations performed with an 
+  independent test-set.
 
 In the example below, we will generate samples of varying sizes, with each observation
   having `x` and `y` variables that are independent of each other. We will then see how
-  adding terms increases the flexibility of the model, allowing 'perfect' regression 
-  fits (curves which pass exactly thru each data point in training set) to be found even 
-  when there is no relationship between the variables. In these cases, since the fit is 
-  perfect, the residuals are all zero, so the standard error is zero, which means that 
-  none of the usual statistics can be calculated (you would be dividing by zero) and NA 
-  is returned instead:  
+  adding polynomial terms increases the flexibility of the model, allowing 'perfect' 
+  regression fits (curves which pass exactly thru each data point in training set) to be 
+  found even when there is no relationship between the variables. In these cases, since 
+  the fit is perfect, the residuals are all zero, so the standard error is zero, which 
+  means that none of the usual statistics can be calculated (you would be dividing by 
+  zero) and NA is returned instead:  
 
 ```
 rm(list=ls())
@@ -391,26 +393,27 @@ As we build a model empirically, certain rules of thumb should be kept in mind. 
   include the polynomial term `I(x^3)` in a model because the corresponding coefficient was 
   significant, we should also include the lower order polynomial terms `I(x^2)`, and `x`, even 
   if the corresponding coefficients are not significant. One reason for this is that omitting the 
-  lower order terms enforces certain assumptions about the form of the model that we have not 
-  established simply by having a coefficient test fail. For instance, if the model `y ~ x + I(x^2)` 
-  was found to have a significant coefficient test for `I(x^2)`, but not `x`, then we might be 
-  tempted to drop `x` from the model. However, this would imply that the model curve (a parabola) 
-  minimum value MUST be at `x == 0`. This would be a strong constraint that is not really warranted 
+  lower order terms enforces certain assumptions about the model that we have not established 
+  simply by having a coefficient test fail. For instance, if the model `y ~ x + I(x^2)` was found 
+  to have a significant coefficient test for `I(x^2)`, but not `x`, then we might be tempted to 
+  drop `x` from the model. However, this would imply that the model curve (a parabola) minimum 
+  value MUST be at `x == 0`. This would be a strong constraint that is not really warranted 
   just because the coefficient for `x` is not significant. This non-significant coefficient test
-  just means we cannot assert that the minimum is not at zero, but that is not the same thing as
-  justification to claim it must be at zero. It is better to let the quadratic curve minimum be 
-  estimated from the data itself. This allows the model to follow the data more closely, while 
-  not changing the 'flexibility' and general shape associated with a quadratic model. Similary, 
-  we normally don't drop an intercept term (the lowest order term in the model) from a model just 
-  because the coefficient estimate is not significant, because doing so forces a linear model to 
-  pass through the origin. Letting the intercept remain, allows the axis intercepts to be fitted 
-  from the data without changing the intrinsic flexibility of the shape being modeled. On the
-  other hand, sometimes theory suggests that `y == 0` when `x == 0`, or that a minimum of
-  the curve is at `x == 0`. For instance, if we were growing trees from seed, it might not
-  be unreasonable to assume that the size at time zero is a minimum or in fact essentially 
-  zero (considering the population relationship we are trying to model: that does not mean
-  that an individual tree could shrink for some reason). In that sort of case you should feel
-  free to remove the lower order terms from the model.
+  simply means we cannot assert that the minimum is not at zero, but that is not the same thing as
+  justification to claim it must be at zero. That is, it is equivalent to saying we don't really
+  know what the minimum is, but it might be where `x == 0`. Given the uncertainty, it is better 
+  to let the quadratic curve minimum be estimated from the data itself. This allows the model to 
+  follow the data more closely, while not changing the 'flexibility' and general shape associated 
+  with a quadratic model. Similary, we normally don't drop an intercept term (the lowest order 
+  term in the model) from a model just because the coefficient estimate is not significant, 
+  because doing so forces a linear model to pass through the origin. Letting the intercept remain, 
+  allows the axis intercepts to be fitted from the data without changing the intrinsic flexibility 
+  of the shape being modeled. On the other hand, sometimes theory suggests that `y == 0` when 
+  `x == 0`, or that a minimum of the curve is at `x == 0`. For instance, if we were growing trees 
+  from seeds, it might not be unreasonable to assume that the size at the start of the experiment
+  (time zero) is a minimum or in fact essentially zero (considering the population relationship we 
+  are trying to model; however an individual tree could still shrink for some reason). In this
+  type of situation, you should feel free to remove the lower order terms from the model.
 
 When working with the p-values returned by t-tests on regression coefficients,
   the context should be reflected upon. Sometimes only a **single coefficient 
@@ -424,17 +427,18 @@ When working with the p-values returned by t-tests on regression coefficients,
   women and men. So we may have a categorical variable for `Gender` in our model, 
   but we might also include the continuous variable `Age`, because we already 
   know that mortality rate (e.g. proportion of individuals who die within a year)
-  is strongly associated with `Age`. Therefore, we include `Age` because it 
-  reduces the sum-of-squared residuals when fitting the data, which in turn
-  reduces the standard error of all the coefficient estimates, which is expected 
-  to make our test on the `Gender` coefficient more powerful. Here, no 
-  adjustment of the result from the `Gender` coefficient test is required, since 
-  only a single coefficient is of interest (even though `lm()` will return t-test 
-  results for the `Age` coefficient as well, it is not of interest to us: `Age` 
-  was introduced as a `covariate` to control for a known effect). If the `Gender` 
+  is strongly associated with `Age`. Therefore, we include `Age` because it will
+  allow the model to fit the data better, which reduces the sum-of-squared residuals 
+  when fitting the data, which in turn reduces the standard error of all the 
+  coefficient estimates, which is expected to make our test on the `Gender` 
+  coefficient more powerful. Here, no adjustment of the result from the `Gender` 
+  coefficient test is required, since only that single coefficient is of interest 
+  (even though `lm()` will return t-test results for the `Age` coefficient as well, 
+  it is not of interest to us, so no adjustment for it is necessary: `Age` was 
+  introduced as a **covariate** to control for a known effect). If the `Gender` 
   coefficient is significant, it suggests that `Gender` impacts the mortality rate. 
   A non-significant test on the `Age` coefficient may simply reflect a lack of 
-  power due to too small a sample size or too much noise in the data.
+  power due to too small a sample size relative to the amount of noise in the data.
 
 If you wish to **test multiple coefficients** in a single model, you can focus on
   the corresponding coefficients alone (e.g. you can still exclude tests on
@@ -463,10 +467,14 @@ As you may have noticed, manually building a model requires either a solid theor
   mathematical model as a starting point, or tedious and tricky exploration of the possible
   variables and their interactions. This is a difficult largely subjective process, facilitated 
   by experience building models and subject-matter knowledge. However, there are some parametric
-  methods we can use that will help us objectively compare two models. As with all parametric methods,
-  the p-values returned are dependent on certain assumptions being made about either the data or 
-  residuals being normally distributed, or there being enough data that asymptotic approximations
-  (e.g. invoking the CLT) will provide results that are 'close enough'.
+  methods we can use that will help us objectively compare two models using just the training 
+  data. As with all parametric methods, the p-values returned are dependent on certain assumptions 
+  being made about either the data or residuals being normally distributed, or there being enough 
+  data that asymptotic approximations (e.g. invoking the CLT) will provide results that are 
+  'close enough'. These methods improve upon the parametric approaches we've seen thus far,
+  but, because performance is estimated using the training-set only, there is still substantial
+  potential for overfitting the model. Therefore, the final model should still be evaluated using
+  an independent test-set.
 
 We can use an **ANOVA** to compare two linear models, when one is nested within the other. Nesting 
   means that all the terms in the smaller model are included in the larger model. That is, the models 
@@ -480,13 +488,13 @@ We can use an **ANOVA** to compare two linear models, when one is nested within 
   same assumptions about random sampling, normally distributed residuals or 'large enough' a sample 
   size as the parametric F-tests and t-tests of a linear regression. In addition, although it provides 
   some control of overfitting, since it only uses the training-set for evaluation, it still retains 
-  substantial potential for overfitting. 
+  potential for overfitting. 
 
 One big advantage of this procedure is that it can provide p-values for terms, not just individual 
   coefficients. This makes testing for inclusion of interaction terms involving categorical variables 
   more straightforward, since a single p-value is returned for the interaction, instead of a separate
   p-value of each coefficient, where some might be significant and others not. We can also compare 
-  simultaneous inclusion of multiple terms.
+  simultaneous inclusion or exclusion of multiple terms.
 
 ```
 rm(list=ls())
@@ -528,14 +536,14 @@ The **Akaike Information Criterion** or **AIC** extends the parametric model sel
 Manual model building is very tedious and has a substantial subjective component to it. This makes
   it impractical for building very large models, building very large numbers of models, or for 
   objective/reproducible model generation. One popular alternative approach is to use an automated 
-  procedure to build the model in a step-wise process. In R, we can use the `step()` function to 
-  do this for linear models. In this case, an initial model is picked, a range of model 
-  complexity to explore is specified, and the direction to explore relative to the initial model
-  (e.g. `direction=backward` to try smaller models only; `direction=forward` to try only larger
-  models, and `direction=both` to try both larger and smaller models). Assuming the `step()` 
-  function is called with `direction=both`, then the `step()` function will try to drop one
-  term at a time from the current model and note the resulting change in AIC. Then it will try 
-  to add one term at a time from the set of terms in the maximal model not included in the 
+  procedure to build the model in a **step-wise model-selection** process. In R, we can use the 
+  `step()` function to do this for linear models. In this case, an initial model is picked, a 
+  range of model complexity to explore is specified, and the direction to explore relative to the 
+  initial model (e.g. `direction=backward` to try smaller models only; `direction=forward` to try 
+  only larger models, and `direction=both` to try both larger and smaller models). Assuming the 
+  `step()` function is called with `direction=both`, then the `step()` function will try to drop 
+  one term at a time from the current model and note the resulting change in AIC. Then it will 
+  try to add one term at a time from the set of terms in the maximal model not included in the 
   present model, and note the resulting change in the AIC. It always adds bare variables before 
   adding higher order polynomial and interaction terms involving the variable (as you should) 
   and always drops higher order terms before dropping the corresponding bare variables. If any 
@@ -570,6 +578,7 @@ rm(list=ls())
 (fit3 <- step(fit1, scope=list(lower=fit1, upper=fit2)))
 
 summary(fit3)
+formula(fit3)                     ## how to get the formula of the final model
 par(mfrow=c(2, 3))
 plot(fit3, which=1:6)
 
@@ -578,7 +587,8 @@ plot(fit3, which=1:6)
 We should use an independent test set to evaluate the entire procedure. Often the most 
   'independent' data we can muster are a hold-out test-set from the same experiment. 
   Although performance estimates using a hold-out set from the same experiment (or 
-  cross-validation, which produces more precise results) are optimistically biased, they 
+  cross-validation, which produces more precise results) are optimistically biased
+  when making generalizations to other experiments and laboratories, they 
   tend to be far less biased than similar performance estimates made only with the 
   training-set.
 
@@ -616,6 +626,11 @@ mpg.int <- predict(fit1, newdata=dat.tst)
 (mse.trn <- mean((dat.trn$mpg - mpg.trn) ^ 2))
 (mse.tst <- mean((dat.tst$mpg - mpg.tst) ^ 2))
 (mse.int <- mean((dat.tst$mpg - mpg.int) ^ 2))
+
+summary(fit3)
+formula(fit3)
+par(mfrow=c(2, 3))
+plot(fit3, which=1:6)
 
 ```
 

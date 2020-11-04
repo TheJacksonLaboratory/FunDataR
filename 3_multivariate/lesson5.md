@@ -301,6 +301,15 @@ anova(fit)
 deviance(fit)
 smry$aic
 
+## how about a goodness-of-fit test? deviance / df.residual should be about 1;
+##   if >> 1, suggests possible overdispersion, maybe due to missing predictors:
+1 - pchisq(deviance(fit), fit$df.residual)
+
+## pearson residuals vs. fitted should be flat and not have points >3 from 0. If curved, maybe
+##   needs covariates.
+
+## abs(pearson residuals) should be flat or error model not right.
+
 ```
 
 [Return to index](#index)
@@ -325,7 +334,7 @@ The underlying process is assumed to be one where events occur randomly, but wit
   values (including `0`), representing the number of events observed within a given period.
 
 The distribution has a single parameter `lambda`, which represents the average rate with which
-  events occur. The link function is `sqrt(y)`. where `y` is a count. The variance of the data
+  events occur. The link function is `log(y)`. where `y` is a count. The variance of the data
   at any value of `lambda` is also `lambda`. So these data are not homoskedastic either:
 
 ```
@@ -341,6 +350,11 @@ plot(x=lambdas, y=s2)
 lines(x=lambdas, y=lambdas, col='cyan')
 
 ```
+
+Overdispersion diagnosed by ...; may be caused by missing variables; or maybe the error model
+  is not right, and the negative binomial (which has greater dispersion) is better. Another
+  problem is excess zeros. A different 'zero-inflated' model (beyond this course) can be 
+  considered. Also, sometimes zero truncated, so a different model also needed there.
 
 Fit a model to some count data:
 
@@ -450,7 +464,6 @@ abline(a=0, b=1, col='cyan', lty=2)
 plot(fitted(fit), abs(residuals(fit)))
 
 ```
-
 
 [Return to index](#index)
 

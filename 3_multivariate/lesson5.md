@@ -150,9 +150,23 @@ AIC in terms of likelihoods.
 
 ### Logistic regression
 
-intro here;
+intro here; 
 
-can specify the response several ways.
+The underlying process can be viewed as repeated coin flips or dice rolls. The 
+  response variable can take on one of two possible values, coded as `1` and `0`. These values
+  can be used to represent binary states of interest, such as 'heads' and 'tails', or 
+  'success' and 'failure' or 'treated' and 'control', or 'affected' and 'unaffected'. The 
+  probability `p` with which any random observation from the population will have a response
+  of `1` is assumed to be constant and independent of which observations have previously
+  been sampled. Since there are only two possible values, the probability of drawing an
+  observation with a response value of `0` is `1 - p`.
+
+The distribution has a single parameter `p`, which is the probability of a random observation
+  having a response value of `1`. The link function is `logit(y) = log(y / (1 - y))`, where `y` 
+  is a proportion of `1`s. As we've seen, the variance of the data for any value of `p` is 
+  `p * (1 - p)`, so is not constant. 
+
+Can specify the response several ways.
 
 ```
 rm(list=ls())
@@ -303,12 +317,140 @@ smry$aic
 
 ### Poisson regression
 
-intro here
+The underlying process is assumed to be one where events occur randomly, but with
+  a constant average frequency. The likelihood of an event occurring is assumed to be independent
+  of how long ago the last event was. An example of this type of process is nuclear decay:
+  the rate of radioactive emissions is assumed to be constant (at least over short periods), but 
+  the timing is still random. In this case, the response variable can take on non-negative integer 
+  values (including `0`), representing the number of events observed within a given period.
+
+The distribution has a single parameter `lambda`, which represents the average rate with which
+  events occur. The link function is `sqrt(y)`. where `y` is a count. The variance of the data
+  at any value of `lambda` is also `lambda`. So these data are not homoskedastic either:
 
 ```
-code here
+rm(list=ls())
+set.seed(1)
+
+lambdas <- seq(from=0, to=100, by=1)
+f <- function(lambda.i) var(rpois(1e5, lambda=lambda.i))
+s2 <- sapply(lambdas, f)
+
+par(mfrow=c(1, 1))
+plot(x=lambdas, y=s2)
+lines(x=lambdas, y=lambdas, col='cyan')
 
 ```
+
+Fit a model to some count data:
+
+```
+library('caret')
+
+rm(list=ls())
+
+## the data
+summary(warpbreaks)
+head(warpbreaks)
+par(mfrow=c(1, 1))
+plot(warpbreaks)
+
+## make folds (list of training-set indices):
+set.seed(1)
+idx <- 1 : nrow(warpbreaks)
+folds <- caret::createMultiFolds(idx, k=10, times=7)
+
+## use first fold to make training and test sets:
+idx.trn <- folds[[1]]               ## folds is a list, so double bracket index helpful
+dat.trn <- warpbreaks[idx.trn, ]
+dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' to negate
+
+## fit upper and lower models; select working model by stepping guided by AIC:
+fit.lo <- glm(breaks ~ 1, data=dat.trn, family='poisson')
+fit.up <- glm(breaks ~ .^2, data=dat.trn, family='poisson')
+fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both')
+
+formula(fit)                        ## the selected model
+
+## some parametric performance estimates based solely on training-set:
+summary(fit.lo)                     ## initial model + lower model of scope searched
+summary(fit.up)                     ## upper model of scope searched
+(smry <- summary(fit))              ## working model
+anova(fit, test='Chisq')            ## significance of terms
+deviance(fit)                       ## how to get model deviance (relative to training-set)
+smry$aic                            ## how to get model AIC (also only uses training-set)
+
+## evaluation using our test-set:
+
+prd.trn <- predict(fit, newdata=dat.trn, type='response')
+prd.tst <- predict(fit, newdata=dat.tst, type='response')
+prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
+
+(mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2))
+(mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2))
+(mse.int <- mean((dat.tst$breaks - prd.int) ^ 2))
+
+```
+
+Do a full-fledged cross-validation:
+
+```
+library('caret')
+
+rm(list=ls())
+
+## make folds (list of training-set indices):
+set.seed(1)
+idx <- 1 : nrow(warpbreaks)
+folds <- caret::createMultiFolds(idx, k=10, times=7)
+
+## function to run for each fold:
+
+f.cv <- function(idx.trn) {
+
+  dat.trn <- warpbreaks[idx.trn, ]
+  dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' to negate
+
+  ## fit upper and lower models; select working model by stepping guided by AIC:
+  fit.lo <- glm(breaks ~ 1, data=dat.trn, family='poisson')
+  fit.up <- glm(breaks ~ .^2, data=dat.trn, family='poisson')
+  fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
+
+  prd.trn <- predict(fit, newdata=dat.trn, type='response')
+  prd.tst <- predict(fit, newdata=dat.tst, type='response')
+  prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
+
+  mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2)
+  mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2)
+  mse.int <- mean((dat.tst$breaks - prd.int) ^ 2)
+
+  c(mse.trn=mse.trn, mse.tst=mse.tst, mse.int=mse.int)
+}
+
+rslts <- sapply(folds, f.cv)
+apply(rslts, 1, mean)
+apply(rslts, 1, sd)
+
+## fit final model to whole dataset:
+
+fit.lo <- glm(breaks ~ 1, data=warpbreaks, family='poisson')
+fit.up <- glm(breaks ~ .^2, data=warpbreaks, family='poisson')
+fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
+
+deviance(fit)
+(smry <- summary(fit))
+smry$aic
+anova(fit, test='Chisq')
+
+par(mfrow=c(1, 2))
+
+plot(warpbreaks$breaks, fitted(fit))
+abline(a=0, b=1, col='cyan', lty=2)
+
+plot(fitted(fit), abs(residuals(fit)))
+
+```
+
 
 [Return to index](#index)
 
@@ -324,10 +466,48 @@ code here
 
 ### Negative-binomial regression
 
-intro here
+intro here; rate parameter no longer constant, but varies randomly from observation
+  to observation! Introduces additional variation. Makes dispersion around the 
+  mean larger.
 
 ```
-code here
+library('caret')
+library('MASS')
+
+rm(list=ls())
+
+## make folds (list of training-set indices):
+set.seed(1)
+idx <- 1 : nrow(warpbreaks)
+folds <- caret::createMultiFolds(idx, k=10, times=7)
+
+## use first fold to make training and test sets:
+idx.trn <- folds[[1]]               ## folds is a list, so double bracket index helpful
+dat.trn <- warpbreaks[idx.trn, ]
+dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' to negate
+
+## no longer need 'family' argument:
+
+fit.lo <- glm.nb(breaks ~ 1, data=dat.trn)
+fit.up <- glm.nb(breaks ~ .^2, data=dat.trn)
+fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=1)
+
+fit
+formula(fit)
+deviance(fit)
+(smry <- summary(fit))
+smry$aic
+anova(fit, test='Chisq')
+
+## evaluation using our test-set:
+
+prd.trn <- predict(fit, newdata=dat.trn, type='response')
+prd.tst <- predict(fit, newdata=dat.tst, type='response')
+prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
+
+(mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2))
+(mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2))
+(mse.int <- mean((dat.tst$breaks - prd.int) ^ 2))
 
 ```
 

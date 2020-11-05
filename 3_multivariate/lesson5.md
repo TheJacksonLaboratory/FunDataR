@@ -755,7 +755,15 @@ prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
 
 ### Check your understanding 3
 
-1) question here
+1) Using the `warpbreaks` NB regression example as a guide (copy and paste) make a function
+   that will take an integer observation index, use it to split the `warpbreaks` data into a 
+   training-set and test-set, use the `step()` function to explore **Negative binomial regression** 
+   over the formula space between the lower model `breaks ~ 1` and the upper model `breaks ~ .^2`, 
+   using the lower model as the starting point. Then make predictions for both the training set and 
+   test-set. Return performance estimates (the MSE) based on the training-set and on the test-set.
+
+2) Use your function to conduct a 10-fold cross-validation repeated 7 times. Report the mean
+   and standard deviation of the MSE across the folds.
 
 [Return to index](#index)
 

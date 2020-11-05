@@ -529,14 +529,17 @@ In the residual plots above, we see what look like systematic trends in the resi
 
 ### Check your understanding 1
 
-Use cross-validation to estimate the performance of logistic regression model with viginica ~ Petal.Length.
+1) Copy the `Species` and `Petal.Length` columns from `iris` dataset into a new data.frame
+   called `dat`. Introduce a column `dat$Grp` and use it to encode non-virginica species as 'negative' 
+   and 'virginica' as 'positive'. Delete the column `dat$Species`.
 
-1) 
+2) Write a function that will take an integer index to a training set, such as that returned by
+   `caret::createMultiFolds()`, splits `dat` into a training-set and test-set, fits a logistic 
+   regression model to the formula `Grp ~ Petal.Length` using the training-set, then
+   estimates the AUC for the model using the test-set. 
 
-2)
-
-3)
-
+3) Use your function to conduct a 10-fold cross-validation repeated 7 times. Report the mean
+   and standard deviation of the AUC across the folds.
 
 [Return to index](#index)
 
@@ -630,6 +633,9 @@ anova(fit, test='Chisq')            ## significance of terms
 deviance(fit)                       ## how to get model deviance (relative to training-set)
 smry$aic                            ## how to get model AIC (also only uses training-set)
 
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
+
 ## evaluation using our test-set:
 
 prd.trn <- predict(fit, newdata=dat.trn, type='response')
@@ -642,68 +648,21 @@ prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
 
 ```
 
-Do a full-fledged cross-validation:
-
-```
-library('caret')
-
-rm(list=ls())
-
-## make folds (list of training-set indices):
-set.seed(1)
-idx <- 1 : nrow(warpbreaks)
-folds <- caret::createMultiFolds(idx, k=10, times=7)
-
-## function to run for each fold:
-
-f.cv <- function(idx.trn) {
-
-  dat.trn <- warpbreaks[idx.trn, ]
-  dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' to negate
-
-  ## fit upper and lower models; select working model by stepping guided by AIC:
-  fit.lo <- glm(breaks ~ 1, data=dat.trn, family='poisson')
-  fit.up <- glm(breaks ~ .^2, data=dat.trn, family='poisson')
-  fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
-
-  prd.trn <- predict(fit, newdata=dat.trn, type='response')
-  prd.tst <- predict(fit, newdata=dat.tst, type='response')
-  prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
-
-  mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2)
-  mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2)
-  mse.int <- mean((dat.tst$breaks - prd.int) ^ 2)
-
-  c(mse.trn=mse.trn, mse.tst=mse.tst, mse.int=mse.int)
-}
-
-rslts <- sapply(folds, f.cv)
-apply(rslts, 1, mean)
-apply(rslts, 1, sd)
-
-## fit final model to whole dataset:
-
-fit.lo <- glm(breaks ~ 1, data=warpbreaks, family='poisson')
-fit.up <- glm(breaks ~ .^2, data=warpbreaks, family='poisson')
-fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
-
-deviance(fit)
-(smry <- summary(fit))
-smry$aic
-anova(fit, test='Chisq')
-
-par(mfrow=c(2, 3))
-plot(fit, which=1:6)
-
-```
-
 [Return to index](#index)
 
 ---
 
 ### Check your understanding 2
 
-1) question here
+1) Using the `warpbreaks` Poisson regression example as a guide (copy and paste) make a function
+   that will take an integer observation index, use it to split the `warpbreaks` data into a 
+   training-set and test-set, use the `step()` function to explore **Poisson regressions** over the 
+   formula space between the lower model `breaks ~ 1` and the upper model `breaks ~ .^2`, using 
+   the lower model as the starting point. Then make predictions for both the training set and 
+   test-set. Return performance estimates (the MSE) based on the training-set and on the test-set.
+
+2) Use your function to conduct a 10-fold cross-validation repeated 7 times. Report the mean
+   and standard deviation of the MSE across the folds.
 
 [Return to index](#index)
 

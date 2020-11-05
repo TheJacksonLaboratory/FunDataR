@@ -7,7 +7,7 @@
 ### Index
 
 - [Weighted regression](#weighted-regression)
-- [Generalized linear modeling](#generalized-linear-models)
+- [Generalized linear models](#generalized-linear-models)
 - [Logistic regression](#logistic-regression)
 - [Poisson regression](#poisson-regression)
 - [Negative-binomial regression](#negative-binomial-regression)
@@ -494,7 +494,10 @@ sd(rslts)
 
 ```
 
-Now that we have our performance estimate, let's fit the final model to the complete dataset:
+Now that we have our performance estimate, let's fit the final model to the complete dataset. 
+  Since this model includes more training data than was used during performance estimation,
+  we expect the final model to typically perform at least as well as the performance estimate,
+  especially if the dispersion of performance estimates across folds `sd(rslts)` is low:
 
 ```
 fit.lo <- glm(Grp ~ 1, data=dat, family='binomial')
@@ -506,18 +509,21 @@ anova(fit)
 deviance(fit)
 smry$aic
 
-## even though the model accuracy is good, the fit is pretty bad. Looks like systematic 
-##   departures in the residuals, suggesting we are missing some systematic structure to 
-##   the data, rather than just random noise (which is what the model assumes). Here this 
-##   probably suggests the need for extra predictors to define that missing structure, 
-##   which is probably related to the negative class in this contrived example actually 
-##   being composed of two distinct groups, which do systematically differ. Because the 
-##   residual plot looks bad, the parametric p-values are not to be trusted,  but you can 
-##   still use permutation for coefficient p-values or bootstrapping for coefficient 
-##   confidence intervals:
-
+## residual plots don't look great:
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
+
+```
+
+In the residual plots above, we see what look like systematic trends in the residuals, 
+  suggesting our model is failing to capture some source of structure in the data. In this 
+  contrived example, this is likely related to the negative class actually being composed of 
+  two distinct groups which have systematic differences between them. We are missing predictor
+  terms to capture that systematic difference. Because the residual plots look pretty bad, the 
+  parametric p-values are not to be trusted. However, the performance estimates found by 
+  cross-validation should still be perfectly valid. Furthermore, you could still use permutation 
+  to estimate parameter p-values, and you could use bootstrapping to estimate confidence 
+  intervals for the coefficients.
 
 ```
 
@@ -527,7 +533,14 @@ plot(fit, which=1:6)
 
 ### Check your understanding 1
 
-1) question here
+Use cross-validation to estimate the performance of logistic regression model with viginica ~ Petal.Length.
+
+1) 
+
+2)
+
+3)
+
 
 [Return to index](#index)
 
@@ -535,37 +548,55 @@ plot(fit, which=1:6)
 
 ### Poisson regression
 
-The underlying process is assumed to be one where events occur randomly, but with
-  a constant average frequency. The likelihood of an event occurring is assumed to be independent
-  of how long ago the last event was. An example of this type of process is nuclear decay:
-  the rate of radioactive emissions is assumed to be constant (at least over short periods), but 
-  the timing is still random. In this case, the response variable can take on non-negative integer 
-  values (including `0`), representing the number of events observed within a given period.
+Another response data type that deserves special consideration is **count data**. Counts are always 
+  greater than or equal to zero and do not take on fractional values. Certain types of **memoryless** 
+  processes (where the the frequency of future events is independent of the history of events) with 
+  a **constant rate** (average number of events per unit of time does not change over time) are 
+  frequently modeled using Poisson regression. An example of this type of process is nuclear decay: 
+  the rate of radioactive emissions is assumed to be constant (at least over short periods), but the 
+  timing of individual events is still random. However, you will often see Poisson regression used 
+  in cases where independence of events is not assumed. For instance, the number of daily lightning 
+  strikes on the Empire State building is not constant over time, but increases during rainy weather 
+  and decreases in sunny weather. Nevertheless, if our model captures this structure in the data by 
+  including predictors associated with the weather, the residual variance around the predicted 
+  conditional mean number of strikes per day may well be expected to be 'close enough' to 
+  independent. As in the case of linear regression, the assumptions are more about the distribution 
+  of the model residuals than about the distribution of the data themselves. For Poisson regression, 
+  the error model is assumed to be a Poisson distribution.
 
-The distribution has a single parameter `lambda`, which represents the average rate with which
-  events occur. The link function is `log(y)`. where `y` is a count. The variance of the data
-  at any value of `lambda` is also `lambda`. So these data are not homoskedastic either:
+A Poisson distribution has a single parameter `lambda`, which represents the average rate with 
+  which events occur. The link function is `log(y)`. where `y` is the count response variable. The 
+  conditional mean being modeled is the average number of events per unit time (the conditional 
+  rate). Since this is an average, it can take on non-integer fractional values, even though the 
+  response variable is restricted to integer values. This is similar to the case of logistic 
+  regression, where the response variable can only take on the two values `0` and `1`, but the 
+  conditional mean being modeled is the estimated proportion of `1`s, which can be any real 
+  number between zero and one. The variance of a Poisson distribution with a rate of `lambda` 
+  is also `lambda`, so the residuals are not expected to be homoskedastic, but to follow a 
+  simple predictable monotonic relationship with the conditional mean:
 
 ```
 rm(list=ls())
 set.seed(1)
 
+## regularly spaced sequence of lambdas, and the corresponding poisson variance, estimated 
+##   from 1e5 random draws from the corresponding Poisson distribution:
 lambdas <- seq(from=0, to=100, by=1)
 f <- function(lambda.i) var(rpois(1e5, lambda=lambda.i))
 s2 <- sapply(lambdas, f)
 
+## plot the observed rate (lambda) vs. variance and cyan line where rate == variance:
 par(mfrow=c(1, 1))
-plot(x=lambdas, y=s2)
+plot(x=lambdas, y=s2, xlab='rate', ylab='variance')
 lines(x=lambdas, y=lambdas, col='cyan')
 
 ```
 
-Overdispersion diagnosed by ...; may be caused by missing variables; or maybe the error model
-  is not right, and the negative binomial (which has greater dispersion) is better. Another
-  problem is excess zeros. A different 'zero-inflated' model (beyond this course) can be 
-  considered. Also, sometimes zero truncated, so a different model also needed there.
-
-Fit a model to some count data:
+Here we show how to fit a Poisson model to some count data, generate parametric p-values
+  on coefficients and terms, retrieve the deviance (equivalent of the sum-of-squares for
+  regular linear regression), retrieve the AIC, and make predictions for a test-set. For
+  count data, we can use the model mean-squared error (MSE) as a reasonable metric for
+  predictive performance as well as model selection. 
 
 ```
 library('caret')
@@ -665,12 +696,8 @@ deviance(fit)
 smry$aic
 anova(fit, test='Chisq')
 
-par(mfrow=c(1, 2))
-
-plot(warpbreaks$breaks, fitted(fit))
-abline(a=0, b=1, col='cyan', lty=2)
-
-plot(fitted(fit), abs(residuals(fit)))
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
 
 ```
 
@@ -688,9 +715,43 @@ plot(fitted(fit), abs(residuals(fit)))
 
 ### Negative-binomial regression
 
-intro here; rate parameter no longer constant, but varies randomly from observation
-  to observation! Introduces additional variation. Makes dispersion around the 
-  mean larger.
+One common problem you may encounter when modeling count data is **overdispersion**. 
+  Overdispersion describes the situation where the dispersion (variance) of the residuals 
+  is larger than would be expected based on the Poisson model assumptions. This situation
+  may indicate that you are missing explanatory variables or terms from the model, leading 
+  to systematic departures. Sometimes this will be evident in non-linear trends in the 
+  Residuals vs. Fitted plot. If there is no trend in that plot, but the Scale-Location plot 
+  suggests that the average Pearson's residual is substantially greater than one, it still 
+  may suggest missing predictor terms, but it also may suggest that the error model itself 
+  is not right, in which case, the negative binomial model, which allows for greater 
+  dispersion of the residuals, may be a better choice.
+
+The **negative binomial**, or **NB** distribution, like the Poisson distribution, describes 
+  the distribution of event counts when certain assumptions are made about the process 
+  generating the events. For the Poisson distribution, we assumed that the the variance of
+  the distribution was equal to the rate. Therefore the Poisson distribution could be
+  specified with the single parameter `lambda` that at once describes the mean rate and
+  the variance. The negative binomial distribution does not constrain the variance to be
+  equal to the rate, but allows it to be specified separately using a 'scale' parameter, 
+  similar to the `sd` parameter of the normal distribution.
+
+One common reason for overdispersion of count data is that the rate parameter itself can 
+  vary from observation to observation. For instance, if we measured the number of eggs layed
+  per week by some hens, we may find that for any individual hen, the set counts across weeks
+  are Poisson distributed, with the variance equal to the mean. However, the variance of
+  egg counts from different hens during the same week will likely have a greater variance than
+  the Poisson distribution suggests, because not only are we dealing with random week-to-week
+  variations in counts from a process with a single rate, but we are adding in the variance
+  in egg-laying rates for the differrent hens. Similarly, in an RNA-seq experiment, each 
+  observation corresponds to a random sample of RNA molecules from an individual specimen.
+  If we repeated the experiment with the same sample, all the counts would be a little
+  different, due to the random nature of the sampling. However, if we compare the counts
+  from RNA samples taken from different biological specimens, the counts will vary not
+  only because of the random nature of the sampling, but also due to systematic differences
+  in the gene transcript levels between the biological specimens. This extra biolgical
+  variation between specimens inflates the variance in the different counts. The scale
+  parameter of the NB distribution allows us to estimate and account for this extra
+  variance.
 
 ```
 library('caret')

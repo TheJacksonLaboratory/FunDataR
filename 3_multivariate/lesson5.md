@@ -344,7 +344,6 @@ plot(esoph)
 smry$aic
 deviance(fit)
 anova(fit, test='Chisq')
-1 - 
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -366,7 +365,6 @@ summary(p3)                       ## within allowed range of [0, 1]
 
 It is easier to work with if give one row per observation, instead of the
   more compact format used above:
-
 
 ```
 rm(list=ls())
@@ -524,8 +522,6 @@ In the residual plots above, we see what look like systematic trends in the resi
   cross-validation should still be perfectly valid. Furthermore, you could still use permutation 
   to estimate parameter p-values, and you could use bootstrapping to estimate confidence 
   intervals for the coefficients.
-
-```
 
 [Return to index](#index)
 

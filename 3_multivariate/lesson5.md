@@ -319,7 +319,7 @@ Below we fit a logistic regression model to the `esoph` data, generate a summary
   link function is not correct. Finally, we show how to make predictions using the fit. The added 
   complication here is that the default predictions are made on the link-transformed scale (not returning
   the conditional mean proportion/probability `p`, but the logit of `p`), so if we want predictions on 
-  the original scale, we need to specify the `type` to the `predict()` function:
+  the original scale, we need to specify the `type` argument to the `predict()` function:
 
 ```
 rm(list=ls())
@@ -337,6 +337,7 @@ plot(esoph)
 smry$aic
 deviance(fit)
 anova(fit, test='Chisq')
+1 - 
 
 par(mfrow=c(2, 3))
 plot(fit, which=1:6)
@@ -386,9 +387,49 @@ anova(fit1, fit2, test='Chisq')
 
 ```
 
-Can use lots of familiar methods. Loss function can be deviance instead of MSE:
+So the procedures for fitting GLMs like the logistic regression model follow a very similar pattern
+  used for fitting ordinary least-squares linear regression models. Similarly, we can compare two models, or explore
+  the potential predictor terms in step-wise fashion. We can also conduct a cross-validation to estimate model
+  performance. In general, you can compare two models based on model deviance (instead of MSE) in order to see which 
+  model seems to have a better average fit to the training-set observations. 
+
+When trying to estimate predictive performance of the model for novel observations, we should consider the 
+  possibility that the error-rate for observations where `y == 1` (let's call these **cases**) may differ from the 
+  error-rate for observations where `y == 0` (let's call these **controls**). In the trivial case where we have a 
+  model that predicts `y == 1` for every sample, it will be correct 100% of the time for cases, but incorrect 100% 
+  of the time for controls. In this case, if we use **percent accuracy** as a performance metric, the result will 
+  depend entirely on the composition of the test-set. If the test-set is composed entirely of cases, the 
+  percent accuracy will be 100%, while for a test-set consisting exclusively of controls, the percent accuracy 
+  will be 0%. Intermediate test-set compositions will result in percent accuracies somewhere between 0% and 100%. 
+  A more comprehensive expression of performance could report separate error rates for cases and controls in the
+  test-set. In the example below, we will use a contingency table to express this information. It is often 
+  convenient to express the performance of a prediction model for a binary response as the **area under the 
+  receiver-operator characteristic curve** also known as the **area under the ROC curve** or **AUC**. One common 
+  way of calculating this metric based on a finite sized test-set results in the **empirical AUC** or **eAUC**, 
+  which expresses the probability that the conditional mean predicted for cases is higher than the conditional 
+  mean predicted for controls. This interpretation is approximately correct for the AUC itself. That is, an eAUC of
+  0.5 indicates that cases and controls have the same average conditional mean (cases have a 50% chance of having
+  a higher conditional mean than controls and 50% chance of having a lower conditional mean than controls), which 
+  implies that the model is useless for classification (since no cutoff on the conditional mean will serve to 
+  distinguish the two groups). Conversely, an eAUC of one suggests that the model will always predicts larger 
+  conditional means for cases than controls, which suggests the model potentially will do a very good job of 
+  assigning new observations to the two classes. However, the cutoff of the conditional mean used for assigning 
+  observations may need 'calibrated'. For instance, perhaps all the cases are assigned a conditional mean (`p`, 
+  which can range between `0` and `1`) of `0.2`, while all the controls have a conditional mean of `0.1`. In this 
+  case, the eAUC will be one. However, we would need to know to set the cutoff around `0.15` in order to bin the 
+  data into the correct groups. The contingency table analysis glosses over this by using the 'default' conditional 
+  mean cutoff of `0.5` for assigning new observations to the 'case' group, which might lead the false impression 
+  that this model has no value for binary classification, when in fact, it just needs to be calibrated to turn 
+  into a perfect classifier. 
+
+In the example below, we'll use the `iris` dataset to look for models which can be used to classify iris plants
+  as either *Iris virginica*, where `Species == 'virginica'` or not *Iris virginica* where `Species != 'virginica'. 
+  That is we will take two non-virginica groups and combine them into a single `negative` group:
 
 ```
+library('caret')
+library('pROC')
+
 rm(list=ls())
 set.seed(1)
 
@@ -416,8 +457,6 @@ pROC::roc(dat.tst$Grp, pred.prob, direction='<')
 pred.grp <- c('negative', 'virginica')[(pred.prob > 0.5) + 1]
 pred.grp <- factor(pred.grp)
 caret::confusionMatrix(dat.tst$Grp, pred.grp)
-
-## https://topepo.github.io/caret/measuring-performance.html
 
 ```
 
@@ -460,14 +499,18 @@ anova(fit)
 deviance(fit)
 smry$aic
 
-## how about a goodness-of-fit test? deviance / df.residual should be about 1;
-##   if >> 1, suggests possible overdispersion, maybe due to missing predictors:
-1 - pchisq(deviance(fit), fit$df.residual)
+## even though the model accuracy is good, the fit is pretty bad. Looks like systematic 
+##   departures in the residuals, suggesting we are missing some systematic structure to 
+##   the data, rather than just random noise (which is what the model assumes). Here this 
+##   probably suggests the need for extra predictors to define that missing structure, 
+##   which is probably related to the negative class in this contrived example actually 
+##   being composed of two distinct groups, which do systematically differ. Because the 
+##   residual plot looks bad, the parametric p-values are not to be trusted,  but you can 
+##   still use permutation for coefficient p-values or bootstrapping for coefficient 
+##   confidence intervals:
 
-## pearson residuals vs. fitted should be flat and not have points >3 from 0. If curved, maybe
-##   needs covariates.
-
-## abs(pearson residuals) should be flat or error model not right.
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
 
 ```
 

@@ -21,25 +21,106 @@
 
 ### Generalized linear models
 
-Linear relationship of `y` or some transformation of `y`. Normal homoskedastic errors.
-  Can add polynomials and interactions on predictors. Can transform response, but
-  this leads to analysis on unnatural scale which complicates interpretation. We are
-  also relying on a single transformation being capable of both linearizing a relationship
-  as well as making the residuals normal and homoskedastic. That is often not possible.
-  Generalized linear modeling allows for specification (via a **'link function'**) 
-  of an invertible (reversible) transformation for the response as well specification 
-  (via a **'variance function'**) of nearly arbitrary error models. Having separate 
-  functions for linearization and for describing the error model greatly increases
-  the flexibility.
+So far we have been working with linear models where the response variable `y` was 
+  modeled as function of individual predictor variables, `x1`, `x2`, `x3`, etc.
+  along with polynomial series such as `x1 + x1^2 + x1^3`, and interactions such 
+  as `x1:x3`. The assumptions are that the right transformation of `y` (which may
+  be no transformation at all) and inclusion of the right predictor terms will 
+  result in a model where the conditional mean of `y` is linearly related to a sum 
+  of these types of predictor terms, and individual random observations from the 
+  population are expected to be normally distributed around the line representing 
+  the conditional mean and have a constant variance.
 
-For instance, a binary response variable `y` is a random variable that can only take on 
-  the values `1` or `0`, where the parameter `p` is the probability that it will take on 
-  the value `1`. The two values may be used to encode states/categories of interest, 
-  such as 'heads' or 'tails', if modeling coin flips. Or they could be used to represent 
-  'affected' or 'non-affected' subjects in a health-related experiment. We could model
-  the mean value of `p` as a function of some predictors, `x1`, `x2`, etc. When doing this,
-  we want the conditional mean `p` to always lie within the interval `[0, 1]`. The 
-  variance of a binary variable with a conditional mean of `p` will be `p * (1 - p)`: 
+We can extend this modeling to systems where the variance of `y` has a relatively
+  predictable relationship to the conditional mean of `y` by using **weighted 
+  linear regression**. Here, instead of tuning the prediction line coefficients to
+  minimize the sum-of-squared deviations of observations from the prediction line,
+  we weight each observations contribution to the sum-of-squares by dividing by
+  the expected variance at the observations predicted response value. That is,
+  we estimate a functional relationship between the variance of the residuals
+  and the corresponding fitted `y` value from an unweighted linear regression. 
+  If the residuals vs. fitted plot looks like it spreads out, but does not slope,
+  then the absolute values of the residuals can be modeled as a linear function 
+  of the fitted values: `abs(residuals(fit)) ~ fitted(fit)`. If the residuals 
+  vs. fitted plot looks like it has an upwardly curving slope, we can try to 
+  model the squared residuals as a function of the fitted values: 
+  `residuals(fit)^2 ~ fitted(fit)`. Sometimes a clear relationship to fitted 
+  values cannot be found, but relationship to the predictors can be found instead.
+  In these cases, a similar approach is followed, but with predictors instead 
+  of fitted values being used as explanatory variables.
+
+We then use the predicted variance of observations around the conditional mean 
+  to weight each observation. The weight is the inverse of the expected variance. 
+  That is, observations are weighted by the expected variability of the observation's
+  `y` value. Where variance is high, precision is low, so the squared-residuals are 
+  down-weighted relative to where variance is expected to be low. This process works 
+  in part because the **coefficient estimates from an unweighted regression are unbiased**. 
+  What really changes the most with weighted linear regression is the estimated stardard 
+  errors. This often leads to very different (more correct) results of parametric tests 
+  (e.g. overall F-test, or t-tests on individual coefficients).
+
+One thing you will notice in the Scale-Location residual plot of the weighted fit, `fit2`
+  in the example below, is that the vertical axis is plotting the (square root of the)
+  **standardized residuals**. These are the residuals divided by their expected standard 
+  deviations (inferred from the observation weights). Therefore, even if the residuals
+  have a spreading pattern (rising variance with fitted value), the standardized residuals
+  are expected to all be around `1`. So, if our variance estimates are correct, we expect
+  this plot to have a flat trend with a mean near `1`.
+
+```
+rm(list=ls())
+
+dat <- warpbreaks
+
+fit.lo <- lm(breaks ~ 1, data=warpbreaks)
+fit.up <- lm(breaks ~ .^2, data=warpbreaks)
+fit1 <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=1)
+par(mfrow=c(2, 3))
+plot(fit1, which=1:6)
+
+## note scale vs. location plot upward, though residuals vs fitted flat. 
+##   so model abs(residuals(fit)) as function of fitted(fit):
+
+res.abs <- abs(residuals(fit1))
+fit.sd <- lm(res.abs ~ fitted(fit1))
+
+## have to square fitted values, since they are sd estimates, not variance estimates:
+wts <- 1 / (fitted(fit.sd) ^ 2)
+fit2 <- lm(formula(fit1), data=warpbreaks, weights=wts)
+plot(fit2, which=1:6)             ## note scale-location plot flat now (which is good)
+
+summary(fit1)
+summary(fit2)                     ## p-values different than for fit1
+anova(fit1)
+anova(fit2)                       ## p-value adjustments trickles down into tests of terms
+
+```
+
+**Generalized linear models** (**GLMs**) are a more general way to extend linear models to 
+  not only non-constant residual variances, but also a wide variety of possible transformations 
+  of the response `y`. The transformations of the response can be used in order to 
+  accommodate various non-linear relationships, as well as restrict predicted values for
+  the response to a particular range. We've seen that we can accommodate some types of
+  non-linear relationships as well as non-constant residual variance by transforming the
+  response. However, we often cannot find a response transformation that both linearizes
+  the relationship between the response and predictor terms, but also results in normally
+  distributed homoskedastic residuals. Generalized linear modeling allows for specification 
+  (via a **'link function'**) of an invertible (reversible) transformation for the response 
+  variable as well specification (via a **'variance function'**) of nearly arbitrary error 
+  models. This means we can depart from the assumptions of normal distributions as well as
+  homoskedasticity for residuals. Having separate functions for linearization and for 
+  describing the error model greatly increases the flexibility over the least-squares linear
+  model.
+
+For instance, a **binary response variable** `y` is a random variable that can only take on 
+  one of two values, typically encoded as `1` or `0`, where the parameter `p` is the probability 
+  that it will take on the value `1`, or the proportion of observations where `y == 1`. These two 
+  values may be used to represent states/categories of interest, such as 'heads' or 'tails', 
+  if modeling coin flips. Or they could be used to represent 'affected' or 'non-affected' 
+  subjects in a health-related experiment. We could model the mean value of `p` as a function 
+  of some predictors, `x1`, `x2`, etc. When doing this, we want the conditional mean `p` to 
+  always lie within the interval `[0, 1]`. The variance of a independent random binary variable 
+  with a conditional mean of `p` is not constant, but equals `p * (1 - p)`: 
 
 ```
 rm(list=ls())
@@ -50,20 +131,27 @@ f <- function(p.i) var(rbinom(1e5, 1, p.i))
 s2 <- sapply(p, f)
 
 par(mfrow=c(1, 1))
-plot(x=p, y=s2)
+plot(x=p, y=s2, ylab='variance(p)')
 
 y <- p * (1 - p)
 lines(x=p, y=y)
 
 ```
 
-In order to restrict ... model logit(y) = log(p / (1 - p)) as the response; only defined in 
-  closed (does not include endpoints) interval `(0, 1)`. Remember, we are modeling the conditional
-  mean probability of getting a `1`. Individual observations are always exactly `0` or `1`, but
-  we assume there is always a non-zero probability of getting either class. That is, nowhere is
-  the range of the predictors does the model predict a zero probability of observing a `0`. Even
-  if a `1` is modeled as far, far more likely than observing a `0`, there will always be some
-  chance of observing a `1`. 
+The conditional mean being modeled in this case will be the proportion `p` of observations which are
+  expected to have a response `y` value of `1`. Since a proportion is generally restricted to the
+  range from `0` to `1`, we need to ensure the conditional mean does not fall outside this range.
+  There are several transformations in common use, but the most common these days is probably the
+  **logit transformation** of `p`, `logit(p) = log(p / (1 - p))` as the response. Here `p` is the 
+  probability of observing `y == 1`, and `1 - p` is the probability of observing `y == 0` (since
+  there are only two possibilities). The ratio of these two probabilities is also known as the
+  '**odds**' of `y == 1`. So `logit(p)` is the log of the odds, or **log-odds** of `y == 1`. The 
+  function `logit(y)` is only defined in closed (does not include endpoints) interval `(0, 1)`. 
+  Although individual observations are always exactly `0` or `1`, but we assume there is always a 
+  non-zero probability of getting either class. That is, nowhere is the range of the predictors does 
+  the model predict a zero probability of observing a response value of `0`. Even if `y == 1` is 
+  modeled as far, far more likely than observing `y == 0`, there will always be some chance of 
+  observing `y == 1`. 
 
 ```
 rm(list=ls())
@@ -84,65 +172,99 @@ plot(x=x3, y=p3, type='l', xlab='logit(p)', ylab='p', main='Invert: p between 0 
 
 Minimizing the sum-of-squared deviations makes sense as a model fitting criterion when there
   are normally distributed residuals and homoskedasticity. When these conditions do not hold,
-  this criterion may not make much sense. 
-
-Likelihood of an observation given a model: if our model is a global mean (intercept-only linear model),
-  and we assume that the data are normally distributed (as in the case of a single-sample
-  t-test), then if we assume the model is correct, we can estimate the probability of observing
-  a value a certain distance from the mean. For instance, if we estimate that the global mean
-  and standard deviation from the sample, and we assume the data are normally distributed, we
-  can predict the probability of observing any particular value:
+  this criterion may not make much sense. For GLMs, we instead find model coefficients that
+  maximize the likelihood of the coefficients given the training-set observations. Likelihoods
+  are very closely related to probabilities. For instance, if our model is a very simple one
+  where we use the global mean (an intercept-only linear model) for prediction and assume that
+  the data are normally distributed around this mean (as is the assumption for the single-sample
+  t-test, when the CLT cannot be invoked). Given this model, we can estimate the probability of 
+  observing a response value a certain distance from the mean. For instance, if we estimate the 
+  global mean and standard deviation from the sample, we can predict the probability of observing 
+  any particular value:
 
 ```
 rm(list=ls())
 set.seed(1)
 
-x <- rnorm(30, mean=10, sd=2)
-(m <- mean(x))
-(s <- sd(x))
+x <- rnorm(30, mean=10, sd=2)     ## randomly sample 30 observations from population N(10, 2)
+(m <- mean(x))                    ## estimate population mean from sample (a bit off)
+(s <- sd(x))                      ## estimate population sd from sample  (a bit off)
 
+## plot probability vs value:
 x1 <- seq(from=0, to=20, by=0.001)
 p <- dnorm(x1, mean=m, sd=s)
 par(mfrow=c(1, 1))
 plot(x=x1, y=p, type='l', xlab='x', ylab='probability', main='p(x) for N(10.2, 1.8)')
 
+## generate table of probabilities for series of equally spaced values:
 x2 <- seq(from=0, to=20, by=1)
 cbind(x=x2, p=dnorm(x2, mean=m, sd=s))
 
 ```
 
 We can flip this idea on its head to estimate the mean based on the estimated sd in such 
-  a way as to maximize the probability of the observations given the model:
+  a way as to maximize the probability of the observations given the model. This yields
+  the **maximum likelihood** estimate of the single coefficient (the intercept, which,
+  when the lone predictor, represents the global mean). Since here we have assumed a
+  normally distributed error term, the maximum likelihood coefficient matches the
+  estimates from `mean(x)` and `t.test(x)`. The advantage of this way of estimating 
+  coefficients is that it can be extended to a much broader range of error models than
+  what can be accomplished using least-squares fitting. Furthermore, when the assumptions
+  about the error model are the same (normally distributed), the maximum likelihood and
+  least-squares estimates coincide.
 
 ```
 (s <- sd(x))
 
+## returns model log likelihood of observations 'x' given model N(m, s):
 f.loglik <- function(m) {
   p.obs <- dnorm(x, mean=m, sd=s)
   sum(log(p.obs))
 }
 
+## log-likelihood for a range of mean estimates:
 m.try <- seq(from=0, to=20, by=0.001)
 loglik <- sapply(m.try, f.loglik)
 
+## which estimate of the mean maximizes the log-likelihood?
 (m.best <- m.try[which.max(loglik)])
-mean(x)
-t.test(x)
+mean(x)                           ## compare to 'regular' mean
+t.test(x)                         ## compare to t-test estimate of mean
 
+## plot coefficient (estimate of mean) log-likelihood vs x:
 par(mfrow=c(1, 1))
 plot(x=m.try, y=loglik, type='l')
-abline(v=m.best, lty=2)
-rug(x)
+abline(v=m.best, lty=2)           ## vertical line at maximum likelihood estimate
+rug(x)                            ## tick marks for individual observation x values
 
 ```
 
-Deviance for one observation: dev(y, pred) = 2 * log(p(y | fit.saturated)) - log(p(y | fit))
-For comparing fits, drop constant part: dev(y, pred) = -log(p(y | fit)) == -loglik(y | fit)
-Model deviance is sum of dev(y, pred) for all y: -sum(loglik(y | fit))
-Instead of minimizing the sums-of-squared deviations, we find model coefficients that 
-  minimize the deviance.
+When using maximum likelihood for estimating coefficients, for many non-normal error models, it 
+  does not make much sense to describe the quality of the fit in terms of squared-errors. Instead,
+  we use the concept of **deviance**. For one observation, the **observation deviance** is defined as: 
+  `deviance(y.i) = 2 * log(p.saturated(y.i)) - 2 * log(p.fit(y.i))`. Here `p.saturated(y.i)` is
+  the probability of observing `y == y.i` given a fully overfit model with one coefficient 
+  per observation (e.g. categorical term with one level per observation). This term is a 
+  constant that depends only on the observations, and not on the actual model you are interested
+  in. The term `p.fit(y.i)` is the probability of observing `y == y.i` given the actual model you 
+  are working with. This probability will vary depending on which formula you use to fit the
+  model. This allows you to compare the relative quality of two models based on the same 
+  training-set: we just compare the `log(p.fit(y.i))` from each model, since the saturated model
+  is the same in each case. The overall **model deviance** is the sum of the deviances for each
+  individual observation. Maximum likelihood fitting estimates model coefficients which 
+  minimize the overall model deviance.
 
-AIC in terms of likelihoods.
+In the last lesson, we worked with the **Akaike Information Criterion** or **AIC**. This metric 
+  is defined in terms of the log-likelihood of the model given the observations in the training-set:
+  `AIC = 2 * k - 2 * log(likelihood(fit))`, where `k` is the number of model coefficients. We
+  can see that the AIC rewards models with higher likelihoods, but penalizes models with more
+  coefficients. The balance between these two terms determines is used to improve model fit, while
+  providing some resistance to overfitting. The term `2 * k` can be changed to make the penalty
+  more or less stringent. For instance, setting this term to `1 * k` will tend to increase the
+  complexity (and potential for overfitting) of models selected, while setting this term to
+  `3 * k` or `10 * k` will tend to decrease the complexity (and potential for overfitting) of
+  selected models. The R `step()` function has a parameter `k` that can be used to modify the
+  multiplier for the coefficient number penalty term.
 
 [Return to index](#index)
 
@@ -150,42 +272,79 @@ AIC in terms of likelihoods.
 
 ### Logistic regression
 
-intro here; 
+We discussed modeling of binary responses using GLMs above. This type of regression model is called a
+  **logistic regression** model. We saw that the conditional mean we end up modeling is the expected 
+  proportion of observations where `y == 1`. The underlying process being modeled can be viewed as 
+  repeated coin flips or dice rolls. For any single observation, the response variable can take on one 
+  of two possible values, coded as `1` and `0`. These values can be used to represent any binary states 
+  of interest, such as 'heads' and 'tails', or 'success' and 'failure' or 'treated' and 'control', or 
+  'affected' and 'unaffected'. The probability `p` with which any random observation from the population 
+  will have `y == 1` is assumed to be constant and independent of which observations have previously been 
+  sampled. Since there are only two possible values, the probability of drawing an observation where 
+  `y == 0` is `1 - p`.
 
-The underlying process can be viewed as repeated coin flips or dice rolls. The 
-  response variable can take on one of two possible values, coded as `1` and `0`. These values
-  can be used to represent binary states of interest, such as 'heads' and 'tails', or 
-  'success' and 'failure' or 'treated' and 'control', or 'affected' and 'unaffected'. The 
-  probability `p` with which any random observation from the population will have a response
-  of `1` is assumed to be constant and independent of which observations have previously
-  been sampled. Since there are only two possible values, the probability of drawing an
-  observation with a response value of `0` is `1 - p`.
+The GLM error distribution for logistic regression is assumed to be the **binomial distribution**. This 
+  distribution has a single parameter `p`, which is the probability of a random observation (or proportion 
+  of observations) having a response value of `1`. As we've seen, for binomially distributed data, the 
+  variance is expected to be `p * (1 - p)`. The GLM link function is `logit(y) = log(y / (1 - y))`, where 
+  `y` is a conditional mean proportion of `1`s. 
 
-The distribution has a single parameter `p`, which is the probability of a random observation
-  having a response value of `1`. The link function is `logit(y) = log(y / (1 - y))`, where `y` 
-  is a proportion of `1`s. As we've seen, the variance of the data for any value of `p` is 
-  `p * (1 - p)`, so is not constant. 
+We can perform logistic regression by calling the R `glm()` generalized linear modeling function with the
+  argument setting `family='binomial'`. This will automatically invoke the appropriate logit link function 
+  and binomial error model. There are several ways of representing the observations. One way is to provide
+  a matrix with the first column being the number of observations where `y == 1` and the second being the 
+  number of observations where `y == 0`. This form is convenient when you have designed experiments with
+  fixed treatments you are using as predictors. Then there are typically many more observations than there
+  are treatment combinations, so this form will be more compact than having a separate row for each 
+  observation with the corresponding response and predictor values. However, encoding your entire dataset 
+  with this format makes it more difficult to conduct procedures such as cross-validation, which require a 
+  separate record for each observation. In the built-in `esoph` dataset, the data are presented in the 
+  summarized form, where `ncases` indicates the number of observations where `y == 1` and `ncontrols`
+  indicates the number of observations where `y == 0`. 
 
-Can specify the response several ways.
+Below we fit a logistic regression model to the `esoph` data, generate a summary returning p-values on 
+  coefficients, model deviance, and model AIC. We show how to extract the model deviance and AIC. We 
+  conduct a parametric test on the terms of the model using the `anova()` function, which in this case 
+  uses the deviances instead of sums-of-squares to test each term. The p-values returned by `summary()` 
+  and `anova()` are based on assumptions of a sufficiently large samples for CLT-based approximations 
+  to be 'close enough'. We also conduct familiar-looking residual plots of the fit. In this case, 
+  for some plots you will see the **Pearson's residuals** being plotted. These are the residuals divided
+  by the expected residual variance for that observation under the GLM error model being used. If this
+  error model is correct, the absolute value of these residuals should have a mean around one and should
+  appear as a flat trend line in the **Scale-Location** plot, just like the standardized residuals after
+  weighted regression. Just like in the case of ordinary least-squares linear regression, the relationship
+  between the transformed (via the link function) response and the predictors to be linear. This means that
+  the **Residuals vs Fitted** plot should be flat. If it is not, it suggests the need to include other 
+  predictor terms, such as transformations, polynomial terms or interactions. Or it could indicate that the 
+  link function is not correct. Finally, we show how to make predictions using the fit. The added 
+  complication here is that the default predictions are made on the link-transformed scale (not returning
+  the conditional mean proportion/probability `p`, but the logit of `p`), so if we want predictions on 
+  the original scale, we need to specify the `type` to the `predict()` function:
 
 ```
 rm(list=ls())
 
+## esophageal cancer rates vs. various predictors:
 summary(esoph)
 nrow(esoph)
 head(esoph)
-
 par(mfrow=c(1, 1))
 plot(esoph)
 
+## fit a logistic regression model to these data:
 (fit <- glm(cbind(ncases, ncontrols) ~ ., data=esoph, family='binomial'))
-summary(fit1)
-anova(fit1)
-deviance(fit1)
+(smry <- summary(fit))
+smry$aic
+deviance(fit)
+anova(fit, test='Chisq')
 
-p1 <- fitted(fit1)
+par(mfrow=c(2, 3))
+plot(fit, which=1:6)
 
-## on logit scale, not probability scale:
+p1 <- fitted(fit)
+summary(p1)
+
+## default predictions on logit scale, not probability scale:
 p2 <- predict(fit, newdata=esoph) 
 all.equal(p1, p2)
 summary(p2)                       ## outside allowed range of [0, 1]

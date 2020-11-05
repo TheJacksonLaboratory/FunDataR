@@ -6,6 +6,7 @@
 
 ### Index
 
+- [Weighted regression](#weighted-regression)
 - [Generalized linear modeling](#generalized-linear-models)
 - [Logistic regression](#logistic-regression)
 - [Poisson regression](#poisson-regression)
@@ -19,7 +20,7 @@
 
 ---
 
-### Generalized linear models
+### Weighted regression
 
 So far we have been working with linear models where the response variable `y` was 
   modeled as function of individual predictor variables, `x1`, `x2`, `x3`, etc.
@@ -95,6 +96,12 @@ anova(fit1)
 anova(fit2)                       ## p-value adjustments trickles down into tests of terms
 
 ```
+
+[Return to index](#index)
+
+---
+
+### Generalized linear models
 
 **Generalized linear models** (**GLMs**) are a more general way to extend linear models to 
   not only non-constant residual variances, but also a wide variety of possible transformations 

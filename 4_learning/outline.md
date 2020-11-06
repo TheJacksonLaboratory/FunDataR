@@ -3,11 +3,15 @@
 machine learning vs. statistics
   p > n
   very flexible fits
-  least-squares vs nearest neighbors: 
+  least-squares and nearest neighbors: 
     smoothness/inflexibility/bias vs. variance
     can plot test-set + training-set error curves vs. complexity
   the bias-variance decomposition of the MSE
   curse of dimensionality
+
+miscellaneious methods:
+  knn: class
+  naive bayes: e1071
 
 strategy for model development
   explore algorithms w/ very different approaches
@@ -16,21 +20,46 @@ strategy for model development
     what about inclusion during normalization/calibration?
     how to handle calibration curves?
 
-ensemble methods and similar
-  boost
-  bag
-  stack?
-  bump?
-
 model tuning
   grid vs. random
   nested CV
 
+ensemble methods and similar
+  boost: 
+    for classifier AdaBoost.M1: in adabag, fastadaboost
+      step1: wts.obs <- 1/n
+      step2: repeat M times:
+        fit model
+        compute model error err as weighted average of observation errors
+        compute wt adjustment adj <- log((1 - err)/err)
+        wts <- wts * exp(adj * as.numeric(y == f(x))
+      step3: output sum.m(adj.m * f.m(x)) for all M models
+    gradient boosting:
+    for regression gradient boosting in gbm
+  bag: bootstrap-aggregation: in adabag, ipred
+    reduce variance (like if sd(rslts) after cv high)
+    estimate 'out-of-bag' error
+    fit set of otherwise identical models to (30-200) bootstrap samples
+    regression: average results from the set of models 
+    classification: assign to class with most votes; better to average predicted probabilities!
+    loses model interpretability
+  stack?: 
+    improve average performance
+    reduce variance
+    loocv-based mse or deviance used to weight arbitrarily different models
+  bump?: Bootstrap Umbrella of Model Parameters
+    find better models; don't get stuck in local minima
+    fit set of different models to all? the bootstrap samples
+    pick model with lowest error against original data
+    will tend to overfit
+    conserves interpretability
+
 partitioning methods: 
-  trees
-  random forest
-  boosted trees
-  for regression
+  trees: rpart
+  random forest: randomForest
+  bagged trees: ipred
+  boosted trees: 
+  for regression: randomForest
 
 linear methods:
   for classification
@@ -40,9 +69,9 @@ linear methods:
   shrinkage: shrink coefficients towards zero
     L2 penalty: ridge
     L1 penalty: lasso
-  elastic
+  elastic: 
     mixing parameter
-  svm - should it be separate?
+  svm - should it be separate? e1071
     loss function
     kernel
   pls
@@ -52,15 +81,12 @@ linear methods:
     diagonal
     regularized
 
-miscellaneious methods:
-  knn ...
-  naive bayes
-  neural networks
+neural networks
 
 unsupervised methods:
   k-means
     distance metrics
-    k-mediods
+    k-mediods: install.packages("cluster"); cluster::pam()
   hierarchical clustering
     agglomerative
     divisive
@@ -78,6 +104,7 @@ unsupervised methods:
     SNE vs t-SNE
     for clustering
     for dimension reduction preprocessing
+  UMAP: install.packages("umap")
 
 
 #######################################################################

@@ -599,3 +599,138 @@ apply(rslt, 1, mean)
 apply(rslt, 1, sd)
 
 
+###################################################################################################
+## Lesson 5 : Check 1
+
+1) Copy the `Species` and `Petal.Length` columns from `iris` dataset into a new data.frame
+   called `dat`. Introduce a column `dat$Grp` and use it to encode non-virginica species as 'negative' 
+   and 'virginica' as 'positive'. Delete the column `dat$Species`.
+
+rm(list=ls())
+dat <- iris[, c('Species', 'Petal.Length')]
+dat$Grp <- 'negative'
+dat$Grp[dat$Species == 'virginica'] <- 'positive'
+dat$Grp <- factor(dat$Grp)
+dat$Species <- NULL
+
+2) Write a function that will take an integer index to a training set, such as that returned by
+   `caret::createMultiFolds()`, splits `dat` into a training-set and test-set, fits a logistic 
+   regression model to the formula `Grp ~ Petal.Length` using the training-set, then
+   estimates the AUC for the model using the test-set. 
+
+library('pROC')
+
+f.cv <- function(idx.trn) {
+
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+
+  fit <- glm(Grp ~ Petal.Length, data=dat.trn, family='binomial')
+
+  pred.prob <- predict(fit, newdata=dat.tst, type='response')
+  tmp <- pROC::roc(dat.tst$Grp, pred.prob, direction='<')
+
+  as.numeric(tmp$auc)
+}
+
+3) Use your function to conduct a 10-fold cross-validation repeated 7 times. Report the mean
+   and standard deviation of the AUC across the folds.
+
+library('caret')
+set.seed(1)
+idx <- 1:nrow(dat)
+folds <- caret::createMultiFolds(idx, k=10, times=7)
+rslts <- sapply(folds, f.cv)
+mean(rslts)
+sd(rslts)
+
+###################################################################################################
+## Lesson 5 : Check 2
+
+1) Using the `warpbreaks` Poisson regression example as a guide (copy and paste) make a function
+   that will take an integer observation index, use it to split the `warpbreaks` data into a 
+   training-set and test-set, use the `step()` function to explore **Poisson regressions** over the 
+   formula space between the lower model `breaks ~ 1` and the upper model `breaks ~ .^2`, using 
+   the lower model as the starting point. Then make predictions for both the training set and 
+   test-set. Return performance estimates (the MSE) based on the training-set and on the test-set.
+
+rm(list=ls())
+
+f.cv <- function(idx.trn) {
+
+  dat.trn <- warpbreaks[idx.trn, ]
+  dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' to negate
+
+  ## fit upper and lower models; select working model by stepping guided by AIC:
+  fit.lo <- glm(breaks ~ 1, data=dat.trn, family='poisson')
+  fit.up <- glm(breaks ~ .^2, data=dat.trn, family='poisson')
+  fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
+
+  prd.trn <- predict(fit, newdata=dat.trn, type='response')
+  prd.tst <- predict(fit, newdata=dat.tst, type='response')
+  prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
+
+  mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2)
+  mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2)
+  mse.int <- mean((dat.tst$breaks - prd.int) ^ 2)
+
+  c(mse.trn=mse.trn, mse.tst=mse.tst, mse.int=mse.int)
+}
+
+2) Use your function to conduct a 10-fold cross-validation repeated 7 times. Report the mean
+   and standard deviation of the MSE across the folds.
+
+library('caret')
+set.seed(1)
+idx <- 1:nrow(warpbreaks)
+folds <- caret::createMultiFolds(idx, k=10, times=7)
+rslts <- sapply(folds, f.cv)
+apply(rslts, 1, mean)
+apply(rslts, 1, sd)
+
+###################################################################################################
+## Lesson 5 : Check 3
+
+1) Using the `warpbreaks` NB regression example as a guide (copy and paste) make a function
+   that will take an integer observation index, use it to split the `warpbreaks` data into a 
+   training-set and test-set, use the `step()` function to explore **Negative binomial regression** 
+   over the formula space between the lower model `breaks ~ 1` and the upper model `breaks ~ .^2`, 
+   using the lower model as the starting point. Then make predictions for both the training set and 
+   test-set. Return performance estimates (the MSE) based on the training-set and on the test-set.
+
+library('MASS')
+rm(list=ls())
+
+f.cv <- function(idx.trn) {
+
+  dat.trn <- warpbreaks[idx.trn, ]
+  dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' to negate
+
+  ## fit upper and lower models; select working model by stepping guided by AIC:
+  fit.lo <- glm.nb(breaks ~ 1, data=dat.trn)
+  fit.up <- glm.nb(breaks ~ .^2, data=dat.trn)
+  fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
+
+  prd.trn <- predict(fit, newdata=dat.trn, type='response')
+  prd.tst <- predict(fit, newdata=dat.tst, type='response')
+  prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
+
+  mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2)
+  mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2)
+  mse.int <- mean((dat.tst$breaks - prd.int) ^ 2)
+
+  c(mse.trn=mse.trn, mse.tst=mse.tst, mse.int=mse.int)
+}
+
+2) Use your function to conduct a 10-fold cross-validation repeated 7 times. Report the mean
+   and standard deviation of the MSE across the folds.
+
+library('caret')
+set.seed(1)
+idx <- 1:nrow(warpbreaks)
+folds <- caret::createMultiFolds(idx, k=10, times=7)
+rslts <- sapply(folds, f.cv)
+apply(rslts, 1, mean)
+apply(rslts, 1, sd)
+
+

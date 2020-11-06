@@ -406,7 +406,7 @@ plot(dat)
 fit1 <- glm(Grp ~ ., data=dat, family='binomial')
 (smry1 <- summary(fit1))
 smry1$aic
-anova(fit1)
+anova(fit1, test='Chisq')
 deviance(fit1)
 
 fit2 <- glm(Grp ~ Sepal.Width + Petal.Width, data=dat, family='binomial')
@@ -555,7 +555,7 @@ fit.up <- glm(Grp ~ .^2, data=dat, family='binomial')
 fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=0)
 
 (smry <- summary(fit))
-anova(fit)
+anova(fit, test='Chisq')
 deviance(fit)
 smry$aic
 

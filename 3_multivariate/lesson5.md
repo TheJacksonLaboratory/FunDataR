@@ -30,18 +30,27 @@ So far we have been working with linear models where the response variable `y` w
   result in a model where the conditional mean of `y` is linearly related to a sum 
   of these types of predictor terms, and individual random observations from the 
   population are expected to be normally distributed around the line representing 
-  the conditional mean and have a constant variance.
+  the conditional mean and have a constant variance. One practical approach to
+  assessing whether a fitted model conforms to assumptions is to examine the 
+  residuals from the model (difference between observed and predicted response 
+  values) for trends suggesting non-linearity in the relationship, 
+  heteroskedasticity (non-constant residual variance), non-normal distribution, 
+  and influential outliers. If model assumptions are met, we can rely on 
+  parametric p-values and confidence intervals. If not, we may be able to use 
+  non-parametric procedures like permutation for p-values and bootstrapping for
+  confidence intervals. We can assess a model's predictive performance by using 
+  a test-set of observations that were not used for model development.
 
 We can extend this modeling to systems where the variance of `y` has a relatively
   predictable relationship to the conditional mean of `y` by using **weighted 
   linear regression**. Here, instead of tuning the prediction line coefficients to
   minimize the sum-of-squared deviations of observations from the prediction line,
-  we weight each observations contribution to the sum-of-squares by dividing by
-  the expected variance at the observations predicted response value. That is,
-  we estimate a functional relationship between the variance of the residuals
-  and the corresponding fitted `y` value from an unweighted linear regression. 
+  we weight each observation's contribution to the sum-of-squares by dividing by
+  the expected variance at the observation's predicted response value. For instance,
+  we can sometimes estimate a functional relationship between the variance of the 
+  residuals and the corresponding fitted `y` value from an unweighted linear regression. 
   If the residuals vs. fitted plot looks like it spreads out, but does not slope,
-  then the absolute values of the residuals can be modeled as a linear function 
+  then we can try to model the absolute values of the residuals as a linear function 
   of the fitted values: `abs(residuals(fit)) ~ fitted(fit)`. If the residuals 
   vs. fitted plot looks like it has an upwardly curving slope, we can try to 
   model the squared residuals as a function of the fitted values: 
@@ -50,32 +59,41 @@ We can extend this modeling to systems where the variance of `y` has a relativel
   In these cases, a similar approach is followed, but with predictors instead 
   of fitted values being used as explanatory variables.
 
-We then use the predicted variance of observations around the conditional mean 
-  to weight each observation. The weight is the inverse of the expected variance. 
-  That is, observations are weighted by the expected variability of the observation's
+We then use the expected variance of observations around the conditional mean 
+  to weight each observation. The weight is the inverse of the variance. 
+  That is, observations are weighted by the variability of the observation's
   `y` value. Where variance is high, precision is low, so the squared-residuals are 
   down-weighted relative to where variance is expected to be low. This process works 
   in part because the **coefficient estimates from an unweighted regression are unbiased**. 
-  What really changes the most with weighted linear regression is the estimated stardard 
-  errors. This often leads to very different (more correct) results of parametric tests 
-  (e.g. overall F-test, or t-tests on individual coefficients).
+  Therefore you may see a change in the coefficient estimates after weighting observations, 
+  due to the changing influence of the observations. However, the main difference usually 
+  seen with weighted linear regression is a change in the estimated stardard errors. The
+  new standard errors often leads to very different (more correct) results of parametric 
+  tests (e.g. overall F-test, or t-tests on individual coefficients). 
 
 One thing you will notice in the Scale-Location residual plot of the weighted fit, `fit2`
   in the example below, is that the vertical axis is plotting the (square root of the)
   **standardized residuals**. These are the residuals divided by their expected standard 
-  deviations (inferred from the observation weights). Therefore, even if the residuals
-  have a spreading pattern (rising variance with fitted value), the standardized residuals
-  are expected to all be around `1`. So, if our variance estimates are correct, we expect
-  this plot to have a flat trend with a mean near `1`.
+  deviations (inferred from the observation weights). Therefore, the standardized residuals
+  should have an average around `1`. So, if our variance estimates are correct, we expect
+  the Scale-Location plot to have a flat trend with a mean near `1`.
 
 ```
 rm(list=ls())
 
 dat <- warpbreaks
+summary(dat)                      ## note the balance in the experiment
 
+## lower end of model range: intercept only:
 fit.lo <- lm(breaks ~ 1, data=warpbreaks)
+
+## upper end: all variables + 2-way interactions:
 fit.up <- lm(breaks ~ .^2, data=warpbreaks)
+
+## step from fit.lo to the model with lowest AIC:
 fit1 <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=1)
+
+## plot the selected model:
 par(mfrow=c(2, 3))
 plot(fit1, which=1:6)
 
@@ -87,6 +105,8 @@ fit.sd <- lm(res.abs ~ fitted(fit1))
 
 ## have to square fitted values, since they are sd estimates, not variance estimates:
 wts <- 1 / (fitted(fit.sd) ^ 2)
+
+## now fit a model using the weights:
 fit2 <- lm(formula(fit1), data=warpbreaks, weights=wts)
 plot(fit2, which=1:6)             ## note scale-location plot flat now (which is good)
 
@@ -112,10 +132,10 @@ anova(fit2)                       ## p-value adjustments trickles down into test
   response. However, we often cannot find a response transformation that both linearizes
   the relationship between the response and predictor terms, but also results in normally
   distributed homoskedastic residuals. Generalized linear modeling allows for specification 
-  (via a **'link function'**) of an invertible (reversible) transformation for the response 
-  variable as well specification (via a **'variance function'**) of nearly arbitrary error 
-  models. This means we can depart from the assumptions of normal distributions as well as
-  homoskedasticity for residuals. Having separate functions for linearization and for 
+  (via a **link function**) of an invertible (reversible) transformation for the response 
+  variable as well specification (via a **variance function**) of nearly arbitrary error 
+  models. This means we can abandon the assumptions of normal distribution and
+  homoskedasticity of residuals. Having separate functions for linearization and for 
   describing the error model greatly increases the flexibility over the least-squares linear
   model.
 
@@ -148,13 +168,13 @@ lines(x=p, y=y)
 The conditional mean being modeled in this case will be the proportion `p` of observations which are
   expected to have a response `y` value of `1`. Since a proportion is generally restricted to the
   range from `0` to `1`, we need to ensure the conditional mean does not fall outside this range.
-  There are several transformations in common use, but the most common these days is probably the
-  **logit transformation** of `p`, `logit(p) = log(p / (1 - p))` as the response. Here `p` is the 
+  There are several transformations that can be used, but the most common these days is probably the
+  **logit** transformation of `p`, where `logit(p) = log(p / (1 - p))`. Here `p` is the 
   probability of observing `y == 1`, and `1 - p` is the probability of observing `y == 0` (since
   there are only two possibilities). The ratio of these two probabilities is also known as the
   '**odds**' of `y == 1`. So `logit(p)` is the log of the odds, or **log-odds** of `y == 1`. The 
   function `logit(y)` is only defined in closed (does not include endpoints) interval `(0, 1)`. 
-  Although individual observations are always exactly `0` or `1`, but we assume there is always a 
+  Although individual observations are always exactly `0` or `1`, we assume there is always a 
   non-zero probability of getting either class. That is, nowhere is the range of the predictors does 
   the model predict a zero probability of observing a response value of `0`. Even if `y == 1` is 
   modeled as far, far more likely than observing `y == 0`, there will always be some chance of 
@@ -184,10 +204,10 @@ Minimizing the sum-of-squared deviations makes sense as a model fitting criterio
   are very closely related to probabilities. For instance, if our model is a very simple one
   where we use the global mean (an intercept-only linear model) for prediction and assume that
   the data are normally distributed around this mean (as is the assumption for the single-sample
-  t-test, when the CLT cannot be invoked). Given this model, we can estimate the probability of 
-  observing a response value a certain distance from the mean. For instance, if we estimate the 
-  global mean and standard deviation from the sample, we can predict the probability of observing 
-  any particular value:
+  t-test, when sample sizes are too small to justify invoking the CLT). Given this model, we can 
+  estimate the probability of observing a response value a certain distance from the mean. For 
+  instance, if we estimate the global mean and standard deviation from the sample, we can predict 
+  the probability of observing any particular value:
 
 ```
 rm(list=ls())
@@ -205,20 +225,20 @@ plot(x=x1, y=p, type='l', xlab='x', ylab='probability', main='p(x) for N(10.2, 1
 
 ## generate table of probabilities for series of equally spaced values:
 x2 <- seq(from=0, to=20, by=1)
-cbind(x=x2, p=dnorm(x2, mean=m, sd=s))
+cbind(x=x2, p=signif(dnorm(x2, mean=m, sd=s), 3))
 
 ```
 
-We can flip this idea on its head to estimate the mean based on the estimated sd in such 
-  a way as to maximize the probability of the observations given the model. This yields
-  the **maximum likelihood** estimate of the single coefficient (the intercept, which,
-  when the lone predictor, represents the global mean). Since here we have assumed a
-  normally distributed error term, the maximum likelihood coefficient matches the
-  estimates from `mean(x)` and `t.test(x)`. The advantage of this way of estimating 
-  coefficients is that it can be extended to a much broader range of error models than
-  what can be accomplished using least-squares fitting. Furthermore, when the assumptions
-  about the error model are the same (normally distributed), the maximum likelihood and
-  least-squares estimates coincide.
+We can flip this idea on its head to estimate the mean based on the estimated standard
+  deviation in such a way as to maximize the probability of the observations given the 
+  model. This yields the **maximum likelihood** estimate of the single coefficient (the 
+  intercept, which, as the lone predictor, represents the global mean). Since here we 
+  have assumed a normally distributed error term, the maximum likelihood coefficient 
+  matches the estimates from `mean(x)` and `t.test(x)`. The advantage of this way of 
+  estimating coefficients is that it can be extended to a much broader range of error 
+  models than what can be accomplished using least-squares fitting. Furthermore, when 
+  the assumptions about the error model are the same (normally distributed), the maximum 
+  likelihood and least-squares estimates coincide.
 
 ```
 (s <- sd(x))
@@ -251,15 +271,17 @@ When using maximum likelihood for estimating coefficients, for many non-normal e
   we use the concept of **deviance**. For one observation, the **observation deviance** is defined as: 
   `deviance(y.i) = 2 * log(p.saturated(y.i)) - 2 * log(p.fit(y.i))`. Here `p.saturated(y.i)` is
   the probability of observing `y == y.i` given a fully overfit model with one coefficient 
-  per observation (e.g. categorical term with one level per observation). This term is a 
-  constant that depends only on the observations, and not on the actual model you are interested
-  in. The term `p.fit(y.i)` is the probability of observing `y == y.i` given the actual model you 
-  are working with. This probability will vary depending on which formula you use to fit the
-  model. This allows you to compare the relative quality of two models based on the same 
-  training-set: we just compare the `log(p.fit(y.i))` from each model, since the saturated model
-  is the same in each case. The overall **model deviance** is the sum of the deviances for each
-  individual observation. Maximum likelihood fitting estimates model coefficients which 
-  minimize the overall model deviance.
+  per observation (e.g. a categorical term with one level per observation). The term for the 
+  saturated model is a constant that depends only on the observations, and not on the actual 
+  model you are developing. The term `p.fit(y.i)` is the probability of observing `y == y.i` 
+  given the developing model. This probability will vary depending on which model formula 
+  you specify when fitting the model. This allows you to compare the relative quality of two 
+  models based on the same training-set: we just compare the `log(p.fit(y.i))` from each model, 
+  since the saturated model is the same in each case. The overall **model deviance** is the 
+  sum of the deviances for each individual observation. Maximum likelihood fitting estimates 
+  model coefficients which minimize the overall model deviance. Model deviance is similar to
+  R-squared: it gives a sense of how much of the variation in the data the model explains. The
+  larger the model deviance, the less variation has been explained.
 
 In the last lesson, we worked with the **Akaike Information Criterion** or **AIC**. This metric 
   is defined in terms of the log-likelihood of the model given the observations in the training-set:
@@ -279,7 +301,7 @@ In the last lesson, we worked with the **Akaike Information Criterion** or **AIC
 
 ### Logistic regression
 
-We discussed modeling of binary responses using GLMs above. This type of regression model is called a
+We discussed modeling a binary response using GLMs above. This type of regression model is called a
   **logistic regression** model. We saw that the conditional mean we end up modeling is the expected 
   proportion of observations where `y == 1`. The underlying process being modeled can be viewed as 
   repeated coin flips or dice rolls. For any single observation, the response variable can take on one 
@@ -304,29 +326,30 @@ We can perform logistic regression by calling the R `glm()` generalized linear m
   fixed treatments you are using as predictors. Then there are typically many more observations than there
   are treatment combinations, so this form will be more compact than having a separate row for each 
   observation with the corresponding response and predictor values. However, encoding your entire dataset 
-  with this format makes it more difficult to conduct procedures such as cross-validation, which require a 
-  separate record for each observation. In the built-in `esoph` dataset, the data are presented in the 
-  summarized form, where `ncases` indicates the number of observations where `y == 1` and `ncontrols`
+  with this format makes it more difficult to conduct procedures such as cross-validation, which usually
+  want a separate record for each observation. In the built-in `esoph` dataset, the data are presented in 
+  the summarized form, where `ncases` indicates the number of observations where `y == 1` and `ncontrols`
   indicates the number of observations where `y == 0`. 
 
 Below we fit a logistic regression model to the `esoph` data, generate a summary returning p-values on 
   coefficients, model deviance, and model AIC. We show how to extract the model deviance and AIC. We 
   conduct a parametric test on the terms of the model using the `anova()` function, which in this case 
-  uses the deviances instead of sums-of-squares to test each term. The p-values returned by `summary()` 
-  and `anova()` are based on assumptions of a sufficiently large samples for CLT-based approximations 
+  uses deviances instead of sums-of-squares to test each term. The p-values returned by `summary()` 
+  and `anova()` are based on assumptions of sufficiently large samples for CLT-based approximations 
   to be 'close enough'. We also conduct familiar-looking residual plots of the fit. In this case, 
   for some plots you will see the **Pearson's residuals** being plotted. These are the residuals divided
-  by the expected residual variance for that observation under the GLM error model being used. If this
+  by the expected residual variance for that observation under the GLM error model being used. If the
   error model is correct, the absolute value of these residuals should have a mean around one and should
   appear as a flat trend line in the **Scale-Location** plot, just like the standardized residuals after
   weighted regression. Just like in the case of ordinary least-squares linear regression, the relationship
-  between the transformed (via the link function) response and the predictors to be linear. This means that
-  the **Residuals vs Fitted** plot should be flat. If it is not, it suggests the need to include other 
-  predictor terms, such as transformations, polynomial terms or interactions. Or it could indicate that the 
-  link function is not correct. Finally, we show how to make predictions using the fit. The added 
-  complication here is that the default predictions are made on the link-transformed scale (not returning
-  the conditional mean proportion/probability `p`, but the logit of `p`), so if we want predictions on 
-  the original scale, we need to specify the `type` argument to the `predict()` function:
+  between the transformed (via the link function) response and the predictors is supposed to be linear. 
+  This means that the **Residuals vs Fitted** plot should be flat. If it is not, it suggests the need to 
+  include other predictor terms, such as new variables, transformations of existing ones, polynomial terms 
+  or interactions. Or it could indicate that the link function is not correct. Finally, we show how to 
+  make predictions using the fit. The added complication here is that the default predictions are made on 
+  the link-transformed scale (in the case of logistic regression, not returning the conditional mean 
+  proportion/probability `p`, but the logit of `p`), so if we want predictions on the original scale, we 
+  need to specify the `type` argument to the `predict()` function:
 
 ```
 rm(list=ls())
@@ -335,6 +358,7 @@ rm(list=ls())
 summary(esoph)
 nrow(esoph)
 head(esoph)
+tail(esoph)
 par(mfrow=c(1, 1))
 plot(esoph)
 
@@ -363,8 +387,10 @@ summary(p3)                       ## within allowed range of [0, 1]
 
 ```
 
-It is easier to work with if give one row per observation, instead of the
-  more compact format used above:
+Here, we work an example with one row per observation, instead of the
+  more compact format used above. The format with one row per observation is
+  easier to work with when using resampling procedures, such as cross-validation, 
+  permutation, bootstrapping and jackknifing:
 
 ```
 rm(list=ls())
@@ -387,7 +413,7 @@ fit2 <- glm(Grp ~ Sepal.Width + Petal.Width, data=dat, family='binomial')
 (smry2 <- summary(fit2))
 smry2$aic
 
-## for logistic regression models, assume difference in deviance between two nested models chisquare-distributed:
+## for logistic regression: assume deviance difference between nested models is chisquare-distributed:
 anova(fit1, fit2, test='Chisq')
 
 ```
@@ -408,24 +434,25 @@ When trying to estimate predictive performance of the model for novel observatio
   will be 0%. Intermediate test-set compositions will result in percent accuracies somewhere between 0% and 100%. 
   A more comprehensive expression of performance could report separate error rates for cases and controls in the
   test-set. In the example below, we will use a contingency table to express this information. It is often 
-  convenient to express the performance of a prediction model for a binary response as the **area under the 
-  receiver-operator characteristic curve** also known as the **area under the ROC curve** or **AUC**. One common 
-  way of calculating this metric based on a finite sized test-set results in the **empirical AUC** or **eAUC**, 
-  which expresses the probability that the conditional mean predicted for cases is higher than the conditional 
-  mean predicted for controls. This interpretation is approximately correct for the AUC itself. That is, an eAUC of
-  0.5 indicates that cases and controls have the same average conditional mean (cases have a 50% chance of having
-  a higher conditional mean than controls and 50% chance of having a lower conditional mean than controls), which 
-  implies that the model is useless for classification (since no cutoff on the conditional mean will serve to 
-  distinguish the two groups). Conversely, an eAUC of one suggests that the model will always predicts larger 
-  conditional means for cases than controls, which suggests the model potentially will do a very good job of 
-  assigning new observations to the two classes. However, the cutoff of the conditional mean used for assigning 
-  observations may need 'calibrated'. For instance, perhaps all the cases are assigned a conditional mean (`p`, 
-  which can range between `0` and `1`) of `0.2`, while all the controls have a conditional mean of `0.1`. In this 
-  case, the eAUC will be one. However, we would need to know to set the cutoff around `0.15` in order to bin the 
-  data into the correct groups. The contingency table analysis glosses over this by using the 'default' conditional 
-  mean cutoff of `0.5` for assigning new observations to the 'case' group, which might lead the false impression 
-  that this model has no value for binary classification, when in fact, it just needs to be calibrated to turn 
-  into a perfect classifier. 
+  convenient to express the performance of a prediction model for a binary response as a single number, called 
+  the **area under the receiver-operator characteristic curve** also known as the **area under the ROC curve** 
+  or **AUC**. One common way of calculating this metric based on a finite sized test-set results in the 
+  **empirical AUC** or **eAUC**, which expresses the probability that the conditional mean predicted for cases is 
+  higher than the conditional mean predicted for controls. This interpretation is approximately correct for the 
+  AUC itself. That is, an eAUC of 0.5 indicates that cases and controls have the same average conditional mean 
+  (cases have a 50% chance of having a higher conditional mean than controls and 50% chance of having a lower 
+  conditional mean than controls), which implies that the model is useless for classification (since no cutoff on 
+  the conditional mean will serve to reliably distinguish the two groups). Conversely, an eAUC of one suggests 
+  that the model will always predicts larger conditional means for cases than controls, which suggests the model 
+  potentially will do a very good job of assigning new observations to the two classes. However, the cutoff of 
+  the conditional mean used for assigning observations to the case class may need 'calibrated'. For instance, 
+  perhaps all the cases are assigned a conditional mean (`p`, which can range between `0` and `1`) of `0.2`, while 
+  all the controls have a conditional mean of `0.1`. In this case, the eAUC will be one. However, we would need to 
+  know to set the cutoff around `0.15` in order to bin the data into the correct groups. The contingency table 
+  analysis glosses over this by using the 'default' conditional mean cutoff of `0.5` for assigning new 
+  observations to the 'case' group, which might lead the false impression that this model has no value for binary 
+  classification, when in fact, the cutoff just needs to be calibrated in order to turn the model into a perfect 
+  classifier. 
 
 In the example below, we'll use the `iris` dataset to look for models which can be used to classify iris plants
   as either *Iris virginica*, where `Species == 'virginica'` or not *Iris virginica* where `Species != 'virginica'. 
@@ -465,9 +492,20 @@ caret::confusionMatrix(dat.tst$Grp, pred.grp)
 
 ```
 
-Let's turn this into a full-fledged cross-validation:
+Now we show how to turn the code above into a full-fledged cross-validation:
 
 ```
+library('caret')
+library('pROC')
+
+rm(list=ls())
+
+dat <- iris[, c('Species', 'Sepal.Length', 'Sepal.Width', 'Petal.Width')]
+dat$Grp <- 'negative'
+dat$Grp[dat$Species == 'virginica'] <- 'virginica'
+dat$Grp <- factor(dat$Grp)
+dat$Species <- NULL
+
 f.cv <- function(idx.trn) {
 
   dat.trn <- dat[idx.trn, ]
@@ -489,13 +527,26 @@ folds <- caret::createMultiFolds(idx, k=10, times=7)
 rslts <- sapply(folds, f.cv)
 mean(rslts)
 sd(rslts)
+min(rslts)
 
 ```
 
 Now that we have our performance estimate, let's fit the final model to the complete dataset. 
-  Since this model includes more training data than was used during performance estimation,
+  Since this final model is based on more training data than was used during performance estimation,
   we expect the final model to typically perform at least as well as the performance estimate,
-  especially if the dispersion of performance estimates across folds `sd(rslts)` is low:
+  particularly if the dispersion of performance estimates across folds `sd(rslts)` is low. In any
+  case, we expect the performance to be at least as good as the worst performance seen in any of
+  the folds `min(rslts)`.
+
+In the residual plots above, we see what look like systematic trends in the residuals, 
+  suggesting our model is failing to capture some source of structure in the data. In this 
+  contrived example, this is likely related to the negative class actually being composed of 
+  two distinct groups which have systematic differences between them. We are missing predictor
+  terms to capture that systematic difference. Because the residual plots look pretty bad, the 
+  parametric p-values are not to be trusted. However, the performance estimates found by 
+  cross-validation should still be perfectly valid. Furthermore, you could still use permutation 
+  to estimate parameter p-values, and you could use bootstrapping to estimate confidence 
+  intervals for the coefficients.
 
 ```
 fit.lo <- glm(Grp ~ 1, data=dat, family='binomial')
@@ -512,16 +563,6 @@ par(mfrow=c(2, 3))
 plot(fit, which=1:6)
 
 ```
-
-In the residual plots above, we see what look like systematic trends in the residuals, 
-  suggesting our model is failing to capture some source of structure in the data. In this 
-  contrived example, this is likely related to the negative class actually being composed of 
-  two distinct groups which have systematic differences between them. We are missing predictor
-  terms to capture that systematic difference. Because the residual plots look pretty bad, the 
-  parametric p-values are not to be trusted. However, the performance estimates found by 
-  cross-validation should still be perfectly valid. Furthermore, you could still use permutation 
-  to estimate parameter p-values, and you could use bootstrapping to estimate confidence 
-  intervals for the coefficients.
 
 [Return to index](#index)
 
@@ -564,15 +605,16 @@ Another response data type that deserves special consideration is **count data**
   the error model is assumed to be a Poisson distribution.
 
 A Poisson distribution has a single parameter `lambda`, which represents the average rate with 
-  which events occur. The link function is `log(y)`. where `y` is the count response variable. The 
-  conditional mean being modeled is the average number of events per unit time (the conditional 
-  rate). Since this is an average, it can take on non-integer fractional values, even though the 
-  response variable is restricted to integer values. This is similar to the case of logistic 
-  regression, where the response variable can only take on the two values `0` and `1`, but the 
-  conditional mean being modeled is the estimated proportion of `1`s, which can be any real 
-  number between zero and one. The variance of a Poisson distribution with a rate of `lambda` 
-  is also `lambda`, so the residuals are not expected to be homoskedastic, but to follow a 
-  simple predictable monotonic relationship with the conditional mean:
+  which events occur. The conditional mean being modeled in Poisson regression is the average number 
+  of events per unit time (the conditional rate). Since this is an average, it can take on non-integer 
+  fractional values, even though the response variable is restricted to integer values. Similarly, this
+  average rate is always assumed to be non-zero, even though counts for individual observations may
+  be zero. This is similar to the case of logistic regression, where the response variable can only take 
+  on the two values `0` and `1`, but the conditional mean being modeled is the estimated proportion of 
+  `1`s, which can be any real number between zero and one, but not including either zero or one. The 
+  variance of a Poisson distribution with a rate of `lambda` is also `lambda`, so the residuals are not 
+  expected to be homoskedastic, but to follow a simple predictable monotonic relationship with the 
+  conditional mean:
 
 ```
 rm(list=ls())
@@ -595,7 +637,7 @@ Here we show how to fit a Poisson model to some count data, generate parametric 
   on coefficients and terms, retrieve the deviance (equivalent of the sum-of-squares for
   regular linear regression), retrieve the AIC, and make predictions for a test-set. For
   count data, we can use the model mean-squared error (MSE) as a reasonable metric for
-  predictive performance as well as model selection. 
+  predictive performance as well as for model selection.
 
 ```
 library('caret')
@@ -642,6 +684,8 @@ prd.trn <- predict(fit, newdata=dat.trn, type='response')
 prd.tst <- predict(fit, newdata=dat.tst, type='response')
 prd.int <- predict(fit.lo, newdata=dat.tst, type='response')
 
+## the usual metric for numbers, MSEs:
+
 (mse.trn <- mean((dat.trn$breaks - prd.trn) ^ 2))
 (mse.tst <- mean((dat.tst$breaks - prd.tst) ^ 2))
 (mse.int <- mean((dat.tst$breaks - prd.int) ^ 2))
@@ -674,12 +718,12 @@ One common problem you may encounter when modeling count data is **overdispersio
   Overdispersion describes the situation where the dispersion (variance) of the residuals 
   is larger than would be expected based on the Poisson model assumptions. This situation
   may indicate that you are missing explanatory variables or terms from the model, leading 
-  to systematic departures. Sometimes this will be evident in non-linear trends in the 
-  Residuals vs. Fitted plot. If there is no trend in that plot, but the Scale-Location plot 
-  suggests that the average Pearson's residual is substantially greater than one, it still 
-  may suggest missing predictor terms, but it also may suggest that the error model itself 
-  is not right, in which case, the negative binomial model, which allows for greater 
-  dispersion of the residuals, may be a better choice.
+  to systematic departures of observations from predictions. Sometimes this will be evident 
+  in non-linear trends in the Residuals vs. Fitted plot. If there is no trend in that plot, 
+  but the Scale-Location plot suggests that the average Pearson's residual is substantially 
+  greater than one, it still may suggest missing predictor terms, but it also may suggest 
+  that the error model itself is not right, in which case, the negative binomial model, 
+  which allows for greater dispersion of the residuals, may be a better choice.
 
 The **negative binomial**, or **NB** distribution, like the Poisson distribution, describes 
   the distribution of event counts when certain assumptions are made about the process 
@@ -704,8 +748,8 @@ One common reason for overdispersion of count data is that the rate parameter it
   from RNA samples taken from different biological specimens, the counts will vary not
   only because of the random nature of the sampling, but also due to systematic differences
   in the gene transcript levels between the biological specimens. This extra biolgical
-  variation between specimens inflates the variance in the different counts. The scale
-  parameter of the NB distribution allows us to estimate and account for this extra
+  variation between specimens inflates the variance of counts from different specimens. The 
+  scale parameter of the NB distribution allows us to estimate and account for this extra
   variance.
 
 ```
@@ -726,8 +770,8 @@ dat.tst <- warpbreaks[-idx.trn, ]   ## since idx.trn is integer index, use '-' t
 
 ## no longer need 'family' argument:
 
-fit.lo <- glm.nb(breaks ~ 1, data=dat.trn)
-fit.up <- glm.nb(breaks ~ .^2, data=dat.trn)
+fit.lo <- MASS::glm.nb(breaks ~ 1, data=dat.trn)
+fit.up <- MASS::glm.nb(breaks ~ .^2, data=dat.trn)
 fit <- step(fit.lo, scope=list(lower=fit.lo, upper=fit.up), direction='both', trace=1)
 
 fit

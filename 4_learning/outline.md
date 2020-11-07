@@ -109,11 +109,11 @@ unsupervised methods:
 
 #######################################################################
 
-1:
-2:
-3:
-4:
-5:
+1: knn and tuning
+2: linear regression/regularization
+3: partitioning/ensembles
+4: unsupervised/dimension reduction
+5: 
 
 
 #######################################################################

@@ -6,9 +6,9 @@
 
 ### Index
 
-- [Title 1](#title-1)
-- [Title 2](#title-2)
-- [Title 3](#title-3)
+- [Introduction to model parameter tuning](#introduction-to-model-parameter-tuning)
+- [Nested cross-validation](#nested-cross-validation)
+- [Tuning model flexibility](#Tuning model flexibility)
 
 ### Check your understanding
 
@@ -18,7 +18,7 @@
 
 ---
 
-### title 1
+### Introduction to model parameter tuning
 
 Machine learning arose gradually as computers made possible the application of
   statistical techniques to larger and more complex data-sets. p > n. complex
@@ -26,13 +26,12 @@ Machine learning arose gradually as computers made possible the application of
   models and performs parametric hypothesis using data gathered to test the 
   model. ML starts w/ the data and hunts for models that fit the data. The 
   emphasis is on predictive performance, more than p-values leading to better 
-  understanding of underlying
-  processes. ML hypothesis tests and confidence intervals more likely to be
-  resampling based. But Fisher was first to describe the potential of the empirical
-  bootstrap as a supplement or replacement for parametric p-values and confidence
-  intervals. The potential simply could not be realized during his lifetime due
-  to the lack of computers: all the calculations had to be carried out by hand.
-  The same thing is true of generalized linear models: the iterative fitting 
+  understanding of underlying processes. ML hypothesis tests and confidence intervals 
+  more likely to be resampling based. But Fisher was first to describe the potential 
+  of the empirical bootstrap as a supplement or replacement for parametric p-values 
+  and confidence intervals. The potential simply could not be realized during his 
+  lifetime due to the lack of computers: all the calculations had to be carried out 
+  by hand. The same thing is true of generalized linear models: the iterative fitting 
   routines are incredibly tedious to perform by hand. So for a long time, 
   statisticians would avoid these recognized methods in favor of trying to 
   transform response and regressor variables until linearity and normality of
@@ -75,13 +74,13 @@ diff.prop <- NULL
 for(p.i in p.features) {                         ## take each feature number in turn
   dat.p <- NULL                                  ## will become a matrix w/ rows=obs, cols=features
   for(i in 1:p.i) {                              ## for the next feature
-    x.i <- seq(from=0, to=1, length.out=30)      ## generate an evenly spaced series of values
-    x.i <- sample(x.i, length(x.i), replace=F)   ## randomize the order so successive variables uncorrelated
+    x.i <- seq(from=0, to=1, length.out=60)     ## generate an evenly spaced series of values
+    x.i <- sample(x.i, length(x.i), replace=F)   ## randomize the order so successive features are uncorrelated
     dat.p <- cbind(dat.p, x.i)                   ## add the feature to the data-set
   }
   dist.p <- dist(dat.p)                          ## Euclidean distances between each pair of observations
-  ## the maximum pairwise distance, divided by the median pairwise distance:
-  diff.prop.p <- (max(dist.p) - min(dist.p)) / median(dist.p)
+  ## ratio of largest pairwise observation distance to smallest pairwise distance:
+  diff.prop.p <- max(dist.p) / min(dist.p)
   diff.prop <- c(diff.prop, diff.prop.p)         ## save the result
   cat("number of dimensions:", p.i, ", maximum proportional difference:", diff.prop.p, "\n")
   flush.console()
@@ -90,7 +89,7 @@ for(p.i in p.features) {                         ## take each feature number in 
 ## plot results:
 par(mfrow=c(1, 1))
 plot(x=p.features, y=diff.prop, main='Curse of (Euclidean) dimensionality',  
-  xlab='Number of features', ylab='Maximum proportional distance difference', log='x')
+  xlab='Number of features', ylab='Maximum proportional difference', log='x')
 
 ```
 
@@ -312,7 +311,7 @@ legend(
 
 ---
 
-### title 2
+### Nested cross-validation
 
 The model we built in the previous section is likely to overfit the training data to some
   (hopefully small) extent. That is, it is likely modeling some of the noise in those data
@@ -435,12 +434,55 @@ sd(rslt) / sqrt(length(rslt))    ## standard error of performance estimate
 
 ---
 
-### title 3
+### Tuning model flexibility
 
-intro here; what are we tuning? knn-regression helps us develop intuition;
-  knn is a smoother of sorts, with bandwidth defined by k; the more it is
-  smoothed, the more predictions tend to be pulled towards the global mean:
+When we built linear models in the last section of this series (Multivariate statistics),
+  we saw that as we added coefficients to a model, the model became more and more flexible.
+  Adding flexibility to a model is helpful when the underlying relationship is complex,
+  as the added flexibility allows the model to follow the relationship more closely. However,
+  the more flexible a model is allowed to become, the more likely it is to to start capturing
+  all the variability in the training-set, including not only the systematic pattern which 
+  persists across different samples randomly drawn from the same population, but also the 
+  noise which varies from sample to sample. This leads to overestimates of model accuracy when
+  evaluated with the training-set, and a tendency toward much worse model accuracy when 
+  evaluated using an independent test-set. The same thing can happen with k-nearest neighbors
+  methods.
 
+The potential flexibility of the prediction curve produced by knn is regulated by the number of 
+  neighbors in the training set used to predict the response value (class) of a new observation. 
+  One extreme is represented by using 1-nearest neighbor. Here, all the variation in the 
+  data, including the noise, is captured by the model. This is very similar to the extreme of 
+  using one coefficient per observation (the saturated model) during ordinary or generalized
+  linear modeling. This results in a super-flexible prediction line that passes exactly 
+  through each training set observation, but tends to perform relatively poorly on new data. 
+  The other extreme is represented by setting the number of nearest neighbors k to 
+  `nrow(dat.trn)`, that is make k equal to the number of training-set observations. In this 
+  case, the same prediction is made for every new observation, with that prediction being the 
+  most highly represented class in the training-set. This is very similar to the extreme of 
+  using the intercept-only model for linear regression, where the global mean of the response 
+  in the training-set is used as the predicted value for any new observations. So the 
+  intercept-only regression model and knn where `k == nrow(dat.trn)` both correspond to the 
+  assertion that the predictors actually have no relationship to the response. As we mentioned
+  in the univariate statistics portion of this course, when no other guide/predictor is 
+  available, the mean response (which is a constant) is the best predictor (in the sense of
+  minimizing the MSE) for future observations, assuming training and test-sets are both drawn 
+  at random from the same population.
+
+Many of the similarities between the linear modeling and knn approaches are easier to see
+  graphically in the context of **knn-regression**. Knn-regression works much like 
+  knn-classification, except instead of predicting class membership (response is categorical), 
+  we are predicting the value of a continuous response variable, like with ordinary linear
+  regression. In this case, we use the predictor space to estimate distances of a new observation 
+  `obs.i` to each of the training-set observations in `dat.trn`. Then if `k` specifies the number 
+  of nearest neighbors to use, the response values of the `k` closest training-set observations 
+  to `obs.i` are averaged to generate a response value prediction for `obs.i`.
+
+We'll use the built-in `cars` dataset for demonstration. In this dataset, stopping distance 
+  is measured for different speeds. Unfortunately, the data were rounded, so there are 
+  duplicate `speed` values, which makes it harder to demo the properties of knn when k is small. 
+  So we are randomly perturbing the values slightly to mimic reversing the rounding process. This 
+  doesn't really change the results in any substantive way, but makes it easier to show the 
+  differences in the prediction lines for different values of `k`:
 
 ```
 library('caret')
@@ -448,42 +490,55 @@ library('caret')
 rm(list=ls())
 set.seed(1)
 
+## prep the data ('undo' the rounding):
 dat <- cars
+length(dat$speed)                 ## how many values?
+length(unique(dat$speed))         ## some duplicates
 dat$speed <- dat$speed + rnorm(nrow(dat), mean=0, sd=1/2)
+length(unique(dat$speed))         ## all unique now
+summary(dat)
 plot(dat)
 
+## split data into training-set and test-set:
 set.seed(1)
 nrow(dat)
 idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=12)
-
 idx.trn <- folds[[1]]
 dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
 
+## knn regression models for different values of k:
 fit.1 <- caret::knnreg(dist ~ speed, data=dat.trn, k=1)
 fit.4 <- caret::knnreg(dist ~ speed, data=dat.trn, k=4)
 fit.16 <- caret::knnreg(dist ~ speed, data=dat.trn, k=16)
 fit.all <- caret::knnreg(dist ~ speed, data=dat.trn, k=nrow(dat.trn))
 
+## evenly spaced 'speed' values for plotting prediction lines:
 speed <- seq(from=min(dat$speed), to=max(dat$speed), length.out=10000)
 newdata <- data.frame(speed=speed)
 
+## prediction lines for different values of 'k':
 prd.1 <- predict(fit.1, newdata=newdata)
 prd.4 <- predict(fit.4, newdata=newdata)
 prd.16 <- predict(fit.16, newdata=newdata)
 prd.all <- predict(fit.all, newdata=newdata)
 
+## range of y-values (for plotting):
 ylim <- range(c(prd.1, prd.4, prd.16, prd.all, dat$dist))
+
+## plot observations:
 plot(x=speed, y=prd.1, ylab='dist', ylim=ylim, type='n')
 points(x=dat.trn$speed, y=dat.trn$dist, pch='x', col='orangered', cex=0.5)
 points(x=dat.tst$speed, y=dat.tst$dist, pch='o', col='magenta', cex=0.5)
 
+## add prediction lines:
 lines(x=speed, y=prd.1, lty=2, col='cyan')
 lines(x=speed, y=prd.4, lty=3, col='magenta')
 lines(x=speed, y=prd.16, lty=2, col='orangered')
 lines(x=speed, y=prd.all, lty=3, col='cyan')
 
+## add a legend to the plot:
 legend(
   'topleft',
   legend=c('k=1', 'k=4', 'k=16', 'k=all'),
@@ -491,16 +546,19 @@ legend(
   col=c('cyan', 'magenta', 'orangered', 'cyan')
 )
 
+## make point predictions for held-out test-set:
 prd.1 <- predict(fit.1, newdata=dat.tst)
 prd.4 <- predict(fit.4, newdata=dat.tst)
 prd.16 <- predict(fit.16, newdata=dat.tst)
 prd.all <- predict(fit.all, newdata=dat.tst)
 
+## errors for test-set:
 res.1 <- dat.tst$dist - prd.1
 res.4 <- dat.tst$dist - prd.4
 res.16 <- dat.tst$dist - prd.16
 res.all <- dat.tst$dist - prd.all
 
+## mean-squared errors for different values of 'k':
 mean(res.1^2)
 mean(res.4^2)
 mean(res.16^2)
@@ -508,49 +566,56 @@ mean(res.all^2)
 
 ```
 
-CV it:
+We can copy most of the pattern from the end of the second section (nested cross-validation)
+  of this lesson and adapt the knn-classification code to select and evaluate k for knn-regression 
+  using nested cross-validation:
 
 ```
 library('caret')
 
 rm(list=ls())
 
+## prep the data ('undo' the rounding):
 set.seed(1)
 dat <- cars
 dat$speed <- dat$speed + rnorm(nrow(dat), mean=0, sd=1/2)
 
+## try specified value for k using fold defined by idx.trn, return MSE:
 f.test.k <- function(k, idx.trn) {
-
   dat.trn <- dat[idx.trn, ]
   dat.tst <- dat[-idx.trn, ]
-
   fit <- caret::knnreg(dist ~ speed, data=dat.trn, k=k)
   prd <- predict(fit, newdata=dat.tst)
   res <- dat.tst$dist - prd
-
   mean(res^2)
 }
 
+## try different values for k specified by ks using fold defined by idx.trn, return MSEs:
 f.cv <- function(idx.trn, ks) {
   rslt <- sapply(ks, f.test.k, idx.trn=idx.trn)
   names(rslt) <- ks
   rslt
 }
 
+## generate one fold:
 set.seed(1)
 nrow(dat)
 idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=12)
 idx.trn <- folds[[1]]
 
+## try every k from 1 to 25 on a single fold:
 ks <- 1:25
 rslt <- f.cv(idx.trn, ks)
 rslt
 
+## do the full cross-validation (5-fold, repeated 12 times):
 rslt <- sapply(folds, f.cv, ks)
 m <- apply(rslt, 1, mean)
 se <- apply(rslt, 1, sd) / ncol(rslt)
 mx <- apply(rslt, 1, max)
+
+## use 1-se rule-of-thumb to pick 'k':
 idx.min <- which.min(m)
 rslt <- data.frame(k=ks, mean=m, se=se, max=mx)
 rslt[idx.min, ]
@@ -559,87 +624,10 @@ i.good <- rslt[, 'mean'] <= cutoff
 rslt[i.good, ]
 max(rslt[i.good, 'k'])
 
+## plot results:
 par(mfrow=c(1, 1))
-plot(mean ~ ks, data=rslt, xlab='number of nearest neighbors', ylab='MSE')
+plot(mean ~ ks, data=rslt, xlab='Number of nearest neighbors', ylab='MSE')
 abline(h=cutoff, lty=2, col='orangered')
-
-```
-
-```
-library('caret')
-library('MASS')
-
-rm(list=ls())
-
-dat <- c(WWWusage)
-dat <- data.frame(minute=1:length(dat), users=dat)
-plot(dat)
-nrow(dat)
-
-fit1 <- caret::knnreg(users ~ minute, data=dat, k=1)
-fit10 <- caret::knnreg(users ~ minute, data=dat, k=10)
-fit25 <- caret::knnreg(users ~ minute, data=dat, k=25)
-fit100 <- caret::knnreg(users ~ minute, data=dat, k=100)
-
-minute <- seq(from=min(dat$minute), to=max(dat$minute), length.out=10000)
-newdata <- data.frame(minute=minute)
-
-
-prd10 <- predict(fit10, newdata=newdata)
-prd25 <- predict(fit25, newdata=newdata)
-prd100 <- predict(fit100, newdata=newdata)
-
-ylim <- range(c(prd1, prd10, prd25, prd100, dat$users))
-plot(x=minute, y=prd1, ylab='users', ylim=ylim, type='n')
-points(x=dat$minute, y=dat$users)
-lines(x=minute, y=prd1, lty=2, col='cyan')
-lines(x=minute, y=prd10, lty=3, col='magenta')
-lines(x=minute, y=prd25, lty=2, col='orangered')
-lines(x=minute, y=prd100, lty=3, col='cyan')
-
-legend(
-  'topleft',
-  legend=c('k=1', 'k=10', 'k=25', 'k=100'),
-  lty=c(2, 3, 2, 3),
-  col=c('cyan', 'magenta', 'orangered', 'cyan')
-) 
-
-```
-
-```
-library('caret')
-
-rm(list=ls())
-
-dat <- c(WWWusage)
-dat <- data.frame(minute=1:length(dat), users=dat)
-
-f.try.k <- function(k, idx.trn) {
-
-  dat.trn <- dat[idx.trn, ]
-  dat.tst <- dat[-idx.trn, ]
-
-  fit <- caret::knnreg(users ~ minute, data=dat.trn, k=k)
-  prd.tst <- predict(fit, newdata=dat.tst)
-  res <- prd.tst - dat.tst$users
-
-  c(k=k, bias=mean(res), s2=var(res), mse=mean(res^2))
-}
-
-f.cv <- function(idx.trn) {
-  ks <- c(1, 2, 4, 8, 16, 32, 64)
-  rslt <- sapply(ks, f.try.k, idx.trn=idx.trn)
-  colnames(rslt) <- ks
-  rslt
-}
-
-set.seed(1)
-idx <- 1:nrow(iris)
-folds <- caret::createMultiFolds(idx, k=7, times=3)
-idx.trn <- folds[[1]]
-f.cv(idx.trn)
-
-rslt <- sapply(folds, f.cv)
 
 ```
 

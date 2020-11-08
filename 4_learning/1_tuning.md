@@ -20,13 +20,131 @@
 
 ### title 1
 
-intro here; 
+Machine learning arose gradually as computers made possible the application of
+  statistical techniques to larger and more complex data-sets. p > n. complex
+  transformations of response required. Statistics tends to start with theoretical
+  models and performs parametric hypothesis using data gathered to test the 
+  model. ML starts w/ the data and hunts for models that fit the data. The 
+  emphasis is on predictive performance, more than p-values leading to better 
+  understanding of underlying
+  processes. ML hypothesis tests and confidence intervals more likely to be
+  resampling based. But Fisher was first to describe the potential of the empirical
+  bootstrap as a supplement or replacement for parametric p-values and confidence
+  intervals. The potential simply could not be realized during his lifetime due
+  to the lack of computers: all the calculations had to be carried out by hand.
+  The same thing is true of generalized linear models: the iterative fitting 
+  routines are incredibly tedious to perform by hand. So for a long time, 
+  statisticians would avoid these recognized methods in favor of trying to 
+  transform response and regressor variables until linearity and normality of
+  residuals were hopefully achieved. The advent of computers is what made GLMs 
+  accessible to the mainstream of the statistical community. 
+  ML covers range of techniques, some of which have high
+  interpretability, while others trade interpretability away in exchange for
+  predictive performance. 
 
-kappa: (observed.accuracy - expected.accuracy) / (1 - expected.accuracy)
-  expected.accuracy: depends on composition of training set ...
-  interpretation
-  can be used to compare classifiers and parameterizations
+A good example of a machine-learning algorithm with no obvious counterpart in 
+  traditional statistics is the **k-nearest neighbor classification** or **knn** 
+  method. In order to predict the class of a new observation `obs.i`, based on a 
+  training sample observations `obs.trn`, distances (by default, **Euclidean 
+  distance**) in the predictor space (treating each predictor variable as a 
+  'dimension') are computed between `obs.i` and each of the observations in `obs.trn`. 
+  Assume `obs.j` is an observation in `obs.trn`. Let `x1` and `x2` be
+  two predictors. Then `d1` and `d2` are the distances between `obs.i` and `obs.trn` 
+  along the corresponding variable axis. That is, `d1 <- x1.i - x1.j`, where `x1.i` 
+  is the `x1` value for `obs.i`. Similarly, `d2 <- x2.i - x2.j`. Then the distance 
+  `d.ij` between `obs.i` and `obs.j` is `sqrt(d1^2 + d2^2)`. That is, 
+  `d.ij^2 = d1^2 + d2^2`, which is an expression of the **Pythagorean theorem** about
+  right angles. This distance metric can be extended to `p` predictors: 
+  `d.ij = sqrt(d1^2 + d2^2 + d3^2 + ... + dp^2)`. Because the Pythagorean theorem
+  applies to right angles, this distance metric assumes that the predictors are 
+  **orthogonal** (at right angles) to one another, which implies that there is no
+  correlation between predictors. Another concern about using the Euclidean distance
+  is that the distances between different pairs of observations become more and
+  more similar as the number of dimensions goes up. This is an unintuitive result,
+  because we are used to perceiving and thinking about things in 2, 3, or at most
+  4 dimensions. We can see this phenomenon in action in the following synthetic
+  example:
 
+```
+rm(list=ls())
+set.seed(1)
+
+diff.prop <- NULL
+(p.features <- 2^(1:14))                         ## vector of feature numbers to try
+
+for(p.i in p.features) {                         ## take each feature number in turn
+  dat.p <- NULL                                  ## will become a matrix w/ rows=obs, cols=features
+  for(i in 1:p.i) {                              ## for the next feature
+    x.i <- seq(from=0, to=1, length.out=30)      ## generate an evenly spaced series of values
+    x.i <- sample(x.i, length(x.i), replace=F)   ## randomize the order so successive variables uncorrelated
+    dat.p <- cbind(dat.p, x.i)                   ## add the feature to the data-set
+  }
+  dist.p <- dist(dat.p)                          ## Euclidean distances between each pair of observations
+  ## the maximum pairwise distance, divided by the median pairwise distance:
+  diff.prop.p <- (max(dist.p) - min(dist.p)) / median(dist.p)
+  diff.prop <- c(diff.prop, diff.prop.p)         ## save the result
+  cat("number of dimensions:", p.i, ", maximum proportional difference:", diff.prop.p, "\n")
+  flush.console()
+}
+
+## plot results:
+par(mfrow=c(1, 1))
+plot(x=p.features, y=diff.prop, main='Curse of (Euclidean) dimensionality',  
+  xlab='Number of features', ylab='Maximum proportional distance difference', log='x')
+
+```
+
+Concerns about feature correlations and large feature number can sometimes be addressed by **dimensional
+  reduction** techniques, such as PCA, which we will describe in a later lesson. In any case, knn proceeds
+  to identify the `k` observations in `obs.trn` which are closest (have the smallest distance) to
+  `obs.i`. Then `obs.i` is assigned to the class that occurs most frequently among the `k` closest
+  observations (**nearest neighbors** of `obs.i`) in `obs.trn`. If there is a tie, it can be broken using 
+  various heuristics (like assigning randomly among the tied classes, or assigning to the class of the 
+  single closest observation when there is a tie). In the two-class case, it is best to only try values 
+  of `k` which are odd in order to avoid this potentially ambiguous situation.
+
+Another consideration when using knn is that it can strongly be affected by the scales of the 
+  features. That is, if the feature `x1` varies between `0` and `1000`, while `x2` only varies
+  between `0` and `10`, then any distances computed in the space defined by these two features
+  `d.ij <- sqrt((x1.i - x1.j)^2 - (x2.i - x2.j)^2)` will tend to be much more strongly influenced 
+  by the `x1` value than by the `x2` value. Therefore, it is a good idea to normalize the variables 
+  (divide them by the standard deviation in the training set) before using them for computing 
+  distances, unless the features are expressed on the same scale to begin with. Normalization will 
+  make any variable have a standard deviation of one, so the variable range has a comparable 
+  potential influence as any other normalized variable. Most common forms of dimension reduction
+  take the input features and return a potentially much smaller set of new uncorrelated, normalized 
+  features.
+
+Distance-based approaches like knn are also adversely affected by **extraneous features**, because they
+  make the distance estimates vary in a way that has no relation to the response variable. Therefore, 
+  they introduce noise, which tends to reduce predictive performance. Therefore, it is often a good idea 
+  to do some form of **feature selection** prior to employing knn. For instance, feature selection for 
+  numeric features can be as simple as conducting an ANOVA omnibus F-test on a model with the feature as 
+  response and class as a categorical predictor. We can do this separately for each feature, adjust the 
+  p-values for multiple testing, then only use the features with significant F-tests as input into the 
+  knn process.
+
+The training-set used for knn should resemble the composition of the the population you are making 
+  predictions for. If the composition of the training-set differs from the population, the knn 
+  class assignments will tend to be biased toward the over-represented classes in the training-set.
+
+Variations of the knn algorithm are available in add-on packages allow arbitrary (non-Euclidean) distance 
+  metrics. Several packages also provide for distance weighting of observations, where the influence of the 
+  k nearest neighbors on the final decision are weighted by the inverse of the distances involved. Some
+  packages also proved for automated selection of k by cross-validation (we'll 'manually' code this
+  process during this lesson), as well as other resampling approaches for evaluation and improving
+  classifier performance.
+
+In the example below, we will use **Cohen's Kappa** measure to express the accuracy of classification. Like
+  raw percent accuracy, kappa ranges between 0 and 1, with 1 being 'perfect' performance. Unlike raw accuracy, 
+  kappa expresses performance in a way that reflects the composition of the data, so that it automatically
+  compensates for differences in composition as well as the effects of chance on predictive accuracy.
+  Kappa can be used for comparing different parameterizations of the same type of classifier, or for
+  comparing completely different classifiers, as long as the variants are developed using the same training-sets
+  and evaluated with the same test-sets. Nevertheless, kappa values are not nearly as easy to interpret as the
+  AUC and, unlike the AUC, kappa results are sensitive to the tuning of the cutoff point of the classifier
+  score used for class assignments. 
+  
 ```
 library('caret')
 library('class')
@@ -34,12 +152,14 @@ library('class')
 rm(list=ls())
 set.seed(1)
 
+## the data:
 dat <- iris
 plot(dat)
+
+## split data into training-set and test-set:
 nrow(dat)
 idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=12)
-
 idx.trn <- folds[[1]]
 dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
@@ -47,9 +167,11 @@ dat.tst <- dat[-idx.trn, ]
 class(dat.trn)
 summary(dat.trn)
 
+## predictions for training set and test-set; 7 nearest neighbors:
 prd.trn <- class::knn(train=dat.trn[, -5], test=dat.trn[, -5], cl=dat.trn[, 5], k=7)
 prd.tst <- class::knn(train=dat.trn[, -5], test=dat.tst[, -5], cl=dat.trn[, 5], k=7)
 
+## whole confusion matrix-related output:
 (cnf.trn <- caret::confusionMatrix(dat.trn[, 5], prd.trn))
 (cnf.tst <- caret::confusionMatrix(dat.tst[, 5], prd.tst))
 
@@ -59,7 +181,10 @@ cnf.tst$overall[['Kappa']]
 
 ```
 
-Turn into a cross-validation:
+We can take the code above and functionalize it so we can apply the resulting 
+  function to each fold, where each fold is an integer index of training-set
+  observations for that iteration, and get back Kappa for that fold. Here, we
+  will run the code on a single fold, representing a held-out test-set:
 
 ```
 library('caret')
@@ -85,7 +210,10 @@ sd(rslt)
 
 ```
 
-Try a series of ks for knn:
+We wrote the function `f.cv()` above in a way that it would accept the number of neighbors
+  to use for classification as the parameter `k`. We'll exploit that here to see what the
+  hold-out test-set based estimate of performance (kappa) is when using different numbers of 
+  neighbors:
 
 ```
 set.seed(1)
@@ -93,18 +221,30 @@ idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=3)
 idx.trn <- folds[[1]]
 
-ks <- c(1, 3, 5, 10, 15, 20, 30, 50, 75)
-rslt <- rep(as.numeric(NA), length(ks))
+ks <- c(1, 3, 5, 11, 15, 21, 31, 51, 75)    ## values of 'k' to try for knn
+rslt <- rep(as.numeric(NA), length(ks))     ## pre-extend so can hold 1 kappa per k
 
-for(i in 1:length(ks)) {
+for(i in 1:length(ks)) {                    ## iterate over ks, saving kappa for each k
   rslt[i] <- f.cv(idx.trn, dat=dat, k=ks[i])
 }
-names(rslt) <- ks
+names(rslt) <- ks                           ## label the results with the corresponding k
 signif(rslt, 3)
+
+par(mfrow=c(1, 1))
+plot(x=ks, y=rslt, xlab='number of nearest neighbors', ylab='kappa')
 
 ```
 
-Turn into a function, and cross-validate; the 1-se rule-of-thumb:
+We can further functionalize the code above to produce another function that tries different
+  values of k within each fold. Comparing results within a fold ensures that variations in
+  training-sets and test-sets do not introduce noise into the process. Keeping the comparisons
+  within folds increases the precision of comparisons by eliminating that extra potential source
+  of variation. After scoring all the values of `k` (number of nearest neighbors in the training
+  set) to use for classification, we may be tempted to just choose the best scoring value. However,
+  this often leads to some degree of overfitting. A popular rule of thumb for helping to attenuate
+  potential overfitting is to choose the simplest model (least flexible; for knn, this means the 
+  largest value of `k`) within one standard error of the 'best' result. This rule is often referred
+  to as the **1-SE** rule.
 
 ```
 f.cv.cmp <- function(idx.trn, dat, ks) {
@@ -120,7 +260,7 @@ set.seed(1)
 idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=7, times=3)
 
-ks <- c(1, 3, 5, 10, 15, 20, 30, 50, 75)
+ks <- c(1, 3, 5, 11, 15, 21, 31, 51, 75)
 (rslt <- sapply(folds, f.cv.cmp, dat=dat, ks=ks))
 
 m <- apply(rslt, 1, mean)
@@ -132,11 +272,31 @@ se <- s / sqrt(nrow(rslt))
 (idx.max <- which.max(m))
 rslt[idx.max, ]
 
-## apply 1se rule to attenuate potential overfitting:
+## apply 1-se rule to attenuate potential overfitting:
 (cutoff <- m[idx.max] - se[idx.max])
 i.good <- m >= cutoff
 rslt[i.good, ]
 max(ks[i.good])
+i.pick <- ks == max(ks[i.good])
+rslt[i.pick, ]
+
+## plot results:
+par(mfrow=c(1, 1))
+plot(kap.mean ~ k, data=rslt, type='n', 
+  xlab='Number of nearest neighbors', ylab='Kappa')
+points(x=ks[idx.max], y=m[idx.max], pch='x', col='magenta')
+points(x=ks[i.pick], y=m[i.pick], pch='+', col='orangered')
+i.other <- !i.pick
+i.other[idx.max] <- F
+points(x=ks[i.other], y=m[i.other], pch='o', col='cyan')
+abline(h=cutoff, lty=2, col='orangered')
+legend(
+  'bottomleft',
+  legend=c('max kappa', 'picked', 'other points', 'cutoff'),
+  pch=c('x', '+', 'o', NA),
+  lty=c(NA, NA, NA, 2),
+  col=c('magenta', 'orangered', 'cyan', 'orangered')
+)
 
 ```
 
@@ -154,7 +314,13 @@ max(ks[i.good])
 
 ### title 2
 
-intro here
+The model we built in the previous section is likely to overfit the training data to some
+  (hopefully small) extent. That is, it is likely modeling some of the noise in those data
+  that are completely unrelated to class membership. In order to evaluate the final model,
+  we should once again rely on an independent test-set that was not used in any way for 
+  model development. We can facilitate this process by functionalizing more of the code
+  from the end of the previous section. To make the process easier to follow, we will
+  reiterate all the required code:
 
 ```
 library('caret')
@@ -162,6 +328,8 @@ library('class')
 
 rm(list=ls())
 
+## inner cross-validation function; used to evaluate kappa for k neighbors using 
+##   one fold defined by idx.trn:
 f.cv <- function(idx.trn, dat, k) {
   dat.trn <- dat[idx.trn, ]
   dat.tst <- dat[-idx.trn, ]
@@ -170,6 +338,8 @@ f.cv <- function(idx.trn, dat, k) {
   kap.tst
 }
 
+## calls the f.cv() inner cross-validation function for different numbers of neighbors 
+##   specified in ks and fold specified by idx.trn:
 f.cv.cmp <- function(idx.trn, dat, ks) {
   rslt <- rep(as.numeric(NA), length(ks))
   for(i in 1:length(ks)) {
@@ -179,6 +349,8 @@ f.cv.cmp <- function(idx.trn, dat, ks) {
   rslt
 }
 
+## uses the inner cross-validation to pick the value for the number of neighbors 
+##   from the selection specified in ks:
 f.pick.k <- function(dat, ks) {
 
   ## folds for inner cross-validation (used for tuning parameter)
@@ -199,25 +371,41 @@ f.pick.k <- function(dat, ks) {
   max(ks[i.good])
 }
 
+## set up one fold for outer cross-validation:
 set.seed(1)
 idx <- 1:nrow(iris)
 folds <- caret::createMultiFolds(idx, k=7, times=3)
-idx.trn <- folds[[1]]
+idx.trn.out <- folds[[1]]
 
-dat.trn <- iris[idx.trn, ]
-dat.tst <- iris[-idx.trn, ]
-nrow(dat.tst)
-nrow(dat.trn)
+## split whole data-set into training-set and test-set:
+dat.trn.out <- iris[idx.trn.out, ]
+dat.tst.out <- iris[-idx.trn.out, ]
+nrow(dat.tst.out)
+nrow(dat.trn.out)
 
-ks <- c(1, 3, 5, 10, 15, 20, 30, 50, 75, 100)
-(k.pick <- f.pick.k(dat=dat.trn, ks=ks))
-prd.tst <- class::knn(train=dat.trn[, -5], test=dat.tst[, -5], cl=dat.trn[, 5], k=k.pick)
-caret::confusionMatrix(dat.tst[, 5], prd.tst)
-caret::confusionMatrix(dat.tst[, 5], prd.tst)$overall[['Kappa']]
+## use inner cross-validation to pick how many nearest neighbors to use k:
+ks <- c(1, 3, 5, 11, 15, 21, 31, 51, 75, 101)
+(k.pick <- f.pick.k(dat=dat.trn.out, ks=ks))
+
+## make predictions for the test-set using the picked value of k:
+prd.tst <- class::knn(train=dat.trn.out[, -5], test=dat.tst.out[, -5], cl=dat.trn.out[, 5], k=k.pick)
+
+## evaluate the predictions on the test-set:
+caret::confusionMatrix(dat.tst.out[, 5], prd.tst)
+caret::confusionMatrix(dat.tst.out[, 5], prd.tst)$overall[['Kappa']]
 
 ```
 
-Once again, but this time, nested cross-validation:
+Note that the `dat.tst.out` observations in the last example are not passed to the inner 
+  cross-validation function `f.pick.k()`. So the `dat.tst` as well as the `dat.trn` that appears 
+  in the inner cross-validation function `f.cv()` are split out of `dat.trn.out`, and never
+  include any observations in `dat.tst.out`. So `dat.tst.out` is an independent test-set that
+  we can use to evaluate the final model coming out of the process of tuning the parameter `k`,
+  which specifies the number of nearest neighbors in the training set to use for classifying 
+  new observations.
+
+With a bit more work, we can turn the code above into a function we can use to do the full-fledged
+  outer cross-validation:
 
 ```
 f.cv.outer <- function(idx.trn) {
@@ -233,9 +421,9 @@ set.seed(1)
 idx <- 1:nrow(iris)
 folds <- caret::createMultiFolds(idx, k=7, times=3)
 rslt <- sapply(folds, f.cv.outer)
-mean(rslt)
-sd(rslt)
-sd(rslt) / sqrt(length(rslt))
+mean(rslt)                       ## the final performance estimate
+sd(rslt)                         ## standard deviation of performance results
+sd(rslt) / sqrt(length(rslt))    ## standard error of performance estimate
 
 ```
 

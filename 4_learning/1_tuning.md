@@ -8,7 +8,7 @@
 
 - [Introduction to model parameter tuning](#introduction-to-model-parameter-tuning)
 - [Nested cross-validation](#nested-cross-validation)
-- [Tuning model flexibility](#tuning-model-flexibility)
+- [Tuning and model flexibility](#tuning-and-model-flexibility)
 
 ### Check your understanding
 
@@ -20,7 +20,7 @@
 ### Introduction to model parameter tuning
 
 One major focus of traditional statistics has been providing quantitative expressions
-  of uncertainty about hypotheses. That is, it usually either tested a null hypothesis
+  of uncertainty about hypotheses. That is, statisticians usually tested a null hypothesis
   of interest by returning a p-value, or provided estimates of population parameters 
   in the form of confidence intervals. This activity was largely performed in the 
   service of scientists or engineers who were building mechanistic models about the 
@@ -29,76 +29,73 @@ One major focus of traditional statistics has been providing quantitative expres
   between the explanatory variables and the response variable. Since these hypotheses 
   are generally tested with finite sized samples from the population of interest, there
   is always some uncertainty in the answer. That is, for any finite sized random sample, 
-  it is always possible that we picked a very extreme and misleading sample by chance. 
-  Statistics provides a disciplined quantitative way of describing the uncertainties 
-  introduced during inferrence about population parameters based on finite random samples. 
-  It recognizes that when we reject the null hypothesis at a p-value cutoff of 0.05, we
-  are implicitly accepting a one in twenty chance of encountering a false positive result. 
-  Similarly, a 95% confidence interval amounts to an admission that one in twenty replicate 
-  experiments would generate 95% confidence intervals that do not include the true 
-  population value.
+  it is always possible that we picked a very atypical sample by chance. Statistics 
+  provides a disciplined quantitative way of describing the uncertainties introduced during 
+  inferrence about population parameters based on finite random samples. It recognizes that 
+  when we reject the null hypothesis at a p-value cutoff of 0.05, we are implicitly 
+  accepting a one in twenty chance of encountering a false positive result. Similarly, a 
+  95% confidence interval amounts to an admission that one in twenty replicate experiments 
+  would generate 95% confidence intervals that do not include the true population value.
 
 The other major focus of traditional statistics has been on predictive modeling. When 
-  a mechanistic model is specified, it can not only be used to explain our previous
+  a mechanistic model is specified, it can be used not only to explain our previous
   observations, but also to make predictions about future observations. Using statistical
-  modeling techniques, we can not only make predictions, but also quantitatively, 
-  objectively, and reproducibly express the degree of uncertainty in the predictions 
-  (e.g. with prediction intervals). This approach can be extended from prediction using
-  theoretically driven mechanistic models to predictive modeling using empirically (rather 
-  than theoretically) developed models. Empirical modeling focuses on empirical 
-  associations between variables that can be identified from the data without speculating 
-  about or specifying the nature of any underlying causal relationships. The balance of 
-  hypothesis testing and prediction in traditional statistics very much depends on the 
-  subject being studied, but in general, it is probably fair to say that most traditional 
-  statistical work has focused on evaluating mechanistic models and estimating populaton 
-  parameters more than predictive modeling.
+  modeling techniques, we make predictions as well as quantitatively, objectively, and 
+  reproducibly express the degree of uncertainty in the predictions (e.g. with prediction 
+  intervals). This approach can be extended from prediction using theoretically driven 
+  mechanistic models to predictive modeling using empirically (rather than theoretically) 
+  developed models. Empirical modeling focuses on empirical associations between variables 
+  that can be identified from the data without speculating about or specifying the nature 
+  of any underlying causal relationships. The balance between hypothesis 
+  testing/parameter estimation and prediction in traditional statistics very much depends 
+  on the subject matter being studied, but in general, it is probably fair to say that 
+  most traditional statistical work has focused on evaluating mechanistic models and 
+  estimating populaton parameters more than predictive modeling.
 
 Computers have gradually come to have a major effect on statistical practice. Over time,
-  traditional statistical computation have been ported to computers. In addition, the
-  general availability of computers changed the approaches statisticians were using.
-  For instance, fitting generalized linear models (GLMs) to a training-set requires
-  several iterations of carying out very tedious calculations. When computers were not
+  traditionally manual statistical computations have been ported to computers. In 
+  addition, the general availability of computers changed the approaches statisticians 
+  were using. For instance, fitting generalized linear models (GLMs) to a training-set 
+  requires several iterations of very tedious calculations. When computers were not
   widely available, statisticians modeling e.g. binomially distributed data would 
   transform the response in order to come 'close enough' to the assumptions to justify
-  use of ordinary linear models. Now that computers are ubiquitous, we have no qualms
-  about modeling binomially distributed data using GLMs, because that framework allows
-  us to change the modeling assumptions to match the type of response being modeled,
-  and because invoking the computational fitting procedures for GLMs is not 
-  substantively more difficult than fitting an orderinary linear model. Similarly, some
-  techniques that we mostly associate with machine learning, rather than traditional
-  statistics, such as the empirical bootstrapping procedure, were first described by
-  renowned traditional statisticians (Ronald Fisher) nearly a century ago, but never
-  became popular because they required an immense number of calculations that were
-  simply not practical to carry out by hand. Now, thanks to computers, we can easily 
-  apply empirical boostrapping with equal validity to traditional statistical models
-  as well as for machine learning models.
+  use computationally simpler ordinary linear models. Now that computers are ubiquitous, 
+  we have no qualms about modeling binomially distributed data using GLMs, because that 
+  framework allows us to change the modeling assumptions to more naturally match up with 
+  the type of response being modeled, and because invoking the computational fitting 
+  procedures for GLMs is not substantively more difficult than fitting an orderinary 
+  linear model. Similarly, some techniques that we mostly associate with machine learning, 
+  rather than traditional statistics, such as the empirical bootstrapping procedure, were 
+  first described by renowned traditional statisticians (Ronald Fisher) nearly a century 
+  ago, but never became popular because they required an immense number of calculations 
+  that were simply not practical to carry out by hand. Now, thanks to computers, we can 
+  easily apply empirical boostrapping to traditional statistical models as well as to
+  machine learning models.
 
 The automation of statistical tasks required statisticians to learn computer programming,
   and also attracted computer scientists to the field of statistics, where they could
-  contribute their expertise in algorithm and software development. At the same time,
-  as computing power grew, so did information availability. There were many interested
-  in understanding the relationships between variables (e.g. patterns) in the large
-  datasets that were being collected. Many of these datasets were not generated using
-  controlled experiments, but instead represented observational data. The sampling schemes
-  often were not random, and so many of the assumptions behind statistical inferrence were
-  probably violated. The number of variables was often huge, and the mechanistic 
-  relationships between variables were unknown. Nevertheless, there was an interest in
-  being able to discover patterns in the data (e.g. clusters of observations and associations
-  between variables) as well as make predictions about future observations. So people
-  tried, initially by applying traditional statistical approaches, but then supplementing
-  them with more heuristic methods, whose theoretical properties are often unknown,
-  which means we lack the proofs that would justify use of parametric p-values and 
-  confidence intervals. Furthermore, some of these newer **machine learning**
-  methods, like the **k-nearest neighbor** algorithm described below, do not have
-  any coefficients to test or make confidence interval estimates on anyway. All we can 
-  do is make estimates of the model's predictive accuracy. We can estimate the performance
-  based on cross-validation. We can calculate confidence intervals for the performance 
-  estimates using bootstrapping. We can also see if performance is better than would be
-  expected by chance using permutation. We can examine the influence of individual 
+  contribute their expertise in algorithm and software development. As computing power 
+  grew, so did information collection and sharing. There were many parties interested in 
+  understanding the relationships between variables (e.g. patterns) in the large datasets 
+  that started being collected. Many of these datasets were not generated using controlled 
+  experiments, but instead represented observational data. The number of variables encountered
+  was often huge, and the mechanistic relationships between variables were unknown. 
+  Nevertheless, there was tremendous practical value in being able to discover patterns in 
+  the data (e.g. clusters of observations and associations between variables) as well as make 
+  predictions about future observations. So people tried, initially by applying traditional 
+  statistical approaches, but then supplementing them with more heuristic methods, whose 
+  theoretical properties are often unknown, which means we lack the proofs that would justify 
+  use of parametric p-values and confidence intervals. Furthermore, some of these newer 
+  **machine learning** methods, like the **k-nearest neighbor** algorithm described below, 
+  do not have any coefficients to test or make confidence interval estimates about population
+  parameters anyway. All we can do is make estimates of the model's predictive accuracy. We 
+  can estimate the performance based on cross-validation. We can calculate confidence intervals 
+  for the performance estimates using bootstrapping. We can examine the influence of individual 
   observations in the training set using jackknifing. We can examine the importance of 
   various predictors to the prediction process either by comparing models with and without 
   the predictor, or by permuting predictor values. However, we can apply all these
-  methods in the context of traditional statistical procedures as well.
+  methods in the context of traditional statistical procedures as well. These computational
+  extensions are not the sole province of machine learning.
 
 Over time statisticians have come to rely more and more on computational methods from the 
   computer science world. Meanwhile, computer scientists trying to understand very large 
@@ -117,17 +114,17 @@ Over time statisticians have come to rely more and more on computational methods
   traditional statistics has been used for prediction and machine learning methods have 
   been used to make inferrences about populations. Furthermore, statistics departments, 
   such as the Applied Statistics Department at Stanford University, continue to be 
-  major contributors of 'machine learning' algorithms and the ideas behind them. In fact,
-  about half the methods descibed in this course on machine learning were developed by
-  members of this Stanford group.
+  major contributors of leading 'machine learning' algorithms and the innovative ideas 
+  behind them. In fact, about half the methods descibed in this course on machine learning 
+  were developed by past or current members of this single Department.
 
-The differences between the disciplines is reflected loosely in the terminology used for
-  the explanatory variables. Statisticians are more likely to talk about **independent 
-  variables** or **explanatory variables** or **regressors**. Machine learning literature 
-  often refers to variables as either **predictors** or **features**. We will adopt the 
-  term 'feature' for most of the rest of this lesson. In this course, either all the 
-  variables are termed 'features', or one or more variables will be separately designated
-  as 'response' variables, and the rest termed 'features'.
+The minor differences between these disciplines is reflected loosely in the terminology 
+  used for the explanatory variables. Statistics texts are more likely to talk about 
+  **independent variables** or **explanatory variables** or **regressors**. Machine 
+  learning literature often refers to these variables as either **predictors** or 
+  **features**. We will adopt the term 'feature' for most of the rest of this lesson. 
+  In this course, either all the variables are termed 'features', or one or more variables 
+  will be separately designated as 'response' variables, and the rest termed 'features'.
 
 A good example of a machine-learning algorithm with no obvious counterpart in traditional 
   statistics is the **k-nearest neighbor classification** or **knn** method. In order to 
@@ -140,10 +137,12 @@ A good example of a machine-learning algorithm with no obvious counterpart in tr
   is the `x1` value for `obs.i` and `x1.j` is the corresponding value for `obs.j`. 
   Similarly, `d2 <- x2.i - x2.j`. Then the distance `d.ij` between `obs.i` and `obs.j` is 
   `sqrt(d1^2 + d2^2)`. That is, `d.ij^2 = d1^2 + d2^2`, which is an expression of the 
-  **Pythagorean theorem** about **right angles**. This distance metric can be extended to `p` 
-  features: `d.ij = sqrt(d1^2 + d2^2 + d3^2 + ... + dp^2)`. The knn procedure identifies 
-  the `k` obervations (neighbors) in `dat.trn` that are 'closest' to `obs.i` in the feature 
-  space, then assigns the dominant class (the response variable is categorical) among the `k` 
+  **Pythagorean theorem** `a^2 = b^2 + c^2` about the relationship between the length of
+  the hypotenuse length `a` of a **right triangle** when the other two sides have length
+  `b` and `c`. This distance metric can be extended to `p` features: 
+  `d.ij = sqrt(d1^2 + d2^2 + d3^2 + ... + dp^2)`. The knn procedure identifies the `k` 
+  obervations (neighbors) in `dat.trn` that are 'closest' to `obs.i` in the feature space, 
+  then assigns the dominant class (the response variable is categorical) among the `k` 
   closest observations in `dat.trn` as the predicted class for `obs.i`. If there is a tie 
   (e.g. two equally frequent classes among the `k` closest observations in `dat.trn`), it can 
   be broken using various implementation-dependent heuristics (like assigning randomly among 
@@ -559,6 +558,8 @@ sd(rslt) / sqrt(length(rslt))    ## standard error of performance estimate
 
 [Return to index](#index)
 
+---
+
 ### Check your understanding 2
 
 Use the code from the above example as a template to conduct a nested cross-validation 
@@ -572,7 +573,7 @@ Use the code from the above example as a template to conduct a nested cross-vali
 
 ---
 
-### Tuning model flexibility
+### Tuning and model flexibility
 
 When we built linear models in the last section of this series (Multivariate statistics),
   we saw that as we added coefficients to a model, the model became more and more flexible.
@@ -586,7 +587,7 @@ When we built linear models in the last section of this series (Multivariate sta
   evaluated using an independent test-set. The same thing can happen with k-nearest neighbors
   methods.
 
-The potential flexibility knn to adapt to the training-set data is regulated by the number of 
+The potential flexibility of knn to adapt to the training-set data is regulated by the number of 
   neighbors in the training set used to predict the response value (class) of a new observation. 
   One extreme is represented by using 1-nearest neighbor. Here, all the variation in the 
   data, including the noise, is captured by the model. This is very similar to the extreme of 
@@ -599,7 +600,7 @@ The potential flexibility knn to adapt to the training-set data is regulated by 
   most highly represented class in the training-set. This is very similar to the extreme of 
   using the intercept-only model for linear regression, where the global mean of the response 
   in the training-set is used as the predicted value for any new observations. So the 
-  intercept-only regression model and knn where `k == nrow(dat.trn)` both correspond to the 
+  intercept-only regression model and knn with `k == nrow(dat.trn)` both correspond to the 
   assertion that the predictors actually have no relationship to the response. As we mentioned
   in the univariate statistics portion of this course, when no other guide/predictor is 
   available, the mean response (which is a constant) is the best predictor (in the sense of
@@ -617,7 +618,7 @@ Many of the similarities between the linear modeling and knn approaches are easi
 
 We'll use the built-in `cars` dataset for demonstration. In this dataset, stopping distance 
   is measured for different speeds. Unfortunately, the data values were rounded, so there are 
-  duplicate `speed` values, which makes it harder to demo the properties of knn when k is small. 
+  duplicate `speed` values, which makes it harder to demo the properties of knn for small `k`. 
   So we are randomly perturbing the values slightly to mimic reversing the rounding process. This 
   doesn't really change the results in any substantive way, but makes it easier to show the 
   differences in the prediction lines for different values of `k`:
@@ -706,7 +707,7 @@ mean(res.all^2)
 ```
 
 We can copy most of the pattern from the end of the second section (nested cross-validation)
-  of this lesson and adapt the knn-classification code to select and evaluate k for knn-regression 
+  of this lesson and adapt the knn-classification code to select and evaluate `k` for knn-regression 
   using nested cross-validation:
 
 ```

@@ -14,7 +14,6 @@
 
 - [Check 1](#check-your-understanding-1)
 - [Check 2](#check-your-understanding-2)
-- [Check 3](#check-your-understanding-3)
 
 ---
 
@@ -152,23 +151,24 @@ A good example of a machine-learning algorithm with no obvious counterpart in tr
   a tie). In the two-class case, it is often preferrable to only try values of `k` which are 
   odd in order to avoid this potentially ambiguous situation.
 
-Because the Pythagorean theorem applies to right triangles, this distance metric implies that the 
-  predictors are **orthogonal** (at right angles) to one another, which implies that there is no 
-  correlation between predictors. Depending on the variables involved, this may very well not be 
-  true. Another concern about using the Euclidean distance is that the distances between different 
-  pairs of observations become more and more similar as the number of dimensions goes up. This is 
-  an unintuitive result, because people are used to visualizing 2, 3, or at most 4 dimensions. We 
-  can demonstrate this phenomenon using the following synthetic example, where we look at the ratio 
-  between the closest pairwise distances and longest pairwise distances (in the feature space) 
-  between observations with increasing numbers of randomly generated feature values. In the 
-  low-dimensional space, we see that there are fairly obvious differences in distances between 
+Because the Pythagorean theorem applies to right triangles, the Euclidean distance metric implies 
+  that the predictors are **orthogonal** (at right angles) to one another, which implies that there 
+  is no correlation between predictors. Depending on the variables involved, this may very well not 
+  be true, which can result in correlated features having a disproportionately high influence on
+  the distance estimate. Another concern about using the Euclidean distance is that the distances 
+  between different pairs of observations become more and more similar as the number of dimensions 
+  goes up. This is an unintuitive result, because people are used to visualizing 2, 3, or at most 
+  4 dimensions. We can demonstrate this phenomenon using the following synthetic example, where we 
+  look at the ratio between the closest pairwise distances and longest pairwise distances (in the 
+  feature space) between observations with increasing numbers of randomly generated feature values. 
+  In the low-dimensional space, we see that there are fairly obvious differences in distances between 
   observations (the ratio is many-fold), while in the higher-dimensional space, all the observation 
   pairwise distances become large and extremely similar to one another (the ratio becomes very 
-  close to one. Because all the distances between observations become so similar, ordering the 
+  close to one). Because all the distances between observations become so similar, ordering the 
   distances confidently becomes challenging, especially if there is any noise in the feature data, 
-  because then the random pattern of the noise will tend to drive more or less random ordering of 
+  because then the random pattern of the noise will tend to drive a more or less random ordering of 
   distances. This makes the knn predictions less reliable, since that algorithm depends on being
-  able to compare distances.
+  able to reliably compare distances.
 
 ```
 rm(list=ls())
@@ -208,8 +208,8 @@ Concerns about feature correlations and large feature number can sometimes be ad
   by the `x1` value than by the `x2` value. Therefore, it is a good idea to normalize the variables 
   (divide them by the standard deviation in the training set) before using them for computing 
   distances, unless the features are expressed on naturally comparable scales to begin with. 
-  Normalization will make any variable have a standard deviation of one, so the variable range has 
-  a comparable potential influence as any other normalized variable. Most common forms of dimension 
+  Normalization will make any variable have a standard deviation of one, so any normalized variable
+  has a similar potential influence as any other normalized variable. Most common forms of dimension 
   reduction take the input features and return a potentially much smaller set of new uncorrelated, 
   normalized features.
 
@@ -221,17 +221,18 @@ Distance-based approaches like knn are also adversely affected by **extraneous f
   ANOVA omnibus F-test on a model with the feature as response and class as a categorical predictor. 
   We can do this separately for each feature, adjust the p-values for multiple testing, then only use 
   the features with significant F-tests as input into the knn process. This approach suffers from not
-  taking feature correlations into account (so may include features contributing information largely
-  redundant to that already included with other features), as well as the possibility that important
-  interactions between features will be missed unless the individual features involved in the 
+  taking feature correlations into account, so it may include features contributing information largely
+  redundant to that already included with other features. It is also likely that important
+  interactions between features will be missed if the individual features involved in the 
   interaction do not have a direct effect (e.g. they only have an effect through the interaction). 
   There are various alternative approaches that try to evaluate varying subsets of features instead
-  of individual features using predictive performance of the final model as the selection criterion.
-  These **wrapper** methods for feature selection offer far more thorough exploration of the potential
-  information content in the feature space, but are often computationally intractable, as the number
-  of variations grows faster than exponentially with the number of features. Furthermore, in many 
-  systems, significant interaction effects are unlikely to be encountered in the absence of significant
-  invididual effects, so the simpler feature selection scheme suffices.
+  of individual features, using predictive performance of the final model as the selection criterion.
+  These **wrapper** methods for feature selection offer far more thorough exploration of the predictive
+  potential of the feature space, but are often computationally intractable, as the number of feature
+  combinations that can be explored grows faster than exponentially with the number of features. 
+  Furthermore, in many systems, significant interaction effects are unlikely to be encountered in the 
+  absence of significant invididual effects, so the simpler one feature at-a-time selection scheme 
+  suffices.
 
 The training-set used for knn should resemble the composition of the the population you are making 
   predictions for. If the composition of the training-set differs from the population, the knn 
@@ -240,19 +241,20 @@ The training-set used for knn should resemble the composition of the the populat
 Variations of the knn algorithm are available in R add-on packages allow arbitrary (non-Euclidean) 
   distance metrics. Several packages also provide for distance weighting of observations, where the 
   influence of the k nearest neighbors on the final decision are weighted by the inverse of the 
-  distances involved. Some packages also proved for automated selection of k by cross-validation 
-  (we'll 'manually' code this process during this lesson), as well as other resampling approaches 
-  for evaluation and improving classifier performance.
+  distances involved, which can lead to more stable performance across training-sets. Some packages 
+  also proved for automated selection of k by cross-validation (we'll 'manually' code this process 
+  during this lesson), as well as other resampling approaches for evaluation and improving classifier 
+  performance.
 
 In the example below, we will use the **Cohen's Kappa** statistic to express the accuracy of classification. 
-  Like raw percent accuracy, kappa ranges between `0` and `1`, with `1` being 'perfect' performance. Unlike 
-  raw accuracy, kappa expresses performance in a way that reflects the composition of the data, so that 
-  it automatically compensates for differences in composition as well as the effects of chance on 
-  predictive accuracy. Kappa can be used for comparing different parameterizations of the same type of 
-  classifier, or for comparing completely different classifiers, as long as the variants are developed 
-  using the same training-sets and evaluated with the same test-sets. Nevertheless, kappa values are not 
-  nearly as easy to interpret as the AUC and, unlike the AUC, kappa results are sensitive to the tuning 
-  of the cutoff point of the classifier score used for class assignments. 
+  Like raw accuracy proportion, kappa ranges between `0` and `1`, with `1` being 'perfect' performance. 
+  Unlike raw accuracy, kappa expresses performance in a way that reflects the composition of the data, 
+  so that it automatically compensates for differences in test-set composition as well as the effects of 
+  chance on apparent predictive accuracy. Kappa can be used for comparing different parameterizations of 
+  the same type of classifier, or for comparing completely different classifiers, as long as the variants 
+  are developed using the same training-sets and evaluated with the same test-sets. Nevertheless, kappa 
+  values are not nearly as easy to interpret as the AUC and, unlike the AUC, kappa results are sensitive 
+  to the tuning of the cutoff point of the classifier score used for class assignments. 
 
 ```
 library('caret')
@@ -386,6 +388,7 @@ folds <- caret::createMultiFolds(idx, k=7, times=3)
 ks <- c(1, 3, 5, 11, 15, 21, 31, 51, 75)
 (rslt <- sapply(folds, f.cv.cmp, dat=dat, ks=ks))
 
+## let's process the results:
 m <- apply(rslt, 1, mean)
 s <- apply(rslt, 1, sd)
 se <- s / sqrt(nrow(rslt))
@@ -429,7 +432,10 @@ legend(
 
 ### Check your understanding 1
 
-1) question here
+Use the code above as a guide to use the 1-se rule and performance estimates (Cohen's Kappa) based
+  on 7-fold cross-validation repeated 3 times to choose the value of `k` (number of nearest neighbors) 
+  to use when predicting `Species` based only on the two features `Sepal.Width` and `Sepal.Length`. Try
+  the following values for `k`: `c(1, 3, 5, 11, 15, 21, 31, 51, 75)`.
 
 [Return to index](#index)
 
@@ -551,9 +557,16 @@ sd(rslt) / sqrt(length(rslt))    ## standard error of performance estimate
 
 ```
 
+[Return to index](#index)
+
 ### Check your understanding 2
 
-1) question here
+Use the code from the above example as a template to conduct a nested cross-validation 
+  of the knn-classification of the `iris` data `Species` based only on the two features 
+  `Sepal.Width` and `Sepal.Length`. Use 7-fold CV, repeated 3-times at both levels, using 
+  the inner-CV to select a value for `k` and the outer-CV to evaluate the entire procedure.
+  Express performance in terms of Cohen's Kappa. Calculate the standard error of the 
+  final performance estimate. 
 
 [Return to index](#index)
 
@@ -756,14 +769,6 @@ plot(mean ~ ks, data=rslt, xlab='Number of nearest neighbors', ylab='MSE')
 abline(h=cutoff, lty=2, col='orangered')
 
 ```
-
-[Return to index](#index)
-
----
-
-### Check your understanding 3
-
-1) question here
 
 [Return to index](#index)
 

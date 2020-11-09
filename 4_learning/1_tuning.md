@@ -8,7 +8,7 @@
 
 - [Introduction to model parameter tuning](#introduction-to-model-parameter-tuning)
 - [Nested cross-validation](#nested-cross-validation)
-- [Tuning model flexibility](#Tuning model flexibility)
+- [Tuning model flexibility](#tuning-model-flexibility)
 
 ### Check your understanding
 
@@ -20,61 +20,167 @@
 
 ### Introduction to model parameter tuning
 
-Machine learning arose gradually as computers made possible the application of
-  statistical techniques to larger and more complex data-sets. p > n. complex
-  transformations of response required. Statistics tends to start with theoretical
-  models and performs parametric hypothesis using data gathered to test the 
-  model. ML starts w/ the data and hunts for models that fit the data. The 
-  emphasis is on predictive performance, more than p-values leading to better 
-  understanding of underlying processes. ML hypothesis tests and confidence intervals 
-  more likely to be resampling based. But Fisher was first to describe the potential 
-  of the empirical bootstrap as a supplement or replacement for parametric p-values 
-  and confidence intervals. The potential simply could not be realized during his 
-  lifetime due to the lack of computers: all the calculations had to be carried out 
-  by hand. The same thing is true of generalized linear models: the iterative fitting 
-  routines are incredibly tedious to perform by hand. So for a long time, 
-  statisticians would avoid these recognized methods in favor of trying to 
-  transform response and regressor variables until linearity and normality of
-  residuals were hopefully achieved. The advent of computers is what made GLMs 
-  accessible to the mainstream of the statistical community. 
-  ML covers range of techniques, some of which have high
-  interpretability, while others trade interpretability away in exchange for
-  predictive performance. 
+One major focus of traditional statistics has been providing quantitative expressions
+  of uncertainty about hypotheses. That is, it usually either tested a null hypothesis
+  of interest by returning a p-value, or provided estimates of population parameters 
+  in the form of confidence intervals. This activity was largely performed in the 
+  service of scientists or engineers who were building mechanistic models about the 
+  natural or man-made world. Elaborating these models involves making hypotheses about 
+  which explanatory variables are involved and about the form of the relationship 
+  between the explanatory variables and the response variable. Since these hypotheses 
+  are generally tested with finite sized samples from the population of interest, there
+  is always some uncertainty in the answer. That is, for any finite sized random sample, 
+  it is always possible that we picked a very extreme and misleading sample by chance. 
+  Statistics provides a disciplined quantitative way of describing the uncertainties 
+  introduced during inferrence about population parameters based on finite random samples. 
+  It recognizes that when we reject the null hypothesis at a p-value cutoff of 0.05, we
+  are implicitly accepting a one in twenty chance of encountering a false positive result. 
+  Similarly, a 95% confidence interval amounts to an admission that one in twenty replicate 
+  experiments would generate 95% confidence intervals that do not include the true 
+  population value.
 
-A good example of a machine-learning algorithm with no obvious counterpart in 
-  traditional statistics is the **k-nearest neighbor classification** or **knn** 
-  method. In order to predict the class of a new observation `obs.i`, based on a 
-  training sample observations `obs.trn`, distances (by default, **Euclidean 
-  distance**) in the predictor space (treating each predictor variable as a 
-  'dimension') are computed between `obs.i` and each of the observations in `obs.trn`. 
-  Assume `obs.j` is an observation in `obs.trn`. Let `x1` and `x2` be
-  two predictors. Then `d1` and `d2` are the distances between `obs.i` and `obs.trn` 
+The other major focus of traditional statistics has been on predictive modeling. When 
+  a mechanistic model is specified, it can not only be used to explain our previous
+  observations, but also to make predictions about future observations. Using statistical
+  modeling techniques, we can not only make predictions, but also quantitatively, 
+  objectively, and reproducibly express the degree of uncertainty in the predictions 
+  (e.g. with prediction intervals). This approach can be extended from prediction using
+  theoretically driven mechanistic models to predictive modeling using empirically (rather 
+  than theoretically) developed models. Empirical modeling focuses on empirical 
+  associations between variables that can be identified from the data without speculating 
+  about or specifying the nature of any underlying causal relationships. The balance of 
+  hypothesis testing and prediction in traditional statistics very much depends on the 
+  subject being studied, but in general, it is probably fair to say that most traditional 
+  statistical work has focused on evaluating mechanistic models and estimating populaton 
+  parameters more than predictive modeling.
+
+Computers have gradually come to have a major effect on statistical practice. Over time,
+  traditional statistical computation have been ported to computers. In addition, the
+  general availability of computers changed the approaches statisticians were using.
+  For instance, fitting generalized linear models (GLMs) to a training-set requires
+  several iterations of carying out very tedious calculations. When computers were not
+  widely available, statisticians modeling e.g. binomially distributed data would 
+  transform the response in order to come 'close enough' to the assumptions to justify
+  use of ordinary linear models. Now that computers are ubiquitous, we have no qualms
+  about modeling binomially distributed data using GLMs, because that framework allows
+  us to change the modeling assumptions to match the type of response being modeled,
+  and because invoking the computational fitting procedures for GLMs is not 
+  substantively more difficult than fitting an orderinary linear model. Similarly, some
+  techniques that we mostly associate with machine learning, rather than traditional
+  statistics, such as the empirical bootstrapping procedure, were first described by
+  renowned traditional statisticians (Ronald Fisher) nearly a century ago, but never
+  became popular because they required an immense number of calculations that were
+  simply not practical to carry out by hand. Now, thanks to computers, we can easily 
+  apply empirical boostrapping with equal validity to traditional statistical models
+  as well as for machine learning models.
+
+The automation of statistical tasks required statisticians to learn computer programming,
+  and also attracted computer scientists to the field of statistics, where they could
+  contribute their expertise in algorithm and software development. At the same time,
+  as computing power grew, so did information availability. There were many interested
+  in understanding the relationships between variables (e.g. patterns) in the large
+  datasets that were being collected. Many of these datasets were not generated using
+  controlled experiments, but instead represented observational data. The sampling schemes
+  often were not random, and so many of the assumptions behind statistical inferrence were
+  probably violated. The number of variables was often huge, and the mechanistic 
+  relationships between variables were unknown. Nevertheless, there was an interest in
+  being able to discover patterns in the data (e.g. clusters of observations and associations
+  between variables) as well as make predictions about future observations. So people
+  tried, initially by applying traditional statistical approaches, but then supplementing
+  them with more heuristic methods, whose theoretical properties are often unknown,
+  which means we lack the proofs that would justify use of parametric p-values and 
+  confidence intervals. Furthermore, some of these newer **machine learning**
+  methods, like the **k-nearest neighbor** algorithm described below, do not have
+  any coefficients to test or make confidence interval estimates on anyway. All we can 
+  do is make estimates of the model's predictive accuracy. We can estimate the performance
+  based on cross-validation. We can calculate confidence intervals for the performance 
+  estimates using bootstrapping. We can also see if performance is better than would be
+  expected by chance using permutation. We can examine the influence of individual 
+  observations in the training set using jackknifing. We can examine the importance of 
+  various predictors to the prediction process either by comparing models with and without 
+  the predictor, or by permuting predictor values. However, we can apply all these
+  methods in the context of traditional statistical procedures as well.
+
+Over time statisticians have come to rely more and more on computational methods from the 
+  computer science world. Meanwhile, computer scientists trying to understand very large 
+  datasets, have been trying to adopt the traditional statistical emphasis on expressing 
+  of estimate uncertainties in a quantitatively rigourous way. You can easily find 
+  discussions on the internet (and elsewhere) about the differences between machine
+  learning and traditional statistics. Many try to portray them as completely different
+  fields. However, there is an easy case to make that machine learning is part of the 
+  natural adaptation of emerging computational power to good old fashioned statistics. 
+  Statisticians have to learn to exploit the power of computers, and computer scientists 
+  interested in data (data scientists) have to take into account the statistical emphasis
+  on estimating and expressing uncertainty. Traditional statistics does tend to work with 
+  smaller models, focusing on understanding the mechanistic relationships between variables, 
+  while machine learning tends to involve larger models where predictive accuracy is a 
+  higher priority than mechanistic understanding. Nevertheless, there are many cases where 
+  traditional statistics has been used for prediction and machine learning methods have 
+  been used to make inferrences about populations. Furthermore, statistics departments, 
+  such as the Applied Statistics Department at Stanford University, continue to be 
+  major contributors of 'machine learning' algorithms and the ideas behind them. In fact,
+  about half the methods descibed in this course on machine learning were developed by
+  members of this Stanford group.
+
+The differences between the disciplines is reflected loosely in the terminology used for
+  the explanatory variables. Statisticians are more likely to talk about **independent 
+  variables** or **explanatory variables** or **regressors**. Machine learning literature 
+  often refers to variables as either **predictors** or **features**. We will adopt the 
+  term 'feature' for most of the rest of this lesson. In this course, either all the 
+  variables are termed 'features', or one or more variables will be separately designated
+  as 'response' variables, and the rest termed 'features'.
+
+A good example of a machine-learning algorithm with no obvious counterpart in traditional 
+  statistics is the **k-nearest neighbor classification** or **knn** method. In order to 
+  predict the class of a new observation `obs.i`, based on a training sample observations 
+  in `dat.trn`, distances (by default, **Euclidean distance**) in the feature space (treating 
+  each feature variable as a **dimension**) are computed between `obs.i` and each of the 
+  observations in `dat.trn`. Assume `obs.j` is an observation in `dat.trn`. Let `x1` and 
+  `x2` be two features. Then `d1` and `d2` are the distances between `obs.i` and `obs.j` 
   along the corresponding variable axis. That is, `d1 <- x1.i - x1.j`, where `x1.i` 
-  is the `x1` value for `obs.i`. Similarly, `d2 <- x2.i - x2.j`. Then the distance 
-  `d.ij` between `obs.i` and `obs.j` is `sqrt(d1^2 + d2^2)`. That is, 
-  `d.ij^2 = d1^2 + d2^2`, which is an expression of the **Pythagorean theorem** about
-  right angles. This distance metric can be extended to `p` predictors: 
-  `d.ij = sqrt(d1^2 + d2^2 + d3^2 + ... + dp^2)`. Because the Pythagorean theorem
-  applies to right angles, this distance metric assumes that the predictors are 
-  **orthogonal** (at right angles) to one another, which implies that there is no
-  correlation between predictors. Another concern about using the Euclidean distance
-  is that the distances between different pairs of observations become more and
-  more similar as the number of dimensions goes up. This is an unintuitive result,
-  because we are used to perceiving and thinking about things in 2, 3, or at most
-  4 dimensions. We can see this phenomenon in action in the following synthetic
-  example:
+  is the `x1` value for `obs.i` and `x1.j` is the corresponding value for `obs.j`. 
+  Similarly, `d2 <- x2.i - x2.j`. Then the distance `d.ij` between `obs.i` and `obs.j` is 
+  `sqrt(d1^2 + d2^2)`. That is, `d.ij^2 = d1^2 + d2^2`, which is an expression of the 
+  **Pythagorean theorem** about **right angles**. This distance metric can be extended to `p` 
+  features: `d.ij = sqrt(d1^2 + d2^2 + d3^2 + ... + dp^2)`. The knn procedure identifies 
+  the `k` obervations (neighbors) in `dat.trn` that are 'closest' to `obs.i` in the feature 
+  space, then assigns the dominant class (the response variable is categorical) among the `k` 
+  closest observations in `dat.trn` as the predicted class for `obs.i`. If there is a tie 
+  (e.g. two equally frequent classes among the `k` closest observations in `dat.trn`), it can 
+  be broken using various implementation-dependent heuristics (like assigning randomly among 
+  the tied classes, or assigning to the class of the single closest observation when there is 
+  a tie). In the two-class case, it is often preferrable to only try values of `k` which are 
+  odd in order to avoid this potentially ambiguous situation.
+
+Because the Pythagorean theorem applies to right triangles, this distance metric implies that the 
+  predictors are **orthogonal** (at right angles) to one another, which implies that there is no 
+  correlation between predictors. Depending on the variables involved, this may very well not be 
+  true. Another concern about using the Euclidean distance is that the distances between different 
+  pairs of observations become more and more similar as the number of dimensions goes up. This is 
+  an unintuitive result, because people are used to visualizing 2, 3, or at most 4 dimensions. We 
+  can demonstrate this phenomenon using the following synthetic example, where we look at the ratio 
+  between the closest pairwise distances and longest pairwise distances (in the feature space) 
+  between observations with increasing numbers of randomly generated feature values. In the 
+  low-dimensional space, we see that there are fairly obvious differences in distances between 
+  observations (the ratio is many-fold), while in the higher-dimensional space, all the observation 
+  pairwise distances become large and extremely similar to one another (the ratio becomes very 
+  close to one. Because all the distances between observations become so similar, ordering the 
+  distances confidently becomes challenging, especially if there is any noise in the feature data, 
+  because then the random pattern of the noise will tend to drive more or less random ordering of 
+  distances. This makes the knn predictions less reliable, since that algorithm depends on being
+  able to compare distances.
 
 ```
 rm(list=ls())
 set.seed(1)
 
-diff.prop <- NULL
+diff.prop <- NULL                                ## will hold ratios of largest to smallest obs distance
 (p.features <- 2^(1:14))                         ## vector of feature numbers to try
 
 for(p.i in p.features) {                         ## take each feature number in turn
   dat.p <- NULL                                  ## will become a matrix w/ rows=obs, cols=features
   for(i in 1:p.i) {                              ## for the next feature
-    x.i <- seq(from=0, to=1, length.out=60)     ## generate an evenly spaced series of values
+    x.i <- seq(from=0, to=1, length.out=60)      ## generate an evenly spaced series of values
     x.i <- sample(x.i, length(x.i), replace=F)   ## randomize the order so successive features are uncorrelated
     dat.p <- cbind(dat.p, x.i)                   ## add the feature to the data-set
   }
@@ -93,57 +199,61 @@ plot(x=p.features, y=diff.prop, main='Curse of (Euclidean) dimensionality',
 
 ```
 
-Concerns about feature correlations and large feature number can sometimes be addressed by **dimensional
-  reduction** techniques, such as PCA, which we will describe in a later lesson. In any case, knn proceeds
-  to identify the `k` observations in `obs.trn` which are closest (have the smallest distance) to
-  `obs.i`. Then `obs.i` is assigned to the class that occurs most frequently among the `k` closest
-  observations (**nearest neighbors** of `obs.i`) in `obs.trn`. If there is a tie, it can be broken using 
-  various heuristics (like assigning randomly among the tied classes, or assigning to the class of the 
-  single closest observation when there is a tie). In the two-class case, it is best to only try values 
-  of `k` which are odd in order to avoid this potentially ambiguous situation.
-
-Another consideration when using knn is that it can strongly be affected by the scales of the 
+Concerns about feature correlations and large feature number can sometimes be addressed by 
+  **dimensional reduction** techniques, such as PCA, which we will describe in a later lesson. 
+  Another consideration when using knn is that it can be strongly affected by the scales of the 
   features. That is, if the feature `x1` varies between `0` and `1000`, while `x2` only varies
   between `0` and `10`, then any distances computed in the space defined by these two features
   `d.ij <- sqrt((x1.i - x1.j)^2 - (x2.i - x2.j)^2)` will tend to be much more strongly influenced 
   by the `x1` value than by the `x2` value. Therefore, it is a good idea to normalize the variables 
   (divide them by the standard deviation in the training set) before using them for computing 
-  distances, unless the features are expressed on the same scale to begin with. Normalization will 
-  make any variable have a standard deviation of one, so the variable range has a comparable 
-  potential influence as any other normalized variable. Most common forms of dimension reduction
-  take the input features and return a potentially much smaller set of new uncorrelated, normalized 
-  features.
+  distances, unless the features are expressed on naturally comparable scales to begin with. 
+  Normalization will make any variable have a standard deviation of one, so the variable range has 
+  a comparable potential influence as any other normalized variable. Most common forms of dimension 
+  reduction take the input features and return a potentially much smaller set of new uncorrelated, 
+  normalized features.
 
-Distance-based approaches like knn are also adversely affected by **extraneous features**, because they
-  make the distance estimates vary in a way that has no relation to the response variable. Therefore, 
-  they introduce noise, which tends to reduce predictive performance. Therefore, it is often a good idea 
-  to do some form of **feature selection** prior to employing knn. For instance, feature selection for 
-  numeric features can be as simple as conducting an ANOVA omnibus F-test on a model with the feature as 
-  response and class as a categorical predictor. We can do this separately for each feature, adjust the 
-  p-values for multiple testing, then only use the features with significant F-tests as input into the 
-  knn process.
+Distance-based approaches like knn are also adversely affected by **extraneous features**, because 
+  extraneous features make the distance estimates vary in a way that has no relation to the response 
+  variable. That is, they introduce noise into the determination of closest neighbors, which tends to 
+  reduce predictive performance. So it is often a good idea to do some form of **feature selection** 
+  prior to employing knn. Feature selection for numeric features can be as simple as conducting an 
+  ANOVA omnibus F-test on a model with the feature as response and class as a categorical predictor. 
+  We can do this separately for each feature, adjust the p-values for multiple testing, then only use 
+  the features with significant F-tests as input into the knn process. This approach suffers from not
+  taking feature correlations into account (so may include features contributing information largely
+  redundant to that already included with other features), as well as the possibility that important
+  interactions between features will be missed unless the individual features involved in the 
+  interaction do not have a direct effect (e.g. they only have an effect through the interaction). 
+  There are various alternative approaches that try to evaluate varying subsets of features instead
+  of individual features using predictive performance of the final model as the selection criterion.
+  These **wrapper** methods for feature selection offer far more thorough exploration of the potential
+  information content in the feature space, but are often computationally intractable, as the number
+  of variations grows faster than exponentially with the number of features. Furthermore, in many 
+  systems, significant interaction effects are unlikely to be encountered in the absence of significant
+  invididual effects, so the simpler feature selection scheme suffices.
 
 The training-set used for knn should resemble the composition of the the population you are making 
   predictions for. If the composition of the training-set differs from the population, the knn 
   class assignments will tend to be biased toward the over-represented classes in the training-set.
 
-Variations of the knn algorithm are available in add-on packages allow arbitrary (non-Euclidean) distance 
-  metrics. Several packages also provide for distance weighting of observations, where the influence of the 
-  k nearest neighbors on the final decision are weighted by the inverse of the distances involved. Some
-  packages also proved for automated selection of k by cross-validation (we'll 'manually' code this
-  process during this lesson), as well as other resampling approaches for evaluation and improving
-  classifier performance.
+Variations of the knn algorithm are available in R add-on packages allow arbitrary (non-Euclidean) 
+  distance metrics. Several packages also provide for distance weighting of observations, where the 
+  influence of the k nearest neighbors on the final decision are weighted by the inverse of the 
+  distances involved. Some packages also proved for automated selection of k by cross-validation 
+  (we'll 'manually' code this process during this lesson), as well as other resampling approaches 
+  for evaluation and improving classifier performance.
 
-In the example below, we will use **Cohen's Kappa** measure to express the accuracy of classification. Like
-  raw percent accuracy, kappa ranges between 0 and 1, with 1 being 'perfect' performance. Unlike raw accuracy, 
-  kappa expresses performance in a way that reflects the composition of the data, so that it automatically
-  compensates for differences in composition as well as the effects of chance on predictive accuracy.
-  Kappa can be used for comparing different parameterizations of the same type of classifier, or for
-  comparing completely different classifiers, as long as the variants are developed using the same training-sets
-  and evaluated with the same test-sets. Nevertheless, kappa values are not nearly as easy to interpret as the
-  AUC and, unlike the AUC, kappa results are sensitive to the tuning of the cutoff point of the classifier
-  score used for class assignments. 
-  
+In the example below, we will use the **Cohen's Kappa** statistic to express the accuracy of classification. 
+  Like raw percent accuracy, kappa ranges between `0` and `1`, with `1` being 'perfect' performance. Unlike 
+  raw accuracy, kappa expresses performance in a way that reflects the composition of the data, so that 
+  it automatically compensates for differences in composition as well as the effects of chance on 
+  predictive accuracy. Kappa can be used for comparing different parameterizations of the same type of 
+  classifier, or for comparing completely different classifiers, as long as the variants are developed 
+  using the same training-sets and evaluated with the same test-sets. Nevertheless, kappa values are not 
+  nearly as easy to interpret as the AUC and, unlike the AUC, kappa results are sensitive to the tuning 
+  of the cutoff point of the classifier score used for class assignments. 
+
 ```
 library('caret')
 library('class')
@@ -180,10 +290,9 @@ cnf.tst$overall[['Kappa']]
 
 ```
 
-We can take the code above and functionalize it so we can apply the resulting 
-  function to each fold, where each fold is an integer index of training-set
-  observations for that iteration, and get back Kappa for that fold. Here, we
-  will run the code on a single fold, representing a held-out test-set:
+We can take the code above and turn it into a function that we can apply to each fold, 
+  where each fold is an integer index of training-set observations for that iteration, 
+  and get back Kappa for that fold:
 
 ```
 library('caret')
@@ -210,15 +319,16 @@ sd(rslt)
 ```
 
 We wrote the function `f.cv()` above in a way that it would accept the number of neighbors
-  to use for classification as the parameter `k`. We'll exploit that here to see what the
-  hold-out test-set based estimate of performance (kappa) is when using different numbers of 
-  neighbors:
+  to use for classification as the argument `k`. We'll exploit this argument here to see 
+  what a hold-out test-set based estimate of performance (kappa) is when using different 
+  numbers of neighbors:
 
 ```
+## make a hold-out set (20% of the data); but do it in a way we can extend to 5-fold CV:
 set.seed(1)
-idx <- 1:nrow(dat)
+idx <- 1:nrow(dat)                          ## indices of all observations
 folds <- caret::createMultiFolds(idx, k=5, times=3)
-idx.trn <- folds[[1]]
+idx.trn <- folds[[1]]                       ## integer index of training-set observations for 1st fold
 
 ks <- c(1, 3, 5, 11, 15, 21, 31, 51, 75)    ## values of 'k' to try for knn
 rslt <- rep(as.numeric(NA), length(ks))     ## pre-extend so can hold 1 kappa per k
@@ -236,14 +346,28 @@ plot(x=ks, y=rslt, xlab='number of nearest neighbors', ylab='kappa')
 
 We can further functionalize the code above to produce another function that tries different
   values of k within each fold. Comparing results within a fold ensures that variations in
-  training-sets and test-sets do not introduce noise into the process. Keeping the comparisons
-  within folds increases the precision of comparisons by eliminating that extra potential source
-  of variation. After scoring all the values of `k` (number of nearest neighbors in the training
-  set) to use for classification, we may be tempted to just choose the best scoring value. However,
-  this often leads to some degree of overfitting. A popular rule of thumb for helping to attenuate
-  potential overfitting is to choose the simplest model (least flexible; for knn, this means the 
-  largest value of `k`) within one standard error of the 'best' result. This rule is often referred
-  to as the **1-SE** rule.
+  training-sets and test-sets do not introduce noise into the process. That is, we know we
+  typically get a slightly different performance estimate for each fold, so comparing performance
+  across folds involves not only the true performance difference between models, but also variation
+  due to the difference in training-sets and test-sets. Therefore, our comparisons will be more
+  precise if we record performance differences for each fold using the same training-sets and 
+  test-sets for all the models being compared. Then we can average the within-fold performance 
+  differences for each fold to get our final performance estimate. 
+
+After scoring all the values of `k` (number of nearest neighbors in the training set) to use for 
+  classification, we may be tempted to just choose the best scoring value. However, this often 
+  leads to some degree of overfitting. A popular rule of thumb for helping to attenuate potential 
+  overfitting is to choose the simplest model (least flexible; for knn, this means the largest 
+  value of `k`) within one standard error of the 'best' result. This rule is often referred to as 
+  the **1-SE** rule. You may be thinking that we will likely use something like cross-validation to
+  evaluate the final model (you would be right!) so we will have an 'independent' test-set with
+  which we can detect any overfitting, so why not just pick the best scoring value of `k` anyway.
+  But having your final evaluation tell you that you built a model with poor performance because
+  it was likely overfit to the training data is not much solace: you are more or less stuck with 
+  that poor model at that point, or you need to generate some new data for evaluation of other 
+  possible models, since you already 'spent' all the available independent test data. Therefore, 
+  it is important to avoid overfitting in any case, while also using an independent test-set for 
+  evaluation of any final model.
 
 ```
 f.cv.cmp <- function(idx.trn, dat, ks) {
@@ -317,9 +441,10 @@ The model we built in the previous section is likely to overfit the training dat
   (hopefully small) extent. That is, it is likely modeling some of the noise in those data
   that are completely unrelated to class membership. In order to evaluate the final model,
   we should once again rely on an independent test-set that was not used in any way for 
-  model development. We can facilitate this process by functionalizing more of the code
-  from the end of the previous section. To make the process easier to follow, we will
-  reiterate all the required code:
+  model development. We can facilitate this process by turning some of the code
+  from the end of the previous section into a function we can use to perform another level
+  of cross-validation to be used for evaluating the final model. To make the process easier 
+  to follow, we will reiterate all the required code:
 
 ```
 library('caret')
@@ -403,8 +528,8 @@ Note that the `dat.tst.out` observations in the last example are not passed to t
   which specifies the number of nearest neighbors in the training set to use for classifying 
   new observations.
 
-With a bit more work, we can turn the code above into a function we can use to do the full-fledged
-  outer cross-validation:
+With a bit more work, we can turn the code above into a function we can use to do the 
+  full-fledged outer cross-validation:
 
 ```
 f.cv.outer <- function(idx.trn) {
@@ -448,7 +573,7 @@ When we built linear models in the last section of this series (Multivariate sta
   evaluated using an independent test-set. The same thing can happen with k-nearest neighbors
   methods.
 
-The potential flexibility of the prediction curve produced by knn is regulated by the number of 
+The potential flexibility knn to adapt to the training-set data is regulated by the number of 
   neighbors in the training set used to predict the response value (class) of a new observation. 
   One extreme is represented by using 1-nearest neighbor. Here, all the variation in the 
   data, including the noise, is captured by the model. This is very similar to the extreme of 
@@ -466,11 +591,11 @@ The potential flexibility of the prediction curve produced by knn is regulated b
   in the univariate statistics portion of this course, when no other guide/predictor is 
   available, the mean response (which is a constant) is the best predictor (in the sense of
   minimizing the MSE) for future observations, assuming training and test-sets are both drawn 
-  at random from the same population.
+  at random from the same population. 
 
-Many of the similarities between the linear modeling and knn approaches are easier to see
-  graphically in the context of **knn-regression**. Knn-regression works much like 
-  knn-classification, except instead of predicting class membership (response is categorical), 
+Many of the similarities between the linear modeling and knn approaches are easier to visualize
+  in the context of **knn-regression**. Knn-regression works much like knn-classification, except 
+  instead of predicting class membership (response is categorical) using a majority-voting scheme, 
   we are predicting the value of a continuous response variable, like with ordinary linear
   regression. In this case, we use the predictor space to estimate distances of a new observation 
   `obs.i` to each of the training-set observations in `dat.trn`. Then if `k` specifies the number 
@@ -478,7 +603,7 @@ Many of the similarities between the linear modeling and knn approaches are easi
   to `obs.i` are averaged to generate a response value prediction for `obs.i`.
 
 We'll use the built-in `cars` dataset for demonstration. In this dataset, stopping distance 
-  is measured for different speeds. Unfortunately, the data were rounded, so there are 
+  is measured for different speeds. Unfortunately, the data values were rounded, so there are 
   duplicate `speed` values, which makes it harder to demo the properties of knn when k is small. 
   So we are randomly perturbing the values slightly to mimic reversing the rounding process. This 
   doesn't really change the results in any substantive way, but makes it easier to show the 
@@ -488,9 +613,9 @@ We'll use the built-in `cars` dataset for demonstration. In this dataset, stoppi
 library('caret')
 
 rm(list=ls())
-set.seed(1)
 
 ## prep the data ('undo' the rounding):
+set.seed(1)                       ## seed the random part
 dat <- cars
 length(dat$speed)                 ## how many values?
 length(unique(dat$speed))         ## some duplicates
@@ -500,7 +625,7 @@ summary(dat)
 plot(dat)
 
 ## split data into training-set and test-set:
-set.seed(1)
+set.seed(1)                       ## new seed to compartmentalize code block
 nrow(dat)
 idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=12)
@@ -529,21 +654,22 @@ ylim <- range(c(prd.1, prd.4, prd.16, prd.all, dat$dist))
 
 ## plot observations:
 plot(x=speed, y=prd.1, ylab='dist', ylim=ylim, type='n')
-points(x=dat.trn$speed, y=dat.trn$dist, pch='x', col='orangered', cex=0.5)
+points(x=dat.trn$speed, y=dat.trn$dist, pch='x', col='black', cex=0.5)
 points(x=dat.tst$speed, y=dat.tst$dist, pch='o', col='magenta', cex=0.5)
 
 ## add prediction lines:
 lines(x=speed, y=prd.1, lty=2, col='cyan')
 lines(x=speed, y=prd.4, lty=3, col='magenta')
-lines(x=speed, y=prd.16, lty=2, col='orangered')
-lines(x=speed, y=prd.all, lty=3, col='cyan')
+lines(x=speed, y=prd.16, lty=4, col='orangered')
+lines(x=speed, y=prd.all, lty=1, col='black')
 
 ## add a legend to the plot:
 legend(
   'topleft',
-  legend=c('k=1', 'k=4', 'k=16', 'k=all'),
-  lty=c(2, 3, 2, 3),
-  col=c('cyan', 'magenta', 'orangered', 'cyan')
+  legend=c('k=1', 'k=4', 'k=16', 'k=all', 'training set', 'test set'),
+  pch=c(NA, NA, NA, NA, 'x', 'o'),
+  lty=c(2, 3, 4, 1, NA, NA),
+  col=c('cyan', 'magenta', 'orangered', 'black', 'black', 'magenta')
 )
 
 ## make point predictions for held-out test-set:

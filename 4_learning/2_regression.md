@@ -1,14 +1,14 @@
 # Fundamentals of computational data analysis using R
-## Machine learning: some sub-title here
+## Machine learning: regression
 #### Contact: mitch.kostich@jax.org
 
 ---
 
 ### Index
 
-- [Title 1](#title-1)
-- [Title 2](#title-2)
-- [Title 3](#title-3)
+- [Lasso and ridge regression](#lasso-and-ridge-regression)
+- [Elastic net regularization](#elastic-net-regularization)
+- [Support vector machines](#support-vector-machines)
 
 ### Check your understanding
 
@@ -18,12 +18,74 @@
 
 ---
 
-### title 1
+### Lasso and ridge regression
 
 intro here
 
 ```
-code here
+library(glmnet)
+library(caret)
+
+rm(list=ls())
+
+dat <- mtcars
+
+set.seed(1)
+idx <- 1:nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=12)
+idx.trn <- folds[[1]]
+
+dat.trn <- dat[idx.trn, ]
+dat.tst <- dat[-idx.trn, ]
+
+plot(dat.trn)
+summary(dat.trn)
+round(cor(dat.trn), 3)
+
+fit.lm.lo <- lm(mpg ~ 1, data=dat.trn)
+fit.lm.hi <- lm(mpg ~ ., data=dat.trn)
+fit.lm <- step(fit.lm.lo, scope=list(lower=fit.lm.lo, upper=fit.lm.hi), direction='both', trace=1)
+
+set.seed(1)                                      ## for CV randomness
+cv.ridge <- cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0)
+cv.lasso <- cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=1)
+
+cv.ridge
+is.list(cv.ridge)
+names(cv.ridge)
+all(names(cv.lasso) == names(cv.ridge))
+str(cv.ridge)
+
+par(mfrow=c(1, 2))
+plot(cv.ridge)
+plot(cv.lasso)
+
+fit.ridge <- cv.ridge$glmnet.fit
+fit.ridge                                   ## note Df (number of non-zero coefs) always same (no feature selection)
+is.list(fit.ridge)
+names(fit.ridge)
+str(fit.ridge)
+
+fit.lasso <- cv.lasso$glmnet.fit
+all(names(fit.lasso) == names(fit.ridge))
+fit.lasso                                   ## note Df changing (feature selection
+
+par(mfrow=c(1, 2))
+plot(fit.ridge, xvar='lambda', label=T, main='ridge')
+plot(fit.lasso, xvar='lambda', label=T, main='lasso')
+
+## smooth, so pick min; can also specify cutoff as s="lambda.1se" or s=1.5
+coef(fit.ridge, s=cv.ridge$lambda.min)
+coef(fit.lasso, s=cv.lasso$lambda.min)
+coef(fit.lm)
+
+y.lm <- predict(fit.lm, newdata=dat.tst[, -1]) 
+y.ridge <- predict(fit.ridge, newx=as.matrix(dat.tst[, -1]), s=cv.ridge$lambda.min)
+y.lasso <- predict(fit.lasso, newx=as.matrix(dat.tst[, -1]), s=cv.lasso$lambda.min)
+
+mean((y.lm - dat.tst[, 1]) ^ 2)
+mean((y.ridge - dat.tst[, 1]) ^ 2)
+mean((y.lasso - dat.tst[, 1]) ^ 2)
 
 ```
 
@@ -39,12 +101,90 @@ code here
 
 ---
 
-### title 2
+### Elastic net regularization
 
-intro here
+intro here; finds coefficients for linear model that minimizes the sum of two terms. 
+  the first term is the negative of the log-likelihood of the model given
+  the training set observations; the second is the **elastic-net penalty** 
+  `lambda * ((1 - alpha) * sum(beta^2) / 2 + alpha * sum(abs(beta))`, where `lambda` 
+  is the a tunable parameter to control the relative strength of the coefficient penalty,
+  and alpha is the tunable 'mixing parameter' controlling the proportion of the penalty 
+  that is contributed by the ridge-like component `sum(beta^2)` versus the lasso-like
+  component `sum(abs(beta))`. That is, `alpha == 1` corresponds to a pure lasso regression,
+  while `alpha == 0` corresponds to a pure ridge regression. Elastic net regularization
+  allows ...
 
 ```
-code here
+library(glmnet)
+library(caret)
+
+rm(list=ls())
+
+data(tecator)
+dim(absorp)               ## IR absorbance at 100 wavelengths
+dim(endpoints)            ## moisture, fat, protein
+
+dat <- cbind(endpoints[, 1], absorp)
+dat <- data.frame(dat)
+names(dat) <- c('y', paste('x', 1:ncol(absorp), sep=''))
+dat[1:5, 1:5]
+
+set.seed(1)
+idx <- 1 : nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=12)
+idx.trn <- folds[[1]]
+
+dat.trn <- dat[idx.trn, ]
+dat.tst <- dat[-idx.trn, ]
+
+dim(dat.trn)
+
+fit.lm.lo <- lm(y ~ 1, data=dat.trn)
+fit.lm.hi <- lm(y ~ ., data=dat.trn)
+fit.lm <- step(fit.lm.lo, scope=list(lower=fit.lm.lo, upper=fit.lm.hi), direction='both', trace=1)
+summary(fit.lm)
+
+f.alpha <- function(alpha.i) {
+  cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=alpha.i)
+}
+
+(alphas <- seq(from=0, to=1, by=0.2))
+set.seed(1)                                      ## for tuning CV randomness
+cvs <- lapply(alphas, f.alpha)
+names(cvs) <- paste('s', alphas, sep='')
+
+par(mfrow=c(2, 3))
+sapply(cvs, plot)
+
+f.fit <- function(cv.i) cv.i$glmnet.fit
+fits <- lapply(cvs, f.fit)
+sapply(fits, plot, xvar='lambda', label=T)
+
+f.coef <- function(idx) {
+  fit.i <- fits[[idx]]
+  cv.i <- cvs[[idx]]
+  coef.i <- coef(fit.i, s=cv.i$lambda.min)
+  as.numeric(coef.i)
+}
+coefs <- sapply(1:length(fits), f.coef)
+colnames(coefs) <- names(cvs)
+round(coefs, 3)
+coef(fit.lm)
+
+apply(coefs, 2, summary)
+summary(coef(fit.lm))
+
+f.prd <- function(idx) {
+  predict(fits[[idx]], newx=as.matrix(dat.tst[, -1]), s=cvs[[idx]]$lambda.min)
+}
+ys <- sapply(1:length(fits), f.prd)
+y.lm <- predict(fit.lm, newdata=dat.tst[, -1]) 
+
+f.mse <- function(y.i) {
+  mean((y.i - dat.tst[, 1]) ^ 2)
+}
+mses <- apply(ys, 2, f.mse)
+mse.lm <- f.mse(y.lm)
 
 ```
 
@@ -56,7 +196,7 @@ code here
 
 ---
 
-### title 3
+### Support vector machines
 
 intro here
 

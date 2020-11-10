@@ -71,11 +71,9 @@ linear methods:
     L1 penalty: lasso
   elastic: 
     mixing parameter
-  svm - should it be separate? e1071
+  svm: e1071
     loss function
     kernel
-  pls
-    vs PCA regression (PCR)
   LDA
     vs logistic regression
     diagonal
@@ -83,7 +81,7 @@ linear methods:
 
 neural networks
 
-unsupervised methods:
+dimension methods:
   k-means
     distance metrics
     k-mediods: install.packages("cluster"); cluster::pam()
@@ -99,6 +97,8 @@ unsupervised methods:
   MDS
     with Euclidean distances == PCA up to rotation
     non-liner dimensional reduction
+  pls
+    vs PCA regression (PCR)
   t-SNE: install.packages("Rtsne")
     KL-divergence
     SNE vs t-SNE

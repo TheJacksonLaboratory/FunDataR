@@ -6,9 +6,9 @@
 
 ### Index
 
-- [Lesson 1 : Check 1](#lesson-1-:-check-1)
-- [Lesson 1 : Check 1](#lesson-1-:-check-2)
-- [Lesson 1 : Check 1](#lesson-1-:-check-3)
+- [Lesson 1 : Check 1](#lesson-1--check-1)
+- [Lesson 1 : Check 1](#lesson-1--check-2)
+- [Lesson 1 : Check 1](#lesson-1--check-3)
 
 ---
 

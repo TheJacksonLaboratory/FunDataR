@@ -1,4 +1,14 @@
-#### Machine learning
+# Fundamentals of computational data analysis using R
+## Machine learning
+#### Contact: mitch.kostich@jax.org
+
+---
+
+### Index
+
+- [Lesson 1 : Check 1](#lesson-1-:-check-1)
+- [Lesson 1 : Check 1](#lesson-1-:-check-2)
+- [Lesson 1 : Check 1](#lesson-1-:-check-3)
 
 ---
 
@@ -279,6 +289,6 @@ apply(rslts, 1, sd) / sqrt(nrow(rslts))
 
 ---
 
-### Lesson 2 : Check 2
+### Lesson 2 : Check 3
 
 

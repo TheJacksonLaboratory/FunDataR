@@ -7,8 +7,10 @@
 ### Index
 
 - [Lesson 1 : Check 1](#lesson-1--check-1)
-- [Lesson 1 : Check 1](#lesson-1--check-2)
-- [Lesson 1 : Check 1](#lesson-1--check-3)
+- [Lesson 1 : Check 2](#lesson-1--check-2)
+- [Lesson 2 : Check 1](#lesson-2--check-1)
+- [Lesson 2 : Check 2](#lesson-2--check-2)
+- [Lesson 2 : Check 3](#lesson-2--check-3)
 
 ---
 
@@ -85,6 +87,8 @@ i.pick <- ks == max(ks[i.good])
 rslt[i.pick, ]
 
 ```
+
+[Return to index](#index)
 
 ---
 
@@ -170,6 +174,10 @@ mean(rslt)                       ## the final performance estimate
 sd(rslt)                         ## standard deviation of performance results
 sd(rslt) / sqrt(length(rslt))    ## standard error of performance estimate
 
+```
+
+[Return to index](#index)
+
 ---
 
 ### Lesson 2 : Check 1
@@ -225,6 +233,8 @@ apply(rslts, 1, mean)
 apply(rslts, 1, sd) / sqrt(length(folds))
 
 ```
+
+[Return to index](#index)
 
 ---
 
@@ -287,8 +297,14 @@ apply(rslts, 1, sd) / sqrt(nrow(rslts))
 
 ```
 
+[Return to index](#index)
+
 ---
 
 ### Lesson 2 : Check 3
 
+[Return to index](#index)
 
+---
+
+## FIN!

@@ -198,10 +198,49 @@ mse.lm <- f.mse(y.lm)
 
 ### Support vector machines
 
-intro here
+intro here; margin maximization; support vectors are observations on margin; 
+  hinge loss maximizes margin; hinge loss zero for correctly classified; 
+  only misclassified points and the support vectors matter. Score cutoffs are
+  -1 and 1, not 0.5; the margin extends from -1 to 1.
 
 ```
-code here
+set.seed(1)
+
+n <- 60
+s1 <- 10
+s2 <- 1
+x1 <- rnorm(n, mean=0, sd=s1)
+x2 <- rnorm(n, mean=0, sd=s1)
+r <- x1^2 + x2^2
+y <- rep('A', n)
+y[r > median(r)] <- 'B'
+x1 <- x1 + rnorm(n, mean=0, sd=s2)
+x2 <- x2 + rnorm(n, mean=0, sd=s2)
+i.A <- y == 'A'
+
+dat <- data.frame(y=y, x1=x1, x2=x2)
+par(mfrow=c(1, 1))
+plot(x=x1, y=x2, type='n')
+points(x1[i.A], x2[i.A], pch='o', col='orangered')
+points(x1[!i.A], x2[!i.A], pch='x', col='magenta')
+
+set.seed(1)
+idx <- 1 : nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=3)
+idx.trn <- folds[[1]]
+
+dat.trn <- dat[idx.trn, ]
+dat.tst <- dat[-idx.trn, ]
+
+cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5)
+
+
+```
+
+```
+library(caret)
+data(dhfr)
+dat <- dhfr
 
 ```
 

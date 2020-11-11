@@ -182,6 +182,33 @@ sd(rslt) / sqrt(length(rslt))    ## standard error of performance estimate
 
 ### Lesson 2 : Check 1
 
+Start with the following dataset, which has 100 extraneous variables added:
+
+```
+rm(list=ls())
+
+set.seed(1)
+dat <- mtcars
+for(i in 1:100) {
+  nom <- paste('s', i, sep='')
+  dat[[nom]] <- rnorm(nrow(dat), 0, 10)
+}
+
+```
+
+Use the example from the end of the last section to conduct a 5-fold cross-validation, 
+  repeated 3-times to compare the MSEs for:
+
+1) a model derived using `lm()` and `step()`, with the scope between `mpg ~ 1` and `mpg ~ .`;
+
+2) a ridge regression model (with lambda tuning per the example) with `mpg` as response and
+   all other variables as predictors;
+
+3) a lasso regression model (with lambda tuning per the example) with `mpg` as response and
+   all other variables as predictors;
+
+Make sure to use the same folds for all three procedures.
+
 ```
 library(glmnet)
 library(caret)
@@ -240,6 +267,8 @@ apply(rslts, 1, sd) / sqrt(length(folds))
 
 ### Lesson 2 : Check 2
 
+Starting with the following dataset (where noise has been added to the predictors):
+
 ```
 library(glmnet)
 library(caret)
@@ -255,9 +284,40 @@ dat <- cbind(endpoints[, 1], dat)
 dat <- data.frame(dat)
 names(dat) <- c('y', paste('x', 1:ncol(absorp), sep=''))
 
+```
+
+Use the example from the end of the last section to set up a 5-fold cross-validation, 
+  repeated 3-times, to compare the MSEs from:
+
+1) a model derived using `lm()` and `step()`, with the scope between `y ~ 1` and `mpg ~ .`;
+
+2) elastic-net models with alpha set to the following values `0, 0.2, 0.4, 0.6, 0.8, 1`, 
+   tuning `lambda` in each case.
+
+Make sure to use the same folds for each model.
+
+```
+library(glmnet)
+library(caret)
+
+rm(list=ls())
+
+data(tecator)
+dat <- absorp
+
+dat <- t(apply(dat, 1, function(v) (v - mean(v)) / sd(v)))
+dat <- t(apply(dat, 1, function(v) v + rnorm(length(v), 0, 0.5)))
+dat <- cbind(endpoints[, 1], dat)
+dat <- data.frame(dat)
+names(dat) <- c('y', paste('x', 1:ncol(absorp), sep=''))
+
+## generate folds:
+
 set.seed(1)
 idx <- 1 : nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=3)
+
+## function for cross-validation: note use of internal functions:
 
 f.cv <- function(idx.trn) {
 

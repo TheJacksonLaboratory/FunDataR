@@ -293,7 +293,7 @@ f.cv <- function(idx.trn) {
 
 rslts <- sapply(folds, f.cv)
 apply(rslts, 1, mean)
-apply(rslts, 1, sd) / sqrt(nrow(rslts))
+apply(rslts, 1, sd) / sqrt(length(folds))
 
 ```
 
@@ -302,6 +302,49 @@ apply(rslts, 1, sd) / sqrt(nrow(rslts))
 ---
 
 ### Lesson 2 : Check 3
+
+```
+library(caret)
+library(pROC)
+library(glmnet)
+library(e1071)
+
+data(dhfr)                        ## from caret
+dat <- dhfr
+
+f.cv <- function(idx.trn) {
+
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+
+  cv.net <- glmnet::cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5, family='binomial')
+  fit.net <- cv.net$glmnet.fit
+  prd.net <- predict(fit.net, newx=as.matrix(dat.tst[, -1]), s=cv.net$lambda.min, type='response')
+  prd.net <- prd.net[, 1]
+
+  cv.svm <- e1071::tune.svm(Y ~ ., data=dat.trn, gamma=2^(-2:2), cost=2^(1:5), probability=T)
+  fit.svm <- cv.svm$best.model
+
+  prd.svm <- predict(fit.svm, newdata=dat.tst[, -1], probability=T)
+  prd.svm <- attr(prd.svm, 'probabilities')[, 'active']
+
+  auc.net <- as.numeric(pROC::roc(dat.tst$Y == 'active', prd.net, direction='>')$auc)
+  auc.svm <- as.numeric(pROC::roc(dat.tst$Y == 'active', prd.svm, direction='<')$auc)
+
+  c(glmnet=auc.net, svm=auc.svm)
+}
+
+set.seed(1)
+idx <- 1 : nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=1)
+
+f.cv(folds[[1]])
+
+(rslts <- sapply(folds, f.cv))
+apply(rslts, 1, mean)
+apply(rslts, 1, sd) / sqrt(length(folds))
+
+```
 
 [Return to index](#index)
 

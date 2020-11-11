@@ -203,20 +203,31 @@ intro here; margin maximization; support vectors are observations on margin;
   only misclassified points and the support vectors matter. Score cutoffs are
   -1 and 1, not 0.5; the margin extends from -1 to 1.
 
-```
-set.seed(1)
+kernel trick example:
 
+```
+library(caret)
+library(glmnet)
+library(e1071)
+library(pROC)
+
+rm(list=ls())
+
+set.seed(1)
 n <- 60
 s1 <- 10
 s2 <- 1
 x1 <- rnorm(n, mean=0, sd=s1)
 x2 <- rnorm(n, mean=0, sd=s1)
+
 r <- x1^2 + x2^2
 y <- rep('A', n)
 y[r > median(r)] <- 'B'
+y <- factor(y)
 x1 <- x1 + rnorm(n, mean=0, sd=s2)
 x2 <- x2 + rnorm(n, mean=0, sd=s2)
 i.A <- y == 'A'
+table(y)
 
 dat <- data.frame(y=y, x1=x1, x2=x2)
 par(mfrow=c(1, 1))
@@ -232,15 +243,74 @@ idx.trn <- folds[[1]]
 dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
 
-cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5)
+cv.net <- glmnet::cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5, family='binomial')
+fit.net <- cv.net$glmnet.fit
+(prd.net <- predict(fit.net, newx=as.matrix(dat.tst[, -1]), s=cv.net$lambda.min, type='response'))
+(prd.net <- prd.net[, 1])
+par(mfrow=c(1, 2))
+plot(cv.net)
+plot(fit.net, xvar='lambda', label=T)
 
+fit.svm1 <- e1071::svm(y ~ ., data=dat.trn, probability=T)
+(prd.svm1 <- predict(fit.svm1, newdata=dat.tst[, -1], probability=T, decision.values=T))
+(prd.svm1 <- attr(prd.svm1, 'probabilities')[, 'A'])
+par(mfrow=c(1, 1))
+plot(fit.svm1, data=dat.trn)      ## color is class; 'x' is support vector
+
+cv.svm <- e1071::tune.svm(y ~ ., data=dat.trn, gamma=2^(-2:2), cost=2^(1:5), probability=T)
+summary(cv.svm)
+plot(cv.svm)
+fit.svm2 <- cv.svm$best.model
+(prd.svm2 <- predict(fit.svm2, newdata=dat.tst[, -1], probability=T, decision.values=T))
+(prd.svm2 <- attr(prd.svm2, 'probabilities')[, 'A'])
+par(mfrow=c(1, 1))
+plot(fit.svm2, data=dat.trn)      ## color is class; 'x' is support vector
+
+pROC::roc(dat.tst$y == 'A', prd.net, direction='<')$auc
+pROC::roc(dat.tst$y == 'A', prd.svm1, direction='<')$auc
+pROC::roc(dat.tst$y == 'A', prd.svm2, direction='<')$auc
+
+prd.net                           ## all predictions identical (similar to the global mean)
 
 ```
 
 ```
 library(caret)
-data(dhfr)
+library(pROC)
+library(glmnet)
+library(e1071)
+
+data(dhfr)                        ## from caret
 dat <- dhfr
+table(dat$Y)
+class(dat$Y)
+
+set.seed(1)
+idx <- 1 : nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=3)
+idx.trn <- folds[[1]]
+
+dat.trn <- dat[idx.trn, ]
+dat.tst <- dat[-idx.trn, ]
+
+cv.net <- glmnet::cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5, family='binomial')
+fit.net <- cv.net$glmnet.fit
+(prd.net <- predict(fit.net, newx=as.matrix(dat.tst[, -1]), s=cv.net$lambda.min, type='response'))
+(prd.net <- prd.net[, 1])
+par(mfrow=c(1, 2))
+plot(cv.net)
+plot(fit.net, xvar='lambda', label=T)
+
+cv.svm <- e1071::tune.svm(Y ~ ., data=dat.trn, gamma=2^(-2:2), cost=2^(1:5), probability=T)
+summary(cv.svm)
+plot(cv.svm)
+fit.svm <- cv.svm$best.model
+
+(prd.svm <- predict(fit.svm, newdata=dat.tst[, -1], probability=T, decision.values=T))
+(prd.svm <- attr(prd.svm, 'probabilities')[, 'active'])
+
+pROC::roc(dat.tst$Y == 'active', prd.net, direction='>')
+pROC::roc(dat.tst$Y == 'active', prd.svm, direction='<')
 
 ```
 

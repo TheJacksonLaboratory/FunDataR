@@ -321,6 +321,10 @@ mse.lm <- f.mse(y.lm)
 
 ```
 
+[Return to index](#index)
+
+---
+
 ### Check your understanding 2
 
 Starting with the following dataset (where noise has been added to the predictors):

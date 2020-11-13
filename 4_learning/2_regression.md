@@ -68,7 +68,7 @@ In the context of linear regression, we can 'stiffen' the model either by reduci
   more consistent. The two most popular approaches for doing this are the closely related **lasso regression** 
   and **ridge regression** methods. Both methods work by altering the fitting criterion for a linear model.
   For instance, ordinary unweighted linear regression selects coefficient values that minimizes the MSE 
-  `mean((y.trn - y.prd) ^ 2`, `y.trn` are the actual values for the response in a training set observations,
+  `mean((y.trn - y.prd) ^ 2`, where `y.trn` are the actual values for the response in a training set observations,
   and `y.prd` are the correspondng values predicted by the model. The lasso instead minimizes the term 
   `mean((y.trn - y.prd) ^ 2) + lambda * sum(abs(beta))`, where `lambda` is a tunable parameter controlling the
   strength of the regularization, and `beta` is the vector of (non-intercept) model coefficients. So the
@@ -227,12 +227,12 @@ Make sure to use the same folds for all three procedures.
 ### Elastic net regularization
 
 Elastic-net regularization bridges the gap between a ridge regression and a lasso regression.
-  Here, we minimize the sum of one term representing how well the model fits the training data
-  (the MSE or the negative log likelihood of the model) and a penalty on the coefficients:
-  `lambda * ((1 - alpha) * sum(beta^2) / 2 + alpha * sum(abs(beta))`. This penalty is a mixture
-  of the lasso and ridge penalties, with the balance controlled by the new tunable parameter
-  `alpha`, which ranges between `0` (corresponding to a pure ridge penalty) and `1` (corresponding
-  to a pure lasso penalty).
+  Here, we minimize the sum of a term representing how well the model fits the training data
+  (the MSE or the negative log likelihood of the model) and another term representing the penalty 
+  on the coefficients: `lambda * ((1 - alpha) * sum(beta^2) / 2 + alpha * sum(abs(beta))`. This 
+  penalty is a mixture of the lasso and ridge penalties, with the balance controlled by the new 
+  tunable parameter `alpha`, which ranges between `0` (corresponding to a pure ridge penalty) 
+  and `1` (corresponding to a pure lasso penalty).
 
 ```
 library(glmnet)
@@ -362,7 +362,7 @@ The support vector machine, or **SVM** has gained great popularity most especial
   classification tasks (where the response is categorical) but can also be used for 
   regression with a continuous response. In the case of classification, SVMs try to 
   **maximize the margin** between the classes. That is, if the classes are perfectly 
-  separable by a continuous curve (surface in higher dimensions, the boundary curve 
+  separable by a continuous curve (surface in higher dimensions), the boundary curve 
   between them is drawn so as to split the two classes correctly in a way that maximizes 
   the distance between the boundary and the observations in either class that lay nearest 
   the boundary. This process results in a few observations in each class that are closest 
@@ -370,19 +370,20 @@ The support vector machine, or **SVM** has gained great popularity most especial
   are called the **support vectors**. Observations that lie on the correct side of the 
   boundary but are beyond the margin have virtually no effect on the fit.
 
-This margin-maximization property of SVMs arises because SVM chooses coefficients that minimize
+This margin-maximization property of SVMs arises because SVMs choose coefficients that minimize
   a **hinge-loss** function. In the two-class case, SVMs assign observations in one class the
   observed response value `y = 1` and the other class `y = -1`. Let's designate the fitted or 
-  predicted values as `f(x)`. For observations that are outside the margin, `abs(f(x)) > 1`,
+  predicted values as `f(x)`. For assignments to the first class, `f(x) > 0` and for assignments
+  to the second class, `f(x) < 0`. For observations that are outside the margin, `abs(f(x)) > 1`,
   while observations on the margin, `abs(f(x)) == 1`, and for observations within the margin, 
   `0 <= abs(f(x)) < 1`. The hinge-loss depends on the product of `y * f(x)`. When the 
   classification is correct, `y` and `f(x)` will be of the same sign, so the product will always 
   be positive. When classification is incorrect, `y` and `f(x)` will be of opposite signs, so 
   the product will be negative. If `y * f(x) >= 1`, then the hinge loss is zero. So correctly 
-  classified points outside the margin cost nothing, regardless of how far from the margin those 
-  observations are. Otherwise, the hinge-loss is `max(0, 1 - y * f(x))`. This will more heavily 
-  penalize incorrectly classified observations, but also penalize (to a lesser extent) correctly 
-  classified observations that lie within the margin.
+  classified points outside the margin cost nothing, regardless of how far from, or close to the 
+  margin those observations are. Otherwise, the hinge-loss is `max(0, 1 - y * f(x))`. This will 
+  more heavily penalize incorrectly classified observations, but also penalize (to a lesser extent) 
+  correctly classified observations that lie within the margin.
 
 SVMs are well known for being able to find very complex high-dimensional surfaces to separate the
   classes. Superficially, this may seem to require calculation of a very large number of polynomial
@@ -394,8 +395,8 @@ SVMs are well known for being able to find very complex high-dimensional surface
   of predictor values for observation `i` and observation `j`, respectively. The expression `exp(z)` 
   is equivalent to the infinite power series: 
   `exp(x) <- 1 + x^1/factorial(1) + x^2/factorial(2) + x^3/factorial(3) + ...`. That is, the
-  Gaussian kernel is equivalent to an infinite-dimensional polynomial, including interactions. This 
-  effectively expands the predictor space to infinite dimensions, often allowing continuous smooth 
+  Gaussian kernel is equivalent to an infinite-dimensional polynomial (which includes interactions). 
+  This effectively expands the predictor space to infinite dimensions, often allowing continuous smooth 
   boundaries that can be specified by linear combinations of the predictors and which effectively 
   separate the classes to be identified, even when no such boundary exists in the original predictor 
   space.
@@ -461,7 +462,7 @@ When tuning an SVM classifier, regardless of what type of kernel we are using, w
   smoother boundary and a wider margin. This can result in misclassification of more observations
   in the training-set, but decrease the potential for overfitting leading to poor performance on
   new observations. Increasing the `cost` forces the boundary to be more flexible in order to weave 
-  in an out between observations in order to keep them on the correct size of the boundary and 
+  in an out between observations in order to keep them on the correct side of the boundary and 
   outside the margin. This tends to produce a better fit to the training-set while increasing the 
   potential for overfitting. The extreme of setting `cost=0` results in no margin at all, while
   the other extreme of setting `cost=Inf` results in a **hard margin**, where no observations are

@@ -363,6 +363,18 @@ apply(rslts, 1, sd) / sqrt(length(folds))
 
 ### Lesson 2 : Check 3
 
+Use the example from the end of the last section to set up a 5-fold cross-validation, 
+  repeated 1-time (because SVM tuning using one thread on a laptop is slow), to compare 
+  the AUCs (make sure to get back class probabilities instead of assignments from `predict()`:
+
+1) an elastic-net logistic regression model with `alpha=0.5` and `lambda` tuning, with 
+   `dhfr[, 1]` as the response and all other columns as the predictors. 
+
+2) an SVM logistic regression model with tuning of gamma within the range `2^(-5:3)`, 
+   and tuning of cost within the range `2^(-3:5)`.
+
+Make sure to use the same folds for each model.
+
 ```
 library(caret)
 library(pROC)
@@ -382,8 +394,8 @@ f.cv <- function(idx.trn) {
   prd.net <- predict(fit.net, newx=as.matrix(dat.tst[, -1]), s=cv.net$lambda.min, type='response')
   prd.net <- prd.net[, 1]
 
-  cv.svm <- e1071::tune.svm(Y ~ ., data=dat.trn, gamma=2^(-2:2), cost=2^(1:5), probability=T)
-  fit.svm <- cv.svm$best.model
+  cv.svm <- e1071::tune.svm(Y ~ ., data=dat.trn, gamma=2^(-5:3), cost=2^(-3:5), probability=F)
+  fit.svm <- e1071::svm(Y ~ ., data=dat.trn, probability=T, gamma=cv.svm$best.parameters['gamma'], cost=cv.svm$best.parameters['cost'])
 
   prd.svm <- predict(fit.svm, newdata=dat.tst[, -1], probability=T)
   prd.svm <- attr(prd.svm, 'probabilities')[, 'active']

@@ -352,19 +352,158 @@ Use the example from the end of the last section to set up a 5-fold cross-valida
 
 Make sure to use the same folds for each model.
 
-
 [Return to index](#index)
 
 ---
 
 ### Support vector machines
 
-intro here; margin maximization; support vectors are observations on margin; 
-  hinge loss maximizes margin; hinge loss zero for correctly classified; 
-  only misclassified points and the support vectors matter. Score cutoffs are
-  -1 and 1, not 0.5; the margin extends from -1 to 1.
+The support vector machine, or **SVM** has gained great popularity most especially for 
+  classification tasks (where the response is categorical) but can also be used for 
+  regression with a continuous response. In the case of classification, SVMs try to 
+  **maximize the margin** between the classes. That is, if the classes are perfectly 
+  separable by a continuous curve (surface in higher dimensions, the boundary curve 
+  between them is drawn so as to split the two classes correctly in a way that maximizes 
+  the distance between the boundary and the observations in either class that lay nearest 
+  the boundary. This process results in a few observations in each class that are closest 
+  to the boundary determining the shape and positioning of the boundary. These observations 
+  are called the **support vectors**. Observations that lie on the correct side of the 
+  boundary but are beyond the margin have virtually no effect on the fit.
 
-kernel trick example:
+This margin-maximization property of SVMs arises because SVM chooses coefficients that minimize
+  a **hinge-loss** function. In the two-class case, SVMs assign observations in one class the
+  observed response value `y = 1` and the other class `y = -1`. Let's designate the fitted or 
+  predicted values as `f(x)`. For observations that are outside the margin, `abs(f(x)) > 1`,
+  while observations on the margin, `abs(f(x)) == 1`, and for observations within the margin, 
+  `0 <= abs(f(x)) < 1`. The hinge-loss depends on the product of `y * f(x)`. When the 
+  classification is correct, `y` and `f(x)` will be of the same sign, so the product will always 
+  be positive. When classification is incorrect, `y` and `f(x)` will be of opposite signs, so 
+  the product will be negative. If `y * f(x) >= 1`, then the hinge loss is zero. So correctly 
+  classified points outside the margin cost nothing, regardless of how far from the margin those 
+  observations are. Otherwise, the hinge-loss is `max(0, 1 - y * f(x))`. This will more heavily 
+  penalize incorrectly classified observations, but also penalize (to a lesser extent) correctly 
+  classified observations that lie within the margin.
+
+SVMs are well known for being able to find very complex high-dimensional surfaces to separate the
+  classes. Superficially, this may seem to require calculation of a very large number of polynomial
+  terms and interaction terms, which would be computationally very expensive. However, SVMs
+  (as well as some other classification algorithms) use the **kernel trick** to avoid explicit
+  expansion of the predictor set. Instead, they use a **Gaussian kernel** to generate the equivalent
+  higher-order predictor space. The Gaussian kernel is essentially a weighting function that is
+  defined by `K(x.i, x.j) <- exp(-(x.i - x.j)^2 / 2 * gamma)`, where `x.i` and `x.j` are the vectors
+  of predictor values for observation `i` and observation `j`, respectively. The expression `exp(z)` 
+  is equivalent to the infinite power series: 
+  `exp(x) <- 1 + x^1/factorial(1) + x^2/factorial(2) + x^3/factorial(3) + ...`. That is, the
+  Gaussian kernel is equivalent to an infinite-dimensional polynomial, including interactions. This 
+  effectively expands the predictor space to infinite dimensions, often allowing continuous smooth 
+  boundaries that can be specified by linear combinations of the predictors and which effectively 
+  separate the classes to be identified, even when no such boundary exists in the original predictor 
+  space.
+
+For instance, let's generate the classic **donut classification** problem where we try to separate
+  classes that are radially distributed. In the raw feature space, the boundary would need to be a 
+  circle, and no effective separation can be achieved by a line in the original feature space of 
+  `x1` and `x2`. But by squaring either `x1` or `x2`, you get closer to a distribution of the data
+  that can be separated by a linear boundary. Many of the data points can be separated, but some 
+  will not be separable by a line. If we square both `x1` and `x2` the distribution of the two classes 
+  becomes even more clearly separable by a line. If we were to add more higher-order components, 
+  we would eventually arrive in a space where the two classes can readily be separated by what looks
+  like a line in the higher-order predictor space.
+
+```
+rm(list=ls())
+
+set.seed(1)
+n <- 60
+s1 <- 10
+s2 <- 1
+x1 <- rnorm(n, mean=0, sd=s1)
+x2 <- rnorm(n, mean=0, sd=s1)
+
+r <- x1^2 + x2^2
+y <- rep('A', n)
+y[r > median(r)] <- 'B'
+y <- factor(y)
+i.A <- y == 'A'
+table(y)
+
+dat <- data.frame(y=y, x1=x1, x2=x2)
+
+par(mfrow=c(2, 2))
+
+## no way to draw a linear boundary:
+plot(x=x1, y=x2, type='n')
+points(x1[i.A], x2[i.A], pch='o', col='orangered')
+points(x1[!i.A], x2[!i.A], pch='x', col='magenta')
+
+## closer to splittable:
+plot(x=x1^2, y=x2, type='n', log='x')
+points(x1[i.A]^2, x2[i.A], pch='o', col='orangered')
+points(x1[!i.A]^2, x2[!i.A], pch='x', col='magenta')
+
+## similar to last:
+plot(x=x1, y=x2^2, type='n', log='y')
+points(x1[i.A], x2[i.A]^2, pch='o', col='orangered')
+points(x1[!i.A], x2[!i.A]^2, pch='x', col='magenta')
+
+## a curve can now split:
+plot(x=x1^2, y=x2^2, type='n', log='xy')
+points(x1[i.A]^2, x2[i.A]^2, pch='o', col='orangered')
+points(x1[!i.A]^2, x2[!i.A]^2, pch='x', col='magenta')
+
+``` 
+
+When tuning an SVM classifier, regardless of what type of kernel we are using, we can control
+  the flexibility of the model using the `cost` parameter, which defaults to `cost=1`. This
+  parameter controls the flexibility of the model, balancing how well the model performs
+  on the training data against the potential for overfitting. Decreasing `cost` penalizes 
+  misclassifications and observations within the margin less. Lower costs tend to produce a 
+  smoother boundary and a wider margin. This can result in misclassification of more observations
+  in the training-set, but decrease the potential for overfitting leading to poor performance on
+  new observations. Increasing the `cost` forces the boundary to be more flexible in order to weave 
+  in an out between observations in order to keep them on the correct size of the boundary and 
+  outside the margin. This tends to produce a better fit to the training-set while increasing the 
+  potential for overfitting. The extreme of setting `cost=0` results in no margin at all, while
+  the other extreme of setting `cost=Inf` results in a **hard margin**, where no observations are
+  allowed to be on the wrong side of the boundary or within the margin. When tuning, a reasonable
+  default search range for the `cost` might be `10^(-3:8)`.
+
+When tuning an SVM classifier with a Gaussian kernel, we can also tune the **bandwidth** of the 
+  kernel, which corresponds to the `gamma` parameter in the definition of the Gaussian kernel. 
+  This bandwidth dictates how far from a support vector observation the influence of that observation
+  reaches. Higher `gamma` values (the default is `gamma=1/p`, where `p` is the number of predictors)
+  result in higher influence of individual support-vector observations, which encourages a more
+  flexible boundary and incurrs more danger of overfitting. Smaller `gamma` settings reduce the
+  influence of individual support-vectors, resulting in a smoother boundary. A reasonable default
+  search range when tuning `gamma` might be `10^(-8:3)`.
+
+Another setting of potential interest is the `class.weights`, which regulates the relative influence
+  of observations in the two classes on the fit. This is an important setting when the classes are
+  unbalanced, that is, when there are more observations in one class than the other. In this case,
+  SVM will tend to favor correct classification of the larger class at the expense of misclassifications 
+  of members of the smaller classes. If we set `class.weights='inverse'`, the will weight each 
+  observation based on its respective class size in a way that offsets this tendency.
+
+The `cachesize` argument, specified in megabytes (default `cachesize=40`, or 40 MB), determines the
+  amount of memory allotted to caching intermediate reusable results from the calculations. If you
+  have many observations, this will often not be enough to hold all the needed intermediate results
+  forcing their re-calculation and slowing down the fitting substantially. So it is prudent to
+  try and increase this to at least `cachesize=500`.
+
+In order to evaluate classifier performance using a measure like AUC, we need to have access to 
+  class assignment probabilities from the classifier, not just the final class labels. By default,
+  the SVM classifier does not return a probability. However, we can get the needed probabilities
+  by setting `probability=T`. In this case, a computationally expensive procedure is used to estimate
+  the probabilities. If you are tuning parameters, but want class probabilities from the final model, 
+  it may be better to do the tuning with `probability=F`, then once the tuned values of `gamma` and 
+  `cost` are found, refit a final model with those parameter settings and `probability=T`.
+
+Some implementations of the SVM integrate the ideas of the elasticnet regularization into the 
+  hinge loss, so that a ridge-like (or, less often, a lasso-like) penalty is attached to the magnitude 
+  of the coefficients. Similarly, the kernel trick can be applied to techniques other than SVMs in order
+  to find effective class-separating surfaces in higher dimensions.
+
+Here is an example of the kernel-trick in action:
 
 ```
 library(caret)
@@ -373,6 +512,8 @@ library(e1071)
 library(pROC)
 
 rm(list=ls())
+
+## generate some donut-like classes:
 
 set.seed(1)
 n <- 60
@@ -396,6 +537,8 @@ plot(x=x1, y=x2, type='n')
 points(x1[i.A], x2[i.A], pch='o', col='orangered')
 points(x1[!i.A], x2[!i.A], pch='x', col='magenta')
 
+## generate a hold-out test-set:
+
 set.seed(1)
 idx <- 1 : nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=3)
@@ -404,25 +547,31 @@ idx.trn <- folds[[1]]
 dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
 
+## fit an elasticnet model (alpha=0.5, midway between lasso and ridge):
+
 cv.net <- glmnet::cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5, family='binomial')
 fit.net <- cv.net$glmnet.fit
 (prd.net <- predict(fit.net, newx=as.matrix(dat.tst[, -1]), s=cv.net$lambda.min, type='response'))
-(prd.net <- prd.net[, 1])
+(prd.net <- prd.net[, 1])         ## same prediction for everything (like intercept-only)
 par(mfrow=c(1, 2))
 plot(cv.net)
 plot(fit.net, xvar='lambda', label=T)
 
+## basic fitting of an SVM: 
+
 fit.svm1 <- e1071::svm(y ~ ., data=dat.trn, probability=T)
-(prd.svm1 <- predict(fit.svm1, newdata=dat.tst[, -1], probability=T, decision.values=T))
+(prd.svm1 <- predict(fit.svm1, newdata=dat.tst[, -1], probability=T))
 (prd.svm1 <- attr(prd.svm1, 'probabilities')[, 'A'])
 par(mfrow=c(1, 1))
 plot(fit.svm1, data=dat.trn)      ## color is class; 'x' is support vector
 
-cv.svm <- e1071::tune.svm(y ~ ., data=dat.trn, gamma=2^(-2:2), cost=2^(1:5), probability=T)
+## Tuning SVM gamma and cost by CV:
+
+cv.svm <- e1071::tune.svm(y ~ ., data=dat.trn, gamma=2^(-5:3), cost=2^(-3:5), probability=T)
 summary(cv.svm)
 plot(cv.svm)
 fit.svm2 <- cv.svm$best.model
-(prd.svm2 <- predict(fit.svm2, newdata=dat.tst[, -1], probability=T, decision.values=T))
+(prd.svm2 <- predict(fit.svm2, newdata=dat.tst[, -1], probability=T))
 (prd.svm2 <- attr(prd.svm2, 'probabilities')[, 'A'])
 par(mfrow=c(1, 1))
 plot(fit.svm2, data=dat.trn)      ## color is class; 'x' is support vector
@@ -435,7 +584,9 @@ prd.net                           ## all predictions identical (similar to the g
 
 ```
 
-An example in high dimensional space:
+Now we will work a more typical example with many input predictors. The `caret::dhfr` dataset 
+  includes 228 molecular descriptors for 325 chemical compounds, along with a categorical
+  response variable indicating if the compound is a dihydrofolate reductase inhibitor:
 
 ```
 library(caret)
@@ -448,6 +599,8 @@ dat <- dhfr
 table(dat$Y)
 class(dat$Y)
 
+## generate hold-out test-set:
+
 set.seed(1)
 idx <- 1 : nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=3)
@@ -455,6 +608,8 @@ idx.trn <- folds[[1]]
 
 dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
+
+## elasticnet fit (tuning lambda):
 
 cv.net <- glmnet::cv.glmnet(x=as.matrix(dat.trn[, -1]), y=dat.trn[, 1], alpha=0.5, family='binomial')
 fit.net <- cv.net$glmnet.fit
@@ -464,12 +619,19 @@ par(mfrow=c(1, 2))
 plot(cv.net)
 plot(fit.net, xvar='lambda', label=T)
 
-cv.svm <- e1071::tune.svm(Y ~ ., data=dat.trn, gamma=2^(-2:2), cost=2^(1:5), probability=T)
+## svm tuning gamma and cost (with probability=F):
+
+cv.svm <- e1071::tune.svm(Y ~ ., data=dat.trn, gamma=2^(-5:3), cost=2^(-3:5), probability=F)
 summary(cv.svm)
 plot(cv.svm)
-fit.svm <- cv.svm$best.model
+cv.svm$best.parameters
+cv.svm$best.parameters['gamma']
+cv.svm$best.parameters['cost']
 
-(prd.svm <- predict(fit.svm, newdata=dat.tst[, -1], probability=T, decision.values=T))
+## fit final model (with probability=T):
+
+fit.svm <- e1071::svm(Y ~ ., data=dat.trn, probability=T, gamma=cv.svm$best.parameters['gamma'], cost=cv.svm$best.parameters['cost'])
+(prd.svm <- predict(fit.svm, newdata=dat.tst[, -1], probability=T))
 (prd.svm <- attr(prd.svm, 'probabilities')[, 'active'])
 
 pROC::roc(dat.tst$Y == 'active', prd.net, direction='>')
@@ -500,8 +662,8 @@ Use the example from the end of the last section to set up a 5-fold cross-valida
 1) an elastic-net logistic regression model with `alpha=0.5` and `lambda` tuning, with 
    `dhfr[, 1]` as the response and all other columns as the predictors. 
 
-2) an SVM logistic regression model with tuning of gamma within the range `2^(-2:2)`, 
-   and tuning of cost within the range `2^(1:5)`.
+2) an SVM logistic regression model with tuning of gamma within the range `2^(-5:3)`, 
+   and tuning of cost within the range `2^(-3:5)`.
 
 Make sure to use the same folds for each model.
 

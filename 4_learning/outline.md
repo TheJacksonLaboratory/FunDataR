@@ -105,6 +105,7 @@ dimension methods:
     for clustering
     for dimension reduction preprocessing
   UMAP: install.packages("umap")
+  random forest proximity
 
 
 #######################################################################

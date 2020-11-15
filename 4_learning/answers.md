@@ -11,6 +11,9 @@
 - [Lesson 2 : Check 1](#lesson-2--check-1)
 - [Lesson 2 : Check 2](#lesson-2--check-2)
 - [Lesson 2 : Check 3](#lesson-2--check-3)
+- [Lesson 3 : Check 1](#lesson-3--check-1)
+- [Lesson 3 : Check 2](#lesson-3--check-2)
+- [Lesson 3 : Check 3](#lesson-3--check-3)
 
 ---
 

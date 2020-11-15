@@ -46,6 +46,13 @@ rpart.control(`cp=0.01`): primary complexity parameter; split must decrease lack
 For regression, splitting criterion becomes maximizing reduction in total sums-of-squared residuals in sons -- pick variable, cutoff, and 
   conditional mean so as to minimize sums-of-squares. Typically has much lower granularity than regression methods. 
 
+McNemar's test: is the proportion of errors different for class A vs class B. Equivalent to a sign test on dichotomous data. Want a 
+  p-value > cutoff. Can also use to compare two classifiers trained + tested with same datasets. Here, row1=nobs w/ classifier1 correct; row2=nobs
+  w/ classifier1 wrong; col1=nobs w/ classifier2 correct; col2=nobs w/ classifer2 wrong; Only the active/inactive and inactive/active (misclass) 
+  counts are used in the calculation, so this is what is being compared. Typically like to have sum of counts in these two cells > 25!!! Otherwise
+  a exact binomial test can be used. The null is about whether the types of errors are equal in probability. e.g. p(false.pos) == p(false.neg) for 
+  one classier; for 2 classifiers, compares (classifier1 wrong + classifer2 right cell) to (classifier1 right + classifier2 wrong cell) w/  
+  null being that the proportion of errors (based on test-set) for the two classifiers is the same.
 
 ```
 library(rpart)
@@ -63,7 +70,7 @@ summary(dat)                      ## note the NAs (missing values)
 head(dat)
 nrow(dat)
 
-## split into training and test-set in way can functionalize for CV:
+## split into training and test-set in way amenable to CV:
 set.seed(1)
 idx <- 1:nrow(dat)
 folds <- caret::createMultiFolds(idx, k=5, times=12)
@@ -184,6 +191,9 @@ with many extraneous variables, need large m to ensure an informative variable i
 smaller m.try leads to more decorrelated trees. also leads to variable importances being more 
   similar, as lower-importance variables have an improved chance of being selected.
 
+partial dependence: generate predictions for training-set observations, varying the value of the
+  variable of interest. Plot relationship between predictions and sliding value of variable.
+
 ```
 library(caret)
 library(pROC)
@@ -196,6 +206,7 @@ rm(list=ls())
 data(dhfr)                        ## from caret
 dat <- dhfr
 class(dat)
+dim(dat)
 table(dat$Y)
 class(dat$Y)
 
@@ -212,7 +223,8 @@ names(dat.trn)[1]
 
 ## mtry tuning using out-of-bag error:
 
-(tune.fit <- tuneRF(x=dat.trn[, -1], y=dat.trn$Y, stepFactor=0.5, improve=0.01, ntreeTry=1000, trace=T, plot=T, doBest=F, replace=T))
+(tune.fit <- tuneRF(x=dat.trn[, -1], y=dat.trn$Y, stepFactor=0.5, improve=0.01, 
+  ntreeTry=1000, trace=T, plot=T, doBest=F, replace=T))
 class(tune.fit)
 (score.best <- min(tune.fit[, 'OOBError']))
 (i.best <- tune.fit[, 'OOBError'] == score.best)
@@ -330,6 +342,12 @@ library(gbm)
 
 data(dhfr)                        ## from caret
 dat <- dhfr
+class(dat)
+dim(dat)
+table(dat$Y)
+class(dat$Y)                      ## need this to be 0/1
+
+dat$Y <- as.numeric(dat$Y == 'active')
 table(dat$Y)
 class(dat$Y)
 
@@ -343,35 +361,45 @@ idx.trn <- folds[[1]]
 dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
 
-fit <- gbm::gbm(y ~ ., data=dat.trn, distribution="bernoulli", 
+fit <- gbm::gbm(Y ~ ., data=dat.trn, distribution="bernoulli", 
   n.trees=500, shrinkage=0.01, interaction.depth=3, n.minobsinnode=10, 
-  cv.folds=5, keep.data=F, verbose=T, n.cores=2)
+  cv.folds=5, keep.data=F, verbose=T, n.cores=1)
 
-## plot cv:
+fit
+class(fit)
+is.list(fit)
+names(fit)
 
-## best stopping point:
+## best stopping point; in plot, training error black, cv error green:
+
 (n.trees.best <- gbm.perf(fit, method="cv"))
 summary(fit, n.trees=1)                ## first tree
 summary(fit, n.trees=n.trees.best)     ## final series of trees
 
 ## probabilistic predictions:
-prd <- predict(fit, newdata=dat.tst, n.trees=n.trees.best, type="response")
 
-## importance plots, can be multivariate; can specify variables by integer index or name:
-plot(fit, i.var="x1", n.trees=n.trees.best)  
-plot(fit, i.var=1:2, n.trees=n.trees.best)
-plot(fit, i.var=1:3, n.trees=n.trees.best)
-
-## predict:
-predict(fit, newdata=dat.tst, n.trees=n.trees.best, 
+prd.tst <- predict(fit, newdata=dat.tst, n.trees=n.trees.best, type="response")
+prd.trn <- predict(fit, newdata=dat.trn, n.trees=n.trees.best, type="response")
 
 ## evaluate:
 
-roc.trn <- pROC::roc(dat.trn$pgstat == 'yes', prd.trn, direction='<')
+roc.tst <- pROC::roc(dat.tst$Y, prd.tst, direction='<')
+roc.tst$auc
+pROC::ci.auc(roc.tst)
+prd.class.tst <- (prd.tst > 0.5) + 1
+(cnf.tst <- caret::confusionMatrix(factor(dat.tst$Y + 1), factor(prd.class.tst)))
+
+roc.trn <- pROC::roc(dat.trn$Y, prd.trn, direction='<')
 roc.trn$auc
 pROC::ci.auc(roc.trn)
-prd.class.trn <- c('no', 'yes')[(prd.trn > 0.5) + 1]
-(cnf.trn <- caret::confusionMatrix(dat.trn$pgstat, factor(prd.class.trn)))
+prd.class.trn <- (prd.trn > 0.5) + 1
+(cnf.trn <- caret::confusionMatrix(factor(dat.trn$Y + 1), factor(prd.class.trn)))
+
+## importance plots, can be multivariate; can specify variables by integer index or name:
+
+plot(fit, i.var="x1", n.trees=n.trees.best)  
+plot(fit, i.var=1:2, n.trees=n.trees.best)
+plot(fit, i.var=1:3, n.trees=n.trees.best)
 
 ```
 

@@ -422,4 +422,197 @@ apply(rslts, 1, sd) / sqrt(length(folds))
 
 ---
 
+### Lesson 3 : Check 1
+
+Starting with the following dataset:
+
+```
+library(rpart)
+library(caret)
+
+rm(list=ls())
+
+## reformat prostate cancer recurrence dataset:
+dat <- rpart::stagec
+dat$pgstat <- c('no', 'yes')[dat$pgstat + 1]
+dat$pgstat <- factor(dat$pgstat)  ## character -> factor
+dat$pgtime <- NULL                ## drop column
+
+```
+
+Using 5-fold cross-validation repeated 12 times, generate a point estimate of the AUC
+  for an `rpart` classification tree with formula `pgstat ~ .` where the `cp` complexity
+  parameter is chosen using an inner cross-validation loop. Hint: you don't need to
+  do the inner cross-validation explicitly -- `rpart()` does it for you.
+
+```
+library(rpart)
+library(caret)
+
+rm(list=ls())
+
+## reformat prostate cancer recurrence dataset:
+
+dat <- rpart::stagec
+dat$pgstat <- c('no', 'yes')[dat$pgstat + 1]
+dat$pgstat <- factor(dat$pgstat)  ## character -> factor
+dat$pgtime <- NULL                ## drop column
+
+f.cv <- function(idx.trn) {
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+
+  ## fit the model, tuning 'cp' complexity parameter by (10-fold) CV:
+  fit0 <- rpart(pgstat ~ ., data=dat.trn, method='class')
+  tbl <- fit0$cptable
+
+  ## prune tree using 'cp' value chosen from tuning:
+  idx.bst <- which.min(tbl[, 'CP'])
+  fit <- prune(fit0, cp=tbl[idx.bst, 'CP'])
+
+  ## make (probabilistic) predictions and take a look:
+  prd.tst <- predict(fit, newdata=dat.tst, type='prob') 
+  prd.tst <- prd.tst[, 'yes']
+  roc.tst <- pROC::roc(dat.tst$pgstat == 'yes', prd.tst, direction='<')
+  roc.tst$auc
+}
+
+set.seed(1)
+idx <- 1:nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=12)
+
+## test function:
+f.cv(folds[[1]])
+
+rslts <- sapply(folds, f.cv)
+mean(rslts)
+sum(rslts <= 0.5)
+sum(rslts <= 0.5) / length(rslts)
+
+```
+
+[Return to index](#index)
+
+---
+
+### Lesson 3 : Check 2
+
+Use the `dhfr` data from the `caret` package to perform 5-fold cross-validation repeated twice to 
+  estimate the AUC for a model with `Y` as categorical response and the rest of the features as
+  predictors. Tune the `mtry` parameter using the `tuneRF()` function, specifying `stepFactor=0.5` 
+  and `improve=0.01`.
+
+```
+library(caret)
+library(pROC)
+library(randomForest)
+
+## data:
+
+rm(list=ls())
+data(dhfr)                        ## from caret
+dat <- dhfr
+
+f.cv <- function(idx.trn) {
+
+  ## split into training and test-sets:
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+
+  ## tuning mtry:
+  tune.fit <- tuneRF(x=dat.trn[, -1], y=dat.trn$Y, stepFactor=0.5, improve=0.01, 
+    ntreeTry=1000, trace=F, plot=F, doBest=F, replace=T)
+
+  score.best <- min(tune.fit[, 'OOBError'])
+  i.best <- tune.fit[, 'OOBError'] == score.best
+  mtry.best <- min(tune.fit[i.best, 'mtry'])
+
+  ## fit with selected mtry:
+  fit <- randomForest(x=dat.trn[, -1], y=dat.trn$Y, mtry=mtry.best, ntree=1000, importance=T, replace=T)
+
+  ## probabilistic predictions:
+  prd.tst <- predict(fit, newdata=dat.tst[, -1], type='prob')
+  prd.tst <- prd.tst[, 'active']
+
+  ## evaluation: 
+  roc.tst <- pROC::roc(dat.tst$Y == 'active', prd.tst, direction='<')
+  roc.tst$auc
+}
+
+set.seed(1)
+idx <- 1 : nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=2)
+
+rslts <- sapply(folds, f.cv)
+mean(rslts)
+range(rslts)
+
+```
+
+[Return to index](#index)
+
+---
+
+### Lesson 3 : Check 3
+
+Starting with the following data:
+
+```
+library(rpart)
+
+rm(list=ls())
+
+## reformat prostate cancer recurrence dataset:
+dat <- rpart::stagec
+dat$pgtime <- NULL                ## drop column
+
+```
+
+Use 5-fold cross-validation, repeated three times to estimate the AUC of a gradient boosted 
+  tree model, built using `gbm()` with `shrinkage=0.01`, `interaction.depth=2`, and 
+  `n.minobsinnode=5`. Use an inner 5-fold cross-validation loop to select the number of
+  iterations. Hint: the `gbm()` function does the inner-loop parameter tuning for you.
+
+```
+library(caret)
+library(gbm)
+
+f.cv <- function(idx.trn) {
+
+  ## split data into training and test-sets:
+
+  dat.trn <- dat[idx.trn, ]
+  dat.tst <- dat[-idx.trn, ]
+
+  ## fit gbm model to training-set:
+
+  fit <- gbm::gbm(pgstat ~ ., data=dat.trn, distribution="bernoulli", 
+    n.trees=1000, shrinkage=0.01, interaction.depth=2, n.minobsinnode=5, 
+    cv.folds=5, keep.data=F, verbose=T, n.cores=1)
+
+  ## best stopping point; no plots needed:
+
+  n.trees.best <- gbm.perf(fit, method="cv", plot.it=F)
+
+  ## evaluate probabilistic predictions:
+
+  prd <- predict(fit, newdata=dat.tst, n.trees=n.trees.best, type="response")
+  roc.tst <- pROC::roc(dat.tst$pgstat, prd, direction='<')
+  roc.tst$auc
+}
+
+set.seed(1)
+idx <- 1 : nrow(dat)
+folds <- caret::createMultiFolds(idx, k=5, times=3)
+
+rslts <- sapply(folds, f.cv)
+mean(rslts)
+range(rslts)
+
+```
+
+[Return to index](#index)
+
+---
+
 ## FIN!

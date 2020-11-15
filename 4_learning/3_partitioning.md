@@ -131,7 +131,26 @@ prd.class.trn <- c('no', 'yes')[(prd.trn > 0.5) + 1]
 
 ### Check your understanding 1
 
-1) question here
+Starting with the following:
+
+```
+library(rpart)
+library(caret)
+
+rm(list=ls())
+
+## reformat prostate cancer recurrence dataset:
+dat <- rpart::stagec
+dat$pgstat <- c('no', 'yes')[dat$pgstat + 1]
+dat$pgstat <- factor(dat$pgstat)  ## character -> factor
+dat$pgtime <- NULL                ## drop column
+
+```
+
+Using 5-fold cross-validation repeated 12 times, generate a point estimate of the AUC
+  for an `rpart` classification tree with formula `pgstat ~ .` where the `cp` complexity
+  parameter is chosen using an inner cross-validation loop. Hint: you don't need to
+  do the inner cross-validation explicitly -- `rpart()` does it for you.
 
 [Return to index](#index)
 
@@ -285,7 +304,10 @@ for(idx in 1:6) {
 
 ### Check your understanding 2
 
-1) question here
+Use the `dhfr` data from the `caret` package to perform 5-fold cross-validation repeated twice to 
+  estimate the AUC for a model with `Y` as categorical response and the rest of the features as
+  predictors. Tune the `mtry` parameter using the `tuneRF()` function, specifying `stepFactor=0.5` 
+  and `improve=0.01`.
 
 [Return to index](#index)
 
@@ -362,7 +384,7 @@ dat.trn <- dat[idx.trn, ]
 dat.tst <- dat[-idx.trn, ]
 
 fit <- gbm::gbm(Y ~ ., data=dat.trn, distribution="bernoulli", 
-  n.trees=500, shrinkage=0.01, interaction.depth=3, n.minobsinnode=10, 
+  n.trees=1000, shrinkage=0.01, interaction.depth=3, n.minobsinnode=10, 
   cv.folds=5, keep.data=F, verbose=T, n.cores=1)
 
 fit
@@ -378,7 +400,7 @@ summary(fit, n.trees=n.trees.best)     ## final series of trees
 
 ## probabilistic predictions:
 
-prd.tst <- predict(fit, newdata=dat.tst, n.trees=n.trees.best, type="response")
+(prd.tst <- predict(fit, newdata=dat.tst, n.trees=n.trees.best, type="response"))
 prd.trn <- predict(fit, newdata=dat.trn, n.trees=n.trees.best, type="response")
 
 ## evaluate:
@@ -397,9 +419,13 @@ prd.class.trn <- (prd.trn > 0.5) + 1
 
 ## importance plots, can be multivariate; can specify variables by integer index or name:
 
-plot(fit, i.var="x1", n.trees=n.trees.best)  
-plot(fit, i.var=1:2, n.trees=n.trees.best)
-plot(fit, i.var=1:3, n.trees=n.trees.best)
+smry <- summary(fit, n.trees=n.trees.best)
+smry$var[1:6]
+
+plot(fit, i.var=smry$var[1], n.trees=n.trees.best)  
+plot(fit, i.var=smry$var[2], n.trees=n.trees.best)  
+plot(fit, i.var=smry$var[3], n.trees=n.trees.best)  
+plot(fit, i.var=smry$var[4], n.trees=n.trees.best)  
 
 ```
 
@@ -409,7 +435,23 @@ plot(fit, i.var=1:3, n.trees=n.trees.best)
 
 ### Check your understanding 3
 
-1) question here
+Starting with the following data:
+
+```
+library(rpart)
+
+rm(list=ls())
+
+## reformat prostate cancer recurrence dataset:
+dat <- rpart::stagec
+dat$pgtime <- NULL                ## drop column
+
+```
+
+Use 5-fold cross-validation, repeated three times to estimate the AUC of a gradient boosted 
+  tree model, built using `gbm()` with `shrinkage=0.01`, `interaction.depth=2`, and 
+  `n.minobsinnode=5`. Use an inner 5-fold cross-validation loop to select the number of
+  iterations. Hint: the `gbm()` function does the inner-loop parameter tuning for you.
 
 [Return to index](#index)
 

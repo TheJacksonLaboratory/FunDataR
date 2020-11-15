@@ -21,38 +21,56 @@
 
 ### Trees
 
-intro here; trees are great for explaining, but tend to perform relatively poorly for
-  prediction. Although have low bias (as long as they are grown sufficiently tall), they 
-  have high variance.
+Decision trees are a way of making predictions about continuous (regression) or categorical
+  (classification) response variables based on a series of `if()` conditionals. These 
+  conditionals are organized in a tree-like hierarchy, with the sequence of conditionals applied
+  to an observation being a function of the predictor values for that observation. Each 
+  conditional can be represented as a node in a tree. The outcome of the conditional test at 
+  a node determines which branch coming out of that node the observation will be passed to. Each 
+  conditional typically involves a test on a single variable and produces one of two outcomes, 
+  such as `TRUE` or `FALSE`. So each node produces a two-way or binary split. Trees tend to be
+  a great way of representing the logic used to assign response values. However, they tend to
+  perform poorly for prediction. Although decision trees can be unbiased if they are allowed
+  to grow large enough, they tend to have very high variance due to a tendency to overfit the
+  training-set.
 
-input data successively split in a way that decreases **impurity**,
-  `f(p)`, `f(0) == f(1) == 0`; 
-  a commonly used metric is the **Gini Index**, `f(p.i) = p.i * (1 - p.i)`, where `p.i` is 
-  proportion of observations input to the node that belong to class `i`. Observations w/ 
-  missing values for the split variable are not counted in the impurity calculation. Node impurity is
-  `sum.over.i(f(p.i))`, or the sum of class impurities. Find variable and split value that
-  minimize the impurity in each of the two output branches. 
+Fitting a tree involves deciding which variables to use for splitting, the cutoff to use for
+  splitting, and the optimal positions within the tree for each split. The way this is usually 
+  done in practice is to successively split the data in a way that decreases some sort of loss
+  metric. For classification, fitting aims to decrease the class **impurity** of the set of
+  observations in each of the two branches coming out of the node relative to the impurity 
+  measure of the set of observations coming into the node. There are several possible metrics 
+  for impurity. They are similar in that they all assign a loss of zero when the the set of
+  observations includes only one class, but differ in how severely they penalize mixed class
+  compositions. One very commonly used metric is the **Gini Index**, `f(p.i) = p.i * (1 - p.i)`, 
+  where `p.i` is proportion of observations input to the node that belong to class `i`. 
+  Observations w/ missing values for the split variable are not counted in the impurity 
+  calculation. Node impurity is `sum.over.i(f(p.i))`, or the sum of class impurities. For 
+  regression, the loss is typically something like the mean-squared-error. Tree 
+  fitting proceeds one node at a time, finding the variable and split value that most minimizes 
+  the loss in each of the two branches coming out of the node. The process terminates when
+  some minimal node size or level of node loss is achieved. This results in a **leaf node** or 
+  **terminal node**, which is where the final response value prediction value is assigned. 
+  For classification, the most frequently occurring class among the training-set passing to the
+  terminal node is assigned to any new observations that arrive at this node. For regression, 
+  the mean of the response in the training-set observations that passed into this node is used
+  as the predicted value for new observations destined for this node.
 
-The training-set observations are used to build a tree a set of binary decisions is organized into a tree. data are input at the base of the tree 
-  and percolate 
-
-a sequence of binary decisions is made, with each decision equivalent to a hierarchy of 'if, then, else' statements. for example, if we 
-  were trying to identify a 
-
-rpart.control(`cp=0.01`): primary complexity parameter; split must decrease lack of fit by `0.01` to be considered; `min.split=20`: only for 
-  nodes w/ `n > min.split` are further splits attempted; `min.bucket=round(minsplit/3)`: minimum size for a leaf; `xval=10`: number of CV folds
-  used for tuning `cp`; `maxdepth=30`: maximum height (number of nodes from base to leaf) of the final tree.
-
-For regression, splitting criterion becomes maximizing reduction in total sums-of-squared residuals in sons -- pick variable, cutoff, and 
-  conditional mean so as to minimize sums-of-squares. Typically has much lower granularity than regression methods. 
-
-McNemar's test: is the proportion of errors different for class A vs class B. Equivalent to a sign test on dichotomous data. Want a 
-  p-value > cutoff. Can also use to compare two classifiers trained + tested with same datasets. Here, row1=nobs w/ classifier1 correct; row2=nobs
-  w/ classifier1 wrong; col1=nobs w/ classifier2 correct; col2=nobs w/ classifer2 wrong; Only the active/inactive and inactive/active (misclass) 
-  counts are used in the calculation, so this is what is being compared. Typically like to have sum of counts in these two cells > 25!!! Otherwise
-  a exact binomial test can be used. The null is about whether the types of errors are equal in probability. e.g. p(false.pos) == p(false.neg) for 
-  one classier; for 2 classifiers, compares (classifier1 wrong + classifer2 right cell) to (classifier1 right + classifier2 wrong cell) w/  
-  null being that the proportion of errors (based on test-set) for the two classifiers is the same.
+In the example below, we with use the `rpart::rpart()` function for fitting. The fitting process
+  is controlled by an object generated by the `rpart::rpart.control()` function. This controls
+  the complexity of the tree as well as parameter tuning using cross-validation. The primary 
+  `rpart()` argument to be tuned is `cp`, or the **complexity parameter**. This is a numeric 
+  value that specifies by what proportion a new node split must decrease the loss function in 
+  order to be considered for addition to the tree. the `rpart()` function carries out the 
+  cross-validation (with fold-number set by the `xval` argument, which defaults to `10`). 
+  Another argument used for limiting tree size (and therefore model complexity) is `min.split`, 
+  which is the minimum number of training observations that must be assigned to a node for 
+  further splits along that path to be considered. In addition, we can limit the minimum 
+  number of training-set observations assigned to a leaf using the `min.bucket` argument. If 
+  a split would result in a child node smaller than `min.bucket`, the split will not be 
+  attempted. We can also limit the maximum tree depth using the `maxdepth` argument, which 
+  limits the total number of conditionals that can be applied in series to any single 
+  observation.
 
 ```
 library(rpart)

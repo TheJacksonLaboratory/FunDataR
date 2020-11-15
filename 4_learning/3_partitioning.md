@@ -7,7 +7,6 @@
 ### Index
 
 - [Trees](#trees)
-- [Bagging](#bagging)
 - [Random forest](#random-forest)
 - [Boosting](#boosting)
 
@@ -174,62 +173,78 @@ Using 5-fold cross-validation repeated 12 times, generate a point estimate of th
 
 ---
 
-### Bagging
-
-intro here; ensemble or committee method; ensemble/committee of similar models are built.
-  predictions from each are averaged in some way. for continous, can be simple average. for 
-  classification can be plurality vote.
-
-  bag: bootstrap-aggregation: in adabag, ipred
-    reduce variance (like if sd(rslts) after cv high)
-      bias on average unchanged
-      works best for high variance, low bias non-linear modeling methods
-      limited by correlations between models in the ensemble
-      linear estimates on bootstrap samples tend to be correlated, so work less well
-    estimate 'out-of-bag' error: tends to be very similar to CV results; good for tuning
-    fit set of otherwise identical models to (30-200) bootstrap samples
-    regression: average results from the set of models 
-    classification: assign to class with most votes; better to average predicted probabilities!
-    loses model interpretability
-
-```
-code here
-
-```
-
-[Return to index](#index)
-
----
-
 ### Random forest
 
-intro here; is related to knn. 
+A tree model's prediction error is largely attributable to high variance rather than bias, 
+  and the model response variable predictions are non-linear functions of the predictors. 
+  The performance of classifiers with these attributes can often be substantially improved
+  through **bagging**. Bagging, or **boostrap aggregation** describes fitting a separate 
+  model to a boostrap sample of the original training-set observations. That is, we sample 
+  the training-set observations with replacement. We then fit a separate tree model to each 
+  of the bootstrap samples. The set of tree models, forms an **ensemble** or **committee** 
+  of models, each of which is used to make predictions for a new observation. The final 
+  prediction for that new observation is determined by either plurality vote (in the case 
+  of classification with a categorical response and discrete class prediction) or by 
+  averaging (in the case of regression with a continuous response variable or probabilistic
+  predictions of class membership). The ensemble model's variance is expected to be reduced 
+  relative to the original model, but the bias is expected to be the same, so overall, the 
+  ensemble model should on average have higher accuracy than a single tree.
 
-plurality voting for classification; averaging for regression. 
-bagging of observations to increase precision (reduces variance); 
-random selection of features to consider at each node, decorrelates trees so they provide 
-  more independent assessments, which improves effectiveness of bagging in reducing variance.
-fit each tree to a separate bootstrap sample (with replacement) of observations 
-separately for each tree, at each node, select m out of p features at random; 
-  only these m features are considered for splitting. 
-magnitude of imrovement in loss (purity or sums-of-squares) resulting from splitting a variable 
-  in that tree contributes to the importance of the variable. Sum importances at all nodes 
-  where variable is split in order to get total importance for that variable in that tree. Sum 
-  the variable importance across trees in order to get the final variable importance estimate. 
-also can estimate variable importance based on out-of-bag error: for each tree and each variable,
-  calculate out-of-bag error using original data, then with that variable randomly permuted,
-  and the difference is used as an estimate of variable importance in that tree. Average over
-  all trees is final variable importance estimate.
+One byproduct of the bagging process, is that for each tree, there will tend to be some 
+  observations that do not appear in the bootstrap sample used to train that tree. These 
+  observations can serve as independent test data for estimating the performance of that
+  individual tree. These performance estimates are referred to as **out-of-bag** or
+  **OOB** estimates.
 
-with many extraneous variables, need large m to ensure an informative variable is available for
-  selection at most splits; for many correlated features, small m is better. for classification,
-  default m.try is sqrt(p), or p/3 for regression. 
+The bagging process does not work very well when the predictions of different classifiers in 
+  the ensemble are highly correlated to one another. This is one reason that bagging tends 
+  to work better for non-linear classifiers than linear ones: linear classifiers built on 
+  different bootstrap samples of the same dataset tend to be more correlated with one another 
+  than non-linear classifiers will be. In the case of trees, we can decorrelate the trees built 
+  using different bootstrap samples by only considering a randomly selected subset of features 
+  of size `mtry` for splitting at each node within each tree. This random feature sampling at 
+  each node tends to induce major topological differences and differences in variables used at 
+  each split across the different trees in the ensemble, drastically reducing correlations 
+  between trees at the expense of potentially introducing some bias. The trade-off between these 
+  two effects is controlled by tuning the number of features `mtry` randomly selected at each 
+  node. If there are very few informative features, the optimum `mtry` will tend to be larger 
+  so that most node fits are likely get to consider a useful feature and result in a productive 
+  split. By contrast, if there are many informative features, smaller `mtry` results in feature 
+  sets that are still relatively likely to include useful features, so we can take advantage of 
+  the better decorrelation offered by smaller feature sets without affecting the performance of 
+  individual trees. The higher the proportion of correlated features, the higher the correlation 
+  between predictions between different trees. Under these circumstances, the higher decorrelation 
+  offered by smaller feature sets results in better overall performance of the ensemble. In 
+  general, wherever practical, we will tune the `mtry` parameter by cross-validation. 
 
-smaller m.try leads to more decorrelated trees. also leads to variable importances being more 
-  similar, as lower-importance variables have an improved chance of being selected.
+**Random forest** is an ensemble modeling approach built on recursive partitioning tree models,
+  where bagging is used to generate the series of models, and random feature selection at each
+  node within each tree is used to decorrelate trees in the ensemble from one another, improving
+  the variance reduction afforded by the bagging. Ensemble methods are often criticized for 
+  trading away interpretability for improved predictive performance. The models do tend to be
+  very complex, but there are several tools that help us determine both the importance of
+  individual features for the performance of the ensemble, as well as the relationship between
+  the response predictions and individual variables. 
 
-partial dependence: generate predictions for training-set observations, varying the value of the
-  variable of interest. Plot relationship between predictions and sliding value of variable.
+**Variable importance** is usually estimated in one of two ways. The first uses the magnitude of 
+  reduction in loss (purity or sums-of-squares) resulting from splitting a variable in one tree 
+  contributes to the importance of the variable. By summing the importance across all the nodes 
+  involving this variable across all trees in the ensemble, we can express an overall importance. 
+  Another approach is to use an 'out-of-bag' estimate of the prediction error: for each tree and 
+  each variable, we can calculate the OOB error using the original data, then with the variable of 
+  interest permuted (so it has no relationship to the response any more). The change in performance, 
+  averaged across all the trees in the forest, is attributed to the permuted variable. Smaller values 
+  for `mtry` tend to make variable importances more similar to one another, because it tends to give 
+  weaker variables a larger chance of being selected at each split, because there is less chance that 
+  the variable options will include one of the stronger variables which would otherwise be selected.
+
+We can also get a feel for the 'shape' of the relationship between an individual feature (say `x.i`)
+  and the response prediction using **partial dependence** plots. To generate such a plot, we take each 
+  observation in the training set, set the value of `x.i` to a particular value, while leaving the
+  rest of the features unchanged, and generate a response prediction for the modified observation using
+  the previously fit random forest model. By doing this for all observations across a sequence of `x.i` 
+  values, we can see how changing `x.i` affects predictions on its own. We use the 
+  `randomForest::partialPlot()` function for this purpose.
 
 ```
 library(caret)

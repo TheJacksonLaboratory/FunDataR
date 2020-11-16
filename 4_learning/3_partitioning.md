@@ -419,7 +419,7 @@ A more modern boosting algorithm that tends to perform somewhat better is **grad
   look for the direction in the observation weight space in which a fixed step-size results in 
   the largest reduction in MSE. We then adjust the observation weights by taking that step in 
   the weight space. The size of the step is determined by a **learning rate** parameter. Setting 
-  the learning-rate to a value of less than one shrinks the step size, resulting in some  
+  the learning-rate to a value of less than one shrinks the step size, resulting in some 
   regularization that reduces chance of overfitting, but also increases number of steps needed 
   to converge upon the true relationship between response and predictors. Fitting requires
   balancing the learning-rate against the number of iterations. One good general approach is to 

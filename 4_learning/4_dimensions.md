@@ -1,5 +1,5 @@
 # Fundamentals of computational data analysis using R
-## Machine learning: some sub-title here
+## Machine learning: dimension reduction
 #### Contact: mitch.kostich@jax.org
 
 ---

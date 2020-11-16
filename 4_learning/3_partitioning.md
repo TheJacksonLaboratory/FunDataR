@@ -348,45 +348,79 @@ Use the `dhfr` data from the `caret` package to perform 5-fold cross-validation 
 
 ### Boosting
 
-intro here;
+Boosting is another ensemble method that can serve to increase the performance of a modeling
+  approach by combining the output of many **weak learners** (models that don't perform very 
+  well) into a final model with much better performance. The method is most often mentioned in 
+  the context of trees, but can be used with other weak learners as well. Trees are a popular 
+  choice, since they can readily conform to non-linear relationships and account for interactions 
+  in the training data. By contrast, linear models impose more assumptions about the form of the 
+  relationship between the response and predictors. The trees used tend to be very simple: 
+  **decision stumps**, which are a tree consisting of a single node are commonly employed. 
+  Because single node trees impose a very simplistic structure on the relationship between 
+  response and predictors (only a single predictor with a single cut point is included), they 
+  tend to systematically oversimplify the relationship. Therefore, they are relatively **biased** 
+  models, in addition to having the high variance seen with even more complicated trees. Like 
+  bagging, boosting tends to decrease model variance, but the primary improvement seen by 
+  boosting is a reduction in model bias. **Gradient boosted** (a particular type of boosting) trees 
+  using decision stumps have proven themselves very competitive across a wide variety of datasets 
+  in machine learning competitions, and often win such competitions. The performance of gradient 
+  boosted trees tends to be similar to or slightly better to random forest. However, tuning a 
+  boosted tree model is more involved and can require a great deal more computation than tuning 
+  a random forest model. 
 
-Boosted trees are harder to tune, but sometimes have better performance than random forest.
-  At the cost of increased complexity of tuning and computational load.
+Boosting starts with an initial model fit to the training-set. The training-set observations are 
+  then weighted based on how well they fit the initial model. Observations whose response values
+  are poorly predicted (have larger residuals) are weighted more than observations which the model
+  predicts better. A second model is fitted to the weighted observations. Due to the weighting,
+  this model will tend to focus on better prediction of the observations poorly predicted by the
+  previous model. After the second model has been fit, its predictions are combined with those
+  from the first model using model weights (different than the observation weights) that reflect 
+  the relative accuracy of each component model predictions for the training-set observations. 
+  The observation weights are then adjusted to reflect the accuracy with which the current 
+  ensemble predicts the training-set observation response values. Then a third model is fit to 
+  the re-weighted observations, and the entire process is repeated until a set iteration count 
+  limit is reached or a convergence criterion is met. Limiting the number of iterations limits 
+  the potential for overfitting the training-set, but performing too few iterations restricts the 
+  ability of the model to capture the true underlying relationship between response and predictors.
 
-Weights observations based on how hard they are to classify (for categorical response) or 
-  by how big the residual is (for continuous response). Initially all 1/n. Iteratively 
-  fit model, then reweight observations based on results. Repeat a user-specified number 
-  of times. The differences in approaches are largely related to how 
-  the weights are updated. The simpler to understand AdaBoost.M1 algorithm is described
-  below:
+The main differences between modern boosting algorithms is in how the observation weights are updated
+  at each iteration of the algorithm. The simpler to understand **AdaBoost.M1** algorithm is described
+  below as it could be used for classification, where we assume for simplicity that the observed 
+  response `y` and model prediction `f(x)` are both categorical (the alternative would be `f(x)` 
+  yielding a continuous class probability):
 
-for classifier AdaBoost.M1: in adabag, fastadaboost
-  step1: wts.obs <- 1/n
-  step2: repeat M times:
-    a) fit model
-    b) compute model error err as weighted (wts.obs) average of observation errors
-    c) compute wt adjustment adj <- log((1 - err)/err); this controls the 'step-size' for
-         the change in weighting for this iteration
-    d) update weights: wts <- wts * exp(adj * as.numeric(y == f(x))
-  step3: output sum.m(adj.m * f.m(x)) for all M models
+1) Set weights for `n` observations in training-set equal: `wts.1 <- 1/n`.
+2) Repeat `M` times; for iteration `m`:
+    a) fit stump to weighted observations yielding model predictions `f.m(x)`
+    b) compute model error `err.m` as weighted (by `wts.m`) average of `n` observation errors.
+    c) compute **step-size** for weight adjustment: `adj.m <- log((1 - err.m)/err.m)`. 
+    d) update observation weights: `wts.next <- wts.m * exp(adj.m * as.numeric(y == f.m(x))`
+3) Final model output is `sum(adj.m * f.m(x))`, where the sum is over all M models.
 
-The effect of including all M models in the final committee is equivalent to fitting
+The effect of including all M models in the final committee is similar in effect to fitting
   the first model to the data, then the second to the residuals from the first, and the
   third to the residuals of the second, etc.
 
-gradient boosting: adjusts the weights in a more complex and effective way; 
-  for regression, gradient boosting in gbm. Find direction in the weights space (where
-  each variable weight defines an orthogonal dimension) which most decreases loss
-  function (estimated from training-set). For instance, for regression with squared-error
-  loss function (not the only choice), find direction in weight space that most reduces the 
-  MSE mean(fitted - observed) for training set.
-  Take a step in that direction of a size determined by a 'learning rate' parameter.
-  Setting learning-rate < 1 is like shrinkage of step size, a regularization of sorts that
-  reduces chance of overfitting, but also increases number of steps needed to converge. 
-  Tune learning-rate vs. number of iterations. Can pick learning-rate that is as small as
-  tolerable given time/compute bandwidth/ram, then tune number of iterations by CV. Can
-  sample observations w/ replacement at each step in order to reduce overfitting.  
-  Also lower learning-rate benefits from more trees.
+A more modern boosting algorithm that tends to perform somewhat better is **gradient boosting**.
+  The gradient boosting algorithm adjusts observation weights in a more complex but effective way.
+  Treating each observation weight as a different dimension in a multi-dimensional space (where
+  the are `n` dimensions, one for each observation), gradient boosting finds the direction in 
+  this space that most quickly decreases the loss function (estimated using the training-set).
+  For instance, for a continuous response and mean-squared error (MSE) as the loss function, we 
+  look for the direction in the observation weight space in which a fixed step-size results in 
+  the largest reduction in MSE. We then adjust the observation weights by taking that step in 
+  the weight space. The size of the step is determined by a **learning rate** parameter. Setting 
+  the learning-rate to a value of less than one shrinks the step size, resulting in some  
+  regularization that reduces chance of overfitting, but also increases number of steps needed 
+  to converge upon the true relationship between response and predictors. Fitting requires
+  balancing the learning-rate against the number of iterations. One good general approach is to 
+  pick a learning-rate that is as small as tolerable given available time and compute resource, 
+  then tune the number of iterations by cross-validation. Other options include tuning the 
+  size of the tree using a variety of options (like the maximum height and the minimum leaf
+  size, which are also tuning parameters for `rpart()` and `randomForest()`). Most implementations
+  of gradient boosting also offer the option of sampling observations with replacement (bagging)
+  at each step in the process in order to reduce the chance of overfitting the training-set, which
+  reduces model variance.
 
 ```
 library(caret)

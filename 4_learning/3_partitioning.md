@@ -6,7 +6,7 @@
 
 ### Index
 
-- [Trees](#trees)
+- [Decision trees](#decision-trees)
 - [Random forest](#random-forest)
 - [Boosting](#boosting)
 
@@ -18,58 +18,63 @@
 
 ---
 
-### Trees
+### Decision trees
 
-Decision trees are a way of making predictions about continuous (regression) or categorical
-  (classification) response variables based on a series of `if()` conditionals. These 
-  conditionals are organized in a tree-like hierarchy, with the sequence of conditionals applied
-  to an observation being a function of the predictor values for that observation. Each 
+Decision trees are an algorithm for explaining or making predictions about continuous (regression) 
+  or categorical (classification) response variables based on a series of `if()` conditionals. Each 
   conditional can be represented as a node in a tree. The outcome of the conditional test at 
-  a node determines which branch coming out of that node the observation will be passed to. Each 
-  conditional typically involves a test on a single variable and produces one of two outcomes, 
-  such as `TRUE` or `FALSE`. So each node produces a two-way or binary split. Trees tend to be
-  a great way of representing the logic used to assign response values. However, they tend to
-  perform poorly for prediction. Although decision trees can be unbiased if they are allowed
-  to grow large enough, they tend to have very high variance due to a tendency to overfit the
-  training-set.
+  a node determines which branch coming out of that node the observation will be passed to, and 
+  therefore which other conditionals will be applied to it. Each conditional typically involves a 
+  test on a single variable and produces one of two outcomes, such as `TRUE` or `FALSE`. So each 
+  node produces a two-way or binary split. Trees tend to be a great way of representing the logic 
+  used to assign response values. However, they tend to perform poorly for prediction. Although 
+  decision trees can be unbiased as long as they are allowed to grow large enough, they tend to 
+  have very high variance due to overfitting (capturing the noise in) the training-set.
 
 Fitting a tree involves deciding which variables to use for splitting, the cutoff to use for
-  splitting, and the optimal positions within the tree for each split. The way this is usually 
-  done in practice is to successively split the data in a way that decreases some sort of loss
-  metric. For classification, fitting aims to decrease the class **impurity** of the set of
-  observations in each of the two branches coming out of the node relative to the impurity 
-  measure of the set of observations coming into the node. There are several possible metrics 
-  for impurity. They are similar in that they all assign a loss of zero when the the set of
-  observations includes only one class, but differ in how severely they penalize mixed class
-  compositions. One very commonly used metric is the **Gini Index**, `f(p.i) = p.i * (1 - p.i)`, 
-  where `p.i` is proportion of observations input to the node that belong to class `i`. 
-  Observations w/ missing values for the split variable are not counted in the impurity 
-  calculation. Node impurity is `sum.over.i(f(p.i))`, or the sum of class impurities. For 
-  regression, the loss is typically something like the mean-squared-error. Tree 
-  fitting proceeds one node at a time, finding the variable and split value that most minimizes 
-  the loss in each of the two branches coming out of the node. The process terminates when
-  some minimal node size or level of node loss is achieved. This results in a **leaf node** or 
-  **terminal node**, which is where the final response value prediction value is assigned. 
-  For classification, the most frequently occurring class among the training-set passing to the
-  terminal node is assigned to any new observations that arrive at this node. For regression, 
-  the mean of the response in the training-set observations that passed into this node is used
-  as the predicted value for new observations destined for this node.
+  splitting, and the optimal positions within the tree for each splitting decision. The fitting
+  proceeds by adding one node (conditional) to the tree at a time. The choice of variable and cutoff 
+  used by the node is made so as to minimize some sort of **loss function**, that is, a function that 
+  returns a lower score for better performance. For classification, the node addition process tries 
+  to minimize the class **impurity** of the set of observations in each of the two branches coming 
+  out of the node relative to the impurity of the set of observations entering the node. There are 
+  several possible metrics for impurity. They are similar in that they all assign a loss of zero when 
+  the the set of observations includes only one class, but differ in how severely the metrics penalize 
+  mixed class compositions. One very commonly used metric is the **Gini Index**, 
+  `f(p.i) = p.i * (1 - p.i)`, where `p.i` is proportion of observations input to the node that belong 
+  to class `i`, and `(1 - p.i)` represents the proportion in other classes. Observations with missing 
+  values for the split variable are not counted in the impurity calculation. Node impurity is then
+  `sum(f(p.i))`, or the sum of class impurities across classes. For regression, the loss is typically 
+  something like the mean-squared-error (MSE), or a robust (less influenced by outliers) alternative. 
+  Tree fitting proceeds one node at a time, finding the variable and split value that most minimizes 
+  the loss in each of the two branches coming out of the node. The process terminates when some 
+  minimal node size is achieved or no further substantial improvement is seen in the loss. This 
+  stopping results in a **leaf node** or **terminal node** in the tree, which is where the final 
+  response value prediction value is assigned. The predicted value is based on the response values of 
+  the training-set observations that end up in that leaf during the fitting/tree-building process. 
+  For classification, the most frequently occurring class among these training-set observations is 
+  assigned to any new observations that arrive at this node. For regression, the mean of the response 
+  in the training-set observations assigned to this node is used as the predicted value for new 
+  observations that pass into this node.
 
 In the example below, we with use the `rpart::rpart()` function for fitting. The fitting process
   is controlled by an object generated by the `rpart::rpart.control()` function. This controls
-  the complexity of the tree as well as parameter tuning using cross-validation. The primary 
-  `rpart()` argument to be tuned is `cp`, or the **complexity parameter**. This is a numeric 
-  value that specifies by what proportion a new node split must decrease the loss function in 
-  order to be considered for addition to the tree. the `rpart()` function carries out the 
-  cross-validation (with fold-number set by the `xval` argument, which defaults to `10`). 
-  Another argument used for limiting tree size (and therefore model complexity) is `min.split`, 
-  which is the minimum number of training observations that must be assigned to a node for 
-  further splits along that path to be considered. In addition, we can limit the minimum 
-  number of training-set observations assigned to a leaf using the `min.bucket` argument. If 
-  a split would result in a child node smaller than `min.bucket`, the split will not be 
-  attempted. We can also limit the maximum tree depth using the `maxdepth` argument, which 
-  limits the total number of conditionals that can be applied in series to any single 
-  observation.
+  the complexity of the tree as well as parameter tuning using cross-validation. Such control 
+  objects exist for many modeling functions, including `lm()`, `glm()`, and `loess()`. The 
+  primary `rpart()` argument to be tuned is `cp`, or the **complexity parameter**. This is a 
+  numeric value that specifies by what proportion a new node split must decrease the loss function 
+  in order to be considered for addition to the tree. The `rpart()` function can tune `cp` using  
+  cross-validation with the fold-number, set by the `xval` argument, defaulting to `10`. Another 
+  argument used for limiting tree size (and therefore model complexity) is `min.split`, which is 
+  the minimum number of training observations that must be assigned to a node for further splits 
+  along that path to be considered. In addition, we can limit the minimum number of training-set 
+  observations assigned to a leaf using the `min.bucket` argument. If a split would result in a 
+  child node smaller than `min.bucket`, the split will not be attempted. We can also limit the 
+  maximum tree depth using the `maxdepth` argument, which limits the total number of conditionals 
+  that can be applied in series to any single observation.
+
+Below, we treat prostate cancer recurrence as a binary response which we try to predict using 
+  variables such as patient age, tumor grading by various schemes and some other cytological measures.
 
 ```
 library(rpart)
@@ -77,7 +82,9 @@ library(caret)
 
 rm(list=ls())
 
-## reformat prostate cancer recurrence dataset:
+## reformat prostate cancer recurrence dataset; 
+##   reformat pgstat to factor indicating whether there was recurrence:
+
 ?rpart::stagec
 dat <- rpart::stagec
 dat$pgstat <- c('no', 'yes')[dat$pgstat + 1]
@@ -175,20 +182,20 @@ Using 5-fold cross-validation repeated 12 times, generate a point estimate of th
 
 ### Random forest
 
-A tree model's prediction error is largely attributable to high variance rather than bias, 
-  and the model response variable predictions are non-linear functions of the predictors. 
-  The performance of classifiers with these attributes can often be substantially improved
-  through **bagging**. Bagging, or **boostrap aggregation** describes fitting a separate 
-  model to a boostrap sample of the original training-set observations. That is, we sample 
-  the training-set observations with replacement. We then fit a separate tree model to each 
-  of the bootstrap samples. The set of tree models, forms an **ensemble** or **committee** 
-  of models, each of which is used to make predictions for a new observation. The final 
-  prediction for that new observation is determined by either plurality vote (in the case 
-  of classification with a categorical response and discrete class prediction) or by 
-  averaging (in the case of regression with a continuous response variable or probabilistic
-  predictions of class membership). The ensemble model's variance is expected to be reduced 
-  relative to the original model, but the bias is expected to be the same, so overall, the 
-  ensemble model should on average have higher accuracy than a single tree.
+A tree model's prediction error is largely attributable to high variance rather than bias
+  (assuming the tree is allowed to grow sufficiently large), and the model response variable 
+  predictions are non-linear functions of the predictors. The performance of classifiers with 
+  these attributes can often be substantially improved through **bagging**. Bagging, or 
+  **boostrap aggregation** describes fitting a separate model to a boostrap sample of the 
+  original training-set observations. That is, we sample the training-set observations with 
+  replacement. We then fit a separate tree model to each of the bootstrap samples. The set of 
+  resulting tree models, are used as an **ensemble** or **committee** of models, whose 
+  predictions are combined. The final prediction for that new observation is determined by 
+  either plurality vote (in the case of classification with a categorical response and discrete 
+  class prediction) or by averaging (in the case of regression with a continuous response 
+  variable or probabilistic predictions of class membership). The ensemble model's variance is 
+  typically expected to be reduced relative to the original model, but the bias is expected to 
+  be the same, so the average ensemble model should have higher accuracy than a single tree.
 
 One byproduct of the bagging process, is that for each tree, there will tend to be some 
   observations that do not appear in the bootstrap sample used to train that tree. These 
@@ -200,31 +207,34 @@ The bagging process does not work very well when the predictions of different cl
   the ensemble are highly correlated to one another. This is one reason that bagging tends 
   to work better for non-linear classifiers than linear ones: linear classifiers built on 
   different bootstrap samples of the same dataset tend to be more correlated with one another 
-  than non-linear classifiers will be. In the case of trees, we can decorrelate the trees built 
+  than non-linear classifiers will be. In the case of trees, we can **decorrelate the trees** built 
   using different bootstrap samples by only considering a randomly selected subset of features 
   of size `mtry` for splitting at each node within each tree. This random feature sampling at 
-  each node tends to induce major topological differences and differences in variables used at 
+  each node tends to induce major topological differences and differences in variables chosen for  
   each split across the different trees in the ensemble, drastically reducing correlations 
   between trees at the expense of potentially introducing some bias. The trade-off between these 
   two effects is controlled by tuning the number of features `mtry` randomly selected at each 
   node. If there are very few informative features, the optimum `mtry` will tend to be larger 
   so that most node fits are likely get to consider a useful feature and result in a productive 
   split. By contrast, if there are many informative features, smaller `mtry` results in feature 
-  sets that are still relatively likely to include useful features, so we can take advantage of 
-  the better decorrelation offered by smaller feature sets without affecting the performance of 
-  individual trees. The higher the proportion of correlated features, the higher the correlation 
-  between predictions between different trees. Under these circumstances, the higher decorrelation 
-  offered by smaller feature sets results in better overall performance of the ensemble. In 
-  general, wherever practical, we will tune the `mtry` parameter by cross-validation. 
+  sets are still relatively likely to include useful features, so we can take advantage of 
+  the better decorrelation offered by smaller feature sets without affecting the performance 
+  (biasing) individual trees. The higher the proportion of correlated features in the original
+  data, the higher the correlation between predictions from different trees. Under these 
+  circumstances, the higher decorrelation offered by smaller feature sets results in better 
+  overall performance of the ensemble. In general, wherever practical, we will tune the `mtry` 
+  parameter by cross-validation to balance improved tree decorrelation against worsening tree 
+  bias. 
 
 **Random forest** is an ensemble modeling approach built on recursive partitioning tree models,
-  where bagging is used to generate the series of models, and random feature selection at each
-  node within each tree is used to decorrelate trees in the ensemble from one another, improving
-  the variance reduction afforded by the bagging. Ensemble methods are often criticized for 
-  trading away interpretability for improved predictive performance. The models do tend to be
+  where **bagging** is used to generate the series of models, and **random feature selection** at 
+  each node within each tree is used to decorrelate trees in the ensemble from one another, 
+  improving the variance reduction afforded by the bagging. Ensemble methods are often criticized 
+  for trading away interpretability for improved predictive performance. The models do tend to be
   very complex, but there are several tools that help us determine both the importance of
-  individual features for the performance of the ensemble, as well as the relationship between
-  the response predictions and individual variables. 
+  individual features for the performance of the ensemble, as well as the shape of the **marginal 
+  relationship** (keeping all other feature values constant) between the response predictions and 
+  individual variables of interest. 
 
 **Variable importance** is usually estimated in one of two ways. The first uses the magnitude of 
   reduction in loss (purity or sums-of-squares) resulting from splitting a variable in one tree 
@@ -232,19 +242,19 @@ The bagging process does not work very well when the predictions of different cl
   involving this variable across all trees in the ensemble, we can express an overall importance. 
   Another approach is to use an 'out-of-bag' estimate of the prediction error: for each tree and 
   each variable, we can calculate the OOB error using the original data, then with the variable of 
-  interest permuted (so it has no relationship to the response any more). The change in performance, 
+  interest permuted (so it no longer has a relationship to the response). The change in performance, 
   averaged across all the trees in the forest, is attributed to the permuted variable. Smaller values 
   for `mtry` tend to make variable importances more similar to one another, because it tends to give 
-  weaker variables a larger chance of being selected at each split, because there is less chance that 
-  the variable options will include one of the stronger variables which would otherwise be selected.
+  weaker variables a larger chance of being selected at each split, instead of always picking from
+  stronger variables.
 
-We can also get a feel for the 'shape' of the relationship between an individual feature (say `x.i`)
-  and the response prediction using **partial dependence** plots. To generate such a plot, we take each 
+We can get a feel for the 'shape' of the relationship between an individual feature (say `x.i`) and 
+  the response prediction using **partial dependence** plots. To generate such a plot, we take each 
   observation in the training set, set the value of `x.i` to a particular value, while leaving the
   rest of the features unchanged, and generate a response prediction for the modified observation using
   the previously fit random forest model. By doing this for all observations across a sequence of `x.i` 
-  values, we can see how changing `x.i` affects predictions on its own. We use the 
-  `randomForest::partialPlot()` function for this purpose.
+  values, we can see how changing `x.i` affects predictions when other features remain constant. We 
+  use the `randomForest::partialPlot()` function for this purpose.
 
 ```
 library(caret)
@@ -348,36 +358,32 @@ Use the `dhfr` data from the `caret` package to perform 5-fold cross-validation 
 
 ### Boosting
 
-Boosting is another ensemble method that can serve to increase the performance of a modeling
-  approach by combining the output of many **weak learners** (models that don't perform very 
-  well) into a final model with much better performance. The method is most often mentioned in 
-  the context of trees, but can be used with other weak learners as well. Trees are a popular 
-  choice, since they can readily conform to non-linear relationships and account for interactions 
-  in the training data. By contrast, linear models impose more assumptions about the form of the 
-  relationship between the response and predictors. The trees used tend to be very simple: 
-  **decision stumps**, which are a tree consisting of a single node are commonly employed. 
-  Because single node trees impose a very simplistic structure on the relationship between 
-  response and predictors (only a single predictor with a single cut point is included), they 
-  tend to systematically oversimplify the relationship. Therefore, they are relatively **biased** 
-  models, in addition to having the high variance seen with even more complicated trees. Like 
-  bagging, boosting tends to decrease model variance, but the primary improvement seen by 
-  boosting is a reduction in model bias. **Gradient boosted** (a particular type of boosting) trees 
-  using decision stumps have proven themselves very competitive across a wide variety of datasets 
-  in machine learning competitions, and often win such competitions. The performance of gradient 
-  boosted trees tends to be similar to or slightly better to random forest. However, tuning a 
-  boosted tree model is more involved and can require a great deal more computation than tuning 
-  a random forest model. 
+Boosting is another ensemble method that can serve to increase performance by combining the output 
+  of many **weak learners** (models that don't perform very well) into a final model. The method 
+  is most often mentioned in the context of trees, but can be used with other weak learners as well. 
+  Trees are a popular choice, since they can readily represent non-linear relationships and complex
+  interactions in the training data. By contrast, linear models impose more assumptions about the 
+  form of the relationship between the response and predictors. The trees used for boosting tend 
+  to be very simple single node trees, sometimes referred to as **decision stumps**. Because a 
+  single node tree imposes a very simplistic structure on the relationship between response and 
+  predictors (only a single predictor with a single cut point is included), they tend to 
+  systematically oversimplify the relationship. Therefore, they are relatively **biased** models, 
+  in addition to having the high variance seen with even more complex decision trees. Like 
+  bagging, boosting tends to decrease model variance, but the biggest payoff seen with boosting 
+  is often the reduction in model bias. **Gradient boosting** (a particular type of boosting)  
+  using decision stumps has proven itself a very competitive algorithm across a wide variety of 
+  datasets in machine learning competitions, and has often been used to win such competitions. The 
+  performance of gradient boosted trees tends to be similar to or slightly better to random forest. 
+  However, tuning a boosted tree model is more complicated and can require a great deal more 
+  computation than tuning a random forest model.
 
 Boosting starts with an initial model fit to the training-set. The training-set observations are 
   then weighted based on how well they fit the initial model. Observations whose response values
   are poorly predicted (have larger residuals) are weighted more than observations which the model
   predicts better. A second model is fitted to the weighted observations. Due to the weighting,
   this model will tend to focus on better prediction of the observations poorly predicted by the
-  previous model. After the second model has been fit, its predictions are combined with those
-  from the first model using model weights (different than the observation weights) that reflect 
-  the relative accuracy of each component model predictions for the training-set observations. 
-  The observation weights are then adjusted to reflect the accuracy with which the current 
-  ensemble predicts the training-set observation response values. Then a third model is fit to 
+  previous model. The observation weights are then adjusted to reflect the accuracy with which the 
+  current model predicts the training-set observation response values. Then a third model is fit to 
   the re-weighted observations, and the entire process is repeated until a set iteration count 
   limit is reached or a convergence criterion is met. Limiting the number of iterations limits 
   the potential for overfitting the training-set, but performing too few iterations restricts the 
@@ -386,20 +392,23 @@ Boosting starts with an initial model fit to the training-set. The training-set 
 The main differences between modern boosting algorithms is in how the observation weights are updated
   at each iteration of the algorithm. The simpler to understand **AdaBoost.M1** algorithm is described
   below as it could be used for classification, where we assume for simplicity that the observed 
-  response `y` and model prediction `f(x)` are both categorical (the alternative would be `f(x)` 
+  response `y` and model prediction `f(x)` are both categorical (one alternative would be `f(x)` 
   yielding a continuous class probability):
 
-1) Set weights for `n` observations in training-set equal: `wts.1 <- 1/n`.
+1) Set weights for `n` observations in training-set equal: `wts.nxt <- 1/n`.
 2) Repeat `M` times; for iteration `m`:
-    a) fit stump to weighted observations yielding model predictions `f.m(x)`
-    b) compute model error `err.m` as weighted (by `wts.m`) average of `n` observation errors.
-    c) compute **step-size** for weight adjustment: `adj.m <- log((1 - err.m)/err.m)`. 
-    d) update observation weights: `wts.next <- wts.m * exp(adj.m * as.numeric(y == f.m(x))`
+    * a) set current observation weights `wts.m <- wts.nxt`
+    * a) fit stump to weighted (by `wts.m`) observations yielding model predictions `f.m(x)`
+    * b) compute model error `err.m` as weighted (by `wts.m`) average of `n` observation errors.
+    * c) compute **step-size** for weight adjustment: `adj.m <- log((1 - err.m)/err.m)`. 
+    * d) update observation weights: `wts.nxt <- wts.m * exp(adj.m * as.numeric(y == f.m(x))`
 3) Final model output is `sum(adj.m * f.m(x))`, where the sum is over all M models.
 
-The effect of including all M models in the final committee is similar in effect to fitting
-  the first model to the data, then the second to the residuals from the first, and the
-  third to the residuals of the second, etc.
+The effect of reweighting observations with observation weights determined by residual sizes from
+  the current model is similar in effect to fitting the later model to the residuals of the 
+  previous model. This means that the process is sensitive to inclusion of outliers and also that
+  enough iterations will eventually lead to fitting all the noise in the training-set, which can
+  lead to poor performance on new data.
 
 A more modern boosting algorithm that tends to perform somewhat better is **gradient boosting**.
   The gradient boosting algorithm adjusts observation weights in a more complex but effective way.

@@ -397,11 +397,11 @@ The main differences between modern boosting algorithms is in how the observatio
 
 1) Set weights for `n` observations in training-set equal: `wts.nxt <- 1/n`.
 2) Repeat `M` times; for iteration `m`:
-    * a) set current observation weights `wts.m <- wts.nxt`
-    * a) fit stump to weighted (by `wts.m`) observations yielding model predictions `f.m(x)`
-    * b) compute model error `err.m` as weighted (by `wts.m`) average of `n` observation errors.
-    * c) compute **step-size** for weight adjustment: `adj.m <- log((1 - err.m)/err.m)`. 
-    * d) update observation weights: `wts.nxt <- wts.m * exp(adj.m * as.numeric(y == f.m(x))`
+    * set current observation weights `wts.m <- wts.nxt`
+    * fit stump to weighted (by `wts.m`) observations yielding model predictions `f.m(x)`
+    * compute model error `err.m` as weighted (by `wts.m`) average of `n` observation errors.
+    * compute **step-size** for weight adjustment: `adj.m <- log((1 - err.m)/err.m)`. 
+    * update observation weights: `wts.nxt <- wts.m * exp(adj.m * as.numeric(y == f.m(x))`
 3) Final model output is `sum(adj.m * f.m(x))`, where the sum is over all M models.
 
 The effect of reweighting observations with observation weights determined by residual sizes from

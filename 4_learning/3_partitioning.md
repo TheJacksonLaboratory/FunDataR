@@ -245,8 +245,8 @@ The bagging process does not work very well when the predictions of different cl
   interest permuted (so it no longer has a relationship to the response). The change in performance, 
   averaged across all the trees in the forest, is attributed to the permuted variable. Smaller values 
   for `mtry` tend to make variable importances more similar to one another, because it tends to give 
-  weaker variables a larger chance of being selected at each split, instead of always picking from
-  stronger variables.
+  weaker variables a larger chance of being selected at each split, since stronger variables might
+  not be the randomly selected subset.
 
 We can get a feel for the 'shape' of the relationship between an individual feature (say `x.i`) and 
   the response prediction using **partial dependence** plots. To generate such a plot, we take each 
@@ -370,7 +370,7 @@ Boosting is another ensemble method that can serve to increase performance by co
   systematically oversimplify the relationship. Therefore, they are relatively **biased** models, 
   in addition to having the high variance seen with even more complex decision trees. Like 
   bagging, boosting tends to decrease model variance, but the biggest payoff seen with boosting 
-  is often the reduction in model bias. **Gradient boosting** (a particular type of boosting)  
+  is often the reduction in model bias. **Gradient boosting** (a particular type of boosting) 
   using decision stumps has proven itself a very competitive algorithm across a wide variety of 
   datasets in machine learning competitions, and has often been used to win such competitions. The 
   performance of gradient boosted trees tends to be similar to or slightly better to random forest. 

@@ -63,7 +63,7 @@ In the example below, we with use the `rpart::rpart()` function for fitting. The
   objects exist for many modeling functions, including `lm()`, `glm()`, and `loess()`. The 
   primary `rpart()` argument to be tuned is `cp`, or the **complexity parameter**. This is a 
   numeric value that specifies by what proportion a new node split must decrease the loss function 
-  in order to be considered for addition to the tree. The `rpart()` function can tune `cp` using  
+  in order to be considered for addition to the tree. The `rpart()` function can tune `cp` using 
   cross-validation with the fold-number, set by the `xval` argument, defaulting to `10`. Another 
   argument used for limiting tree size (and therefore model complexity) is `min.split`, which is 
   the minimum number of training observations that must be assigned to a node for further splits 

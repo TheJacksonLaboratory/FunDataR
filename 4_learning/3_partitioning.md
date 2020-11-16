@@ -69,8 +69,8 @@ In the example below, we with use the `rpart::rpart()` function for fitting. The
   the minimum number of training observations that must be assigned to a node for further splits 
   along that path to be considered. In addition, we can limit the minimum number of training-set 
   observations assigned to a leaf using the `min.bucket` argument. If a split would result in a 
-  child node smaller than `min.bucket`, the split will not be attempted. We can also limit the 
-  maximum tree depth using the `maxdepth` argument, which limits the total number of conditionals 
+  child node smaller than `min.bucket`, the split will not be added to the tree. We can also limit 
+  the maximum tree depth using the `maxdepth` argument, which limits the total number of conditionals 
   that can be applied in series to any single observation.
 
 Below, we treat prostate cancer recurrence as a binary response which we try to predict using 
@@ -210,7 +210,7 @@ The bagging process does not work very well when the predictions of different cl
   than non-linear classifiers will be. In the case of trees, we can **decorrelate the trees** built 
   using different bootstrap samples by only considering a randomly selected subset of features 
   of size `mtry` for splitting at each node within each tree. This random feature sampling at 
-  each node tends to induce major topological differences and differences in variables chosen for  
+  each node tends to induce major topological differences and differences in variables chosen for 
   each split across the different trees in the ensemble, drastically reducing correlations 
   between trees at the expense of potentially introducing some bias. The trade-off between these 
   two effects is controlled by tuning the number of features `mtry` randomly selected at each 

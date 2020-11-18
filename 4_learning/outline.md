@@ -95,6 +95,7 @@ dimension methods:
     for display
     for pre-processing
   MDS
+    start w/ distances, not coordinates (PCA needs coordinates) so variable can be subjective distance
     with Euclidean distances == PCA up to rotation
     non-liner dimensional reduction
   pls
@@ -162,13 +163,108 @@ Clustering:
         Can be computionally very expensive, depending on approach.
 
 Principle components: loadings; PCA regression; PLS; 
+  PCA minimizes sum-of-squared differences between distances in high dimension and corresponding ones in low dimension.
+
+What if relationships of interest involve polynomial terms and interactions? What if there are many irrelevant variables?
+  Hard to do 'feature selection' w/o a designated response variable. Trying to discover groupings. Linear methods are 
+  more influenced by large variations than small ones (why they are sensitive to outliers). Tend to preserve long-distance
+  relationships better than shorter-distance relationships. 
 
 MDS: Kruskal-Shephard metric scaling: `stress <- sum((d.ij - f(z.i - z.j))^2)`, where `i`, and `j` are different 
   observations and we are looking for dimensions `z` where stress is minimized; `f()` is some sort of distance metric; 
-  Sammon mapping: better preserves smaller pairwise distances; `stress <- sum((d.ij - f(z.i - z.j))^2 / d.ij)`.
-  Non-metric scaling: minimize stress `sum((f(z.i - z.j) - g(d.ij))^2) / sum(f(z.i - z.j)^2)`
+  **Sammon mapping**: better preserves smaller pairwise distances; `stress <- sum((d.ij - f(z.i - z.j))^2 / d.ij)`.
+  Classic scaling: based on inner products; `stress <- sum((s.ij - <z.i-z.bar, z.j-z.bar>)^2)`, where
+    `s.ij <- <x.i - x.bar, x.j - x.bar>` inner product; classic scaling w/ Euclidean equivalent to PCA.
+  Kruskal-Shephard non-metric scaling: minimize stress `sum((f(z.i - z.j) - g(d.ij))^2) / sum(f(z.i - z.j)^2)`
 
-tsne and umap; 
+entropy: `H <- -sum(p(x.i) * log2(p(x.i)))`; calculated across all possible values of `x.i`; 
+  yields number of bits needed to encode information.
+
+asymmetric sne:  tends to preserve local structure well; 
+  for 2 obs x.i and x.j: similarity using Gaussian kernal:
+    `v.j|i = exp(-b.i * r.ij^2)`, where `b.i` is is fitted coefficient, `r.ij` is distance from `x.i` to `x.j`. 
+    note `v.j|i` not necessarily equal to `v.i|j`, since `b.i` not necessarily equal to `b.j`. 
+  Then generate probabilities:
+    `p.j|i = v.j|i / sum(v.k|i)`
+  Find `b.i` to achieve a specified **perplexity** (similar to a continuous version of `k` in knn). 
+  Meaning of `p.j|i` is probability that, starting with `x.i`, you would pick `x.j` as nearby.
+  In the new coordinate system (`x.i` -> `y.i`, etc): 
+    `w.ij <- exp(-d.ij^2)`
+    where `d.ij` is Euclidean distance. No coef so symmetric. 
+    `q.j|i = w.ij / sum(w.ik)`; 
+  minimize **Kullback-Leibler divergence** or **KL divergence** of N distributions, 
+    one for each observation: `C.sne <- sum.ij(p.j|i * log(p.j|i / q.j|i))`.
+
+`p.j|i`: conditional probability that `x.j` would be picked as a neighbor of `x.i` if probability of being picked
+  was proportional to the height of a Gaussian distribution centered at `x.i` given the distance in the original
+  high-dimensional space. `q.j|i` is corresponding probability in low-dimensional space. 
+
+`b.i`: because need less bandwidth in data dense regions than in less data dense regions.
+
+KL divergence: `D <- sum(p(x.i) * log2(p(x.i) / q(x.i)))`; same as `sum(p(x.i) * (log2(p(x.i)) - log2(q(x.i))))`;
+  which is same as `sum(p(x.i) * log2(p(x.i))) - sum(p(x.i) * log2(q(x.i)))`; represents how much info is lost when
+  we use `q(x.i)` instead of `p(x.i)` to approximate the distribution. Is not a metric, since (for one thing) not 
+  symmetric. This means different types of mapping deficiencies are treated differently. Large cost for separating
+  nearby points (e.g. `q.j|i` is small when `p.j|i` is large). But only small cost of representing far-off points
+  as nearby. So tends to preserve local structure better than global structure.
+
+symmetric sne:  https://jlmelville.github.io/uwot/umap-for-tsne.html
+  tends to preserve local structure well; more stable positioning of outliers: in asymmetric, outliers do not influence fit.
+  `p.ij <- (p.i|j + p.j|i) / (2 * N)`
+  `q.ij <- w.ij / sum(w.kl)`
+  `C.ssne <- sum.ij(p.ij * log(p.ij / q.ij))`  ## KL divergence of joint distributions in high D and low D
+
+t-sne (t-Distributed Stochastic Neighbor Embedding): 
+  still uses normal distribution for high dim space.
+  centers a t-distribution (with one degree-of-freedom; equivalent to Cauchy)
+    instead of normal at `y.i` (in low dim space); in order to alleviate **crowding problem**
+  when mapping from higher dimensional space to lower, 
+    either over-collapse nearby distances or over-expand far away distances.
+    nearby distances crushed by lots of longer distances trying to map far away
+  t(1) spreads out the middle distance in the map, alleviating overcrowding
+  `q.ji > p.ji` results in 'repulsion'
+  `w.ij <- 1 / (1 + d.ij)`                     ## heavier tail, alleviates crowding
+  `q.ij <- w.ij / sum(w.kl)`
+  attractive component is `p.ij`; repulsive component is `q.ij`;
+  1) calibrate `p.ij` to needed perplexity
+  2) iterate: 
+     * calculate all `d.ij` between `y.i` and `y.j` for all `i` and `j` where `i != j`.
+     * calculate `w.ij <- 1 / (1 + d.ij)`.
+     * calculate `q.ij`.
+     * update `y.i` and `y.j` by gradient descent.
+  Author suggests that for reduction to >3 dimensions, should use t(df > 1);
+    also says still sensitive to curse of dimensionality: preprocess w/ PCA so input dimensionality <50.
+    tune local vs. global (or maybe middle) by perplexity; more global or more noisy or more data 
+      benefit from higher perplexity; susceptible to noise in the data.
+    relative cluster sizes are not reproduces, since emphasis on local distance reconstruction;
+      similarly spacing between clusters has little meaning; 
+      too low perplexity tends to lead to false clustering in map; too high pushes data to edges of plot;
+        explore between 2 and 100.
+
+LargeVis: each observation is a vertex or node; edges connect them; `p.ij` and `w.ij` per t-sne;
+  E: set of edges w/ non-zero weight (defines number of nearest neighbors); 
+    sum over members: sum.e; sum over non-members: sum.ebar
+  loss: `L.lv = sum.e(p.ij * log(w.ij)) + gamma * sum.ebar(log(1 - w.ij))`;
+    does not require calculation of `q.ij`
+    gamma: tunes attractive first term vs. repulsive second term.
+
+umap (Uniform Manifold Approximation and Projection):
+  tends to preserve global structure better than t-sne.
+  `v.j|i <- exp(-(r.ij * rho.i) / b * sigma.i)`; 
+    `r.ij` is input distance; 
+    `rho.i` is distance to nearest neighbor;
+    `sigma.i` is fitted to achieve `sum.j(v.j|i) == log2(k)`, 
+      where `k` is number of nearest neighbors;
+      fits `sigma.i` w/ `v.j|i` calculated w/ `b == 1`, even if set otherwise
+    `b` is `bandwidth` (defaults to `1`):
+      set to one for fitting `sigma.i`, then `v.j|i` recalculated w/ `b` and fitted `sigma.i`;
+  symmetric 'input affinities': `v.ij <- (v.j|i + v.i|j) - v.j|i * v.i|j`;
+    this is a 'fuzzy set union'
+    `v.ij` weights attractive component
+  `w.ij <- 1 / (1 + a * d.ij ^ (2 * b))`; 
+    `a` and `b` fit based on `min_dist` and `spread` arguments; 
+    `a == 1; b == 1` corresponds to t-sne
+  cost: `C.umap = sum.ij(v.ij * log(v.ij / w.ij) + (1 - v.ij) * log((1 - v.ij) / (1 - w.ij)))`
 
 randomforest proximities.
 

@@ -129,7 +129,7 @@ Clustering:
      mean (minimizes squared distances). Changing k can result in clusters that are very different. If want to change
      granularity of distinctions without changing clustering pattern, hierarchical may be better. Sometimes k is driven
      by the problem formulation. Other times it is estimated directly from the data. Can calculate w/i group sums of 
-     distances across different values of k. If this works, will see a 'kink' at the right value, as teh w/i group
+     distances across different values of k. If this works, will see a 'kink' at the right value, as the w/i group
      sums drop till right number, then level off. Can also use **gap statistic** to identify the kink more quantitatively:
      randomly distribute same number of observations and calculate difference in w/i group distance between uniformly
      spread data and actual data w/ changing k. Pick k where the difference in log(sum(distances.wi.cluster)) is maximal. 

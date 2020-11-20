@@ -25,45 +25,47 @@ The methods we have studied thus far have focused on explaining or predicting re
   use a training-set of observations to fit a predictive model to the data and then evaluate
   that model using a test-set. This process is called **supervised learning**, because the 
   training-set and test-set response values provide a guide that can be used as ground
-  truth for 'supervising' (in a sense similar to a teacher, who knows the answer, supervising 
-  a student's learning process) the model fitting process. However, in many scenarios, there 
-  may be no particular response variable of interest. Instead, we might be interested in 
-  describing the relative similarity of observations to one another, given a set of variables 
-  (we will call these variables **features**) measured on each observation. This type of task 
-  is called **unsupervised learning** because the ground truth for the task cannot be known
-  for certain based on the features. For instance, if we were to gather morphometric data on 
-  iris plants, we might not know how many species are really represented in our data set. But 
-  we might be able to use the measurement data to describe the **similarity** (or its 
-  converse, the **distance**) between any two observations. By considering the relative 
-  similarities between observations in the data-set, we may be able to split all the 
-  observations into **clusters** where each cluster contains observations with higher 
-  similarity to one another than to observations in other clusters. However, the true cluster 
-  assignments and even the true number of clusters is not encoded in the data, since 
-  there is no response variable with species information. Instead of being driven to match
-  up species labels, the clustering process minimizes some sort of measure of clustering 
-  effectiveness. 
+  truth for 'supervising' the model fitting process. This supervision is similar in sense 
+  to a teacher, who knows the answer, supervising a student's learning process. However, in 
+  many data analysis scenarios, there may be no particular response variable of interest. 
+  Instead, we might be more interested in describing the relative similarity of observations 
+  to one another, given a set of variables (we will call these variables **features**) 
+  measured on each observation. This type of task is called **unsupervised learning** 
+  because the ground truth for the task cannot be known for certain based on the features. 
+  For instance, if we were to gather morphometric data on iris plants, we might not know 
+  how many species are really represented in our data set. But we might be able to use the 
+  measurement data to describe the **similarity** (or its converse, the **distance**) 
+  between any two observations. By considering the relative similarities between 
+  observations in the data-set, we may be able to split all the observations into 
+  **clusters** where each cluster contains observations with higher similarity to one 
+  another than to observations in other clusters. However, the true cluster assignments 
+  and even the true number of clusters is not encoded in the data, since there is no 
+  response variable with species designations. Instead of being driven to match up species 
+  labels between predictions and the training set observations, the clustering process 
+  minimizes some measure of clustering effectiveness. 
 
-One simple loss function (measure of cluster ineffectiveness) for clustering is the sum of 
+One simple loss function (measure of cluster effectiveness) for clustering is the sum of 
   distances between observations within each cluster. The total data variance can be split 
   into two components, with the first being variance within each cluster (describes how 
-  diffuse the cluster is) and variance between clusters (describes how far the clusters are
-  from each other. Ideally, we want compact, well-separated clusters, which implies that we 
-  want to partition as much of the variance into the between-cluster component, which means
-  that the within-cluster variance (which is based on the sum of distances between observations 
-  within each cluster) will be minimized. We can in principle optimize this metric for any 
-  particular cluster number by exhaustively trying all possible assignments of observations to 
-  clusters and picking the arrangement that minimizes this loss. This approach, which is 
-  known as **combinatorial clustering** is only feasible for assigning a small number of 
-  observations to a small number of clusters. For instance, assigning 19 observations to 
-  4 clusters actually involves about `10^10` distinct arrangements. For larger tasks, we 
-  instead use approximate non-exhaustive methods to search the potential solution space. 
+  diffuse the cluster is) and the second being variance between clusters (describes how 
+  far the clusters are from each other. Ideally, we want compact, well-separated clusters, 
+  which implies that we want to partition as much of the variance into the between-cluster 
+  component as possible, which will result in the within-cluster variance (which is based 
+  on the sum of distances between observations within each cluster) will be minimized. We 
+  can in principle optimize this metric for any particular cluster number by exhaustively 
+  trying all possible assignments of observations to clusters and picking the arrangement 
+  that minimizes this loss. This approach, which is known as **combinatorial clustering** 
+  is only feasible for assigning a small number of observations to a small number of 
+  clusters. For instance, assigning 19 observations to 4 clusters actually involves about 
+  `10^10` distinct arrangements. For larger tasks, we instead use approximate 
+  non-exhaustive methods to search the potential solution space. 
 
-Note that we are not even sure if our dataset contains the right features for separating the 
-  of iris plants into species. Perhaps features of the leaf (only flower-related features are
-  included) are required for making distinctions between species. Perhaps using the flower 
-  features will result in some other legitimate grouping (like the position of plants within
-  the greenhouse) that affects flower growth but does not correspond to an inter-species 
-  difference. 
+In the example below, note that we are not even sure if our dataset contains the right 
+  features for separating the of iris plants into species. Perhaps features of the leaf 
+  (only flower-related features are included) are required for making distinctions between 
+  species. Perhaps using the flower features will result in some other legitimate grouping 
+  (like the position of plants within the greenhouse) that affects flower growth but does 
+  not correspond to an inter-species difference.
 
 One of the best known algorithms for assigning observations to a user-selected number `k` 
   of clusters is the **k-means** algorithm. It begins by picking `k` points (typically not
@@ -159,22 +161,23 @@ The k-means algorithm requires recomputing cluster centers at each step in the p
   **k-mediods** algorithm (sometimes called **partitioning around medioids** or 
   **pam**) is similar to the k-means algorithm, except that each cluster center is 
   restricted to coincide with one of the observations assigned to the cluster, which 
-  makes incorporating non-Euclidean distances and non-numeric variables more natural. 
-  The process starts by randomly selecting `k` observations as cluster centers, assigns 
-  all observations to the closest center, then recomputes each cluster center so it 
-  corresponds to the observation in the cluster that has the smallest sum of distances 
-  to the other points currently assigned to the cluster. The user can employ any type 
-  of distance or similarity metric they like. In the example below, we use a 
-  **Manhattan** distance, which is defined as `d <- sum(abs(x.i - x.j))`, where `x.i` 
-  is a vector of feature values for observation `i`, and `x.j` is a vector with the 
-  corresponding feature values of observation `j`. So this distance is the sum of the 
-  absolute value of the differences in individual feature values for the two observations. 
-  A major difference from the Euclidean distance is the absence of squared terms, which 
-  moderates the influence of large difference in individual variables as well as the 
-  influence of outliers.
+  makes incorporating non-Euclidean distances and non-numeric variables more natural,
+  at the cost of increased computational burden. The process starts by randomly 
+  selecting `k` observations as cluster centers, assigns all observations to the 
+  closest center, then recomputes each cluster center so it corresponds to the 
+  observation in the cluster that has the smallest sum of distances to the other 
+  points currently assigned to the cluster. The user can employ any type of distance 
+  or similarity metric they like. In the example below, we use a **Manhattan** distance, 
+  which is defined as `d <- sum(abs(x.i - x.j))`, where `x.i` is a vector of feature 
+  values for observation `i`, and `x.j` is a vector with the corresponding feature 
+  values of observation `j`. So this distance is the sum of the absolute value of the 
+  differences in individual feature values for the two observations. The major difference 
+  from the Euclidean distance is the absence of squared terms, which moderates the 
+  influence of large difference in individual variables as well as the influence of 
+  outliers.
 
 Another way to try and determine a good value of `k` (number of groups) for any clustering
-  algorithm that assigns observations to distinct groups (k-means and k-mediods qualify,
+  algorithm that assigns observations to distinct groups (k-means and k-mediods qualify; 
   hierarchical clustering, which we describe next does not) is to use a silhouette plot. 
   Let `d.ij` be the average distance between observation `i` and the other observations in 
   the same cluster `j`. Let `d.ih` be the average distance between observation `i` 
@@ -183,7 +186,7 @@ Another way to try and determine a good value of `k` (number of groups) for any 
   defined as `sil <- (d.ih - d.ij) / max(d.ih, d.ij)`. A compact well separated cluster will
   correspond to `d.ih` being considerably larger than `d.ij`. In the extreme, this will 
   result in `sil <- (d.ih - 0) / max(d.ih, 0) == d.ih / d.ih == 1`. At the other extreme,
-  if clustering is completely wrong: `sil <- (0 - d.ij) / max(0, d.ij) == -d.ij / d.ij == -1.
+  if clustering is completely wrong: `sil <- (0 - d.ij) / max(0, d.ij) == -d.ij / d.ij == -1`.
   In general, this value will be close to one for observations that are well separated from 
   other clusters. For observations closer to the boundary between clusters, the value will 
   approach zero. A negative value suggests the observation was placed in the wrong cluster. 
@@ -241,45 +244,49 @@ A different approach to describing the relative similarities between observation
   **hierarchical clustering**. This approach does not require a specification of the number 
   of clusters `k`, but it does still require a distance or similarity measure. Ideally, the 
   branch lengths are constructed so that the sum of branch lengths between any two 
-  observations is equal to the distance between the observations in the original feature 
+  observations approximates the distance between the observations in the original feature 
   space. This representation is called a **dendrogram**. We can estimate how well a 
   dendrogram recapitulates the original pairwise observation distances by measuring the 
   correlation between the original pairwise distances and pairwise distances reconstructed 
-  from the branch lengths. The latter are called **cophenetic distances**. However, there 
-  is no clear cutoff to use to judge the result.
+  from the branch lengths. This set of pairwise observation distances calculated from the
+  branch lengths of a dendrogram are called **cophenetic distances**.
 
 Tree construction approaches can be broadly categorized into two groups. The first is 
   **agglomerative clustering**. In this case, we start with one cluster per observation.
   We then successively merge the two closest clusters by placing them as adjacent nodes 
-  in a single tree. We repeat this process until all the observations are incorporated 
-  into the resulting tree. This approach generally produces a dendrogram. There are 
-  several different ways of measuring the distance between clusters. One approach is 
-  called **single-linkage**, (also known as **nearest-neighbor**). Here we find the pair 
-  of observations, one in each cluster, with the smallest pairwise distance. This distance 
+  in a single tree. We repeat this process until all the clusters are incorporated 
+  into a single tree. This approach generally produces a dendrogram (branch lengths are
+  additive and approximately recapitulate original pairwise distances between 
+  observations). There are several different ways of measuring the distance between 
+  clusters when deciding which clusters to merge next. One approach is called 
+  **single-linkage**, (also known as **nearest-neighbor**). Here we find the pair of 
+  observations, one in each cluster, with the smallest pairwise distance. This distance 
   is used as the distance between those two clusters. This approach can lead to a small 
   number of relatively diffuse clusters. Sometimes instead of a tree suggesting clear 
   distinct groups, single-linkage results in a 'chaining' of observations to one another,
   with no clear groupings suggested. Another approach is known as **complete-linkage** or
   **furthest neighbor** linkage, in which case we use the largest pairwise distance 
   between observations in the two clusters as an estimate of distance between clusters. 
-  This tends to result in more compact clusters, but often tends to produce the impression 
-  of more clusters than are actually present. One approach that tends to produce 
+  This tends to result in more compact clusters, but often produces the impression of 
+  more clusters than are actually present. One approach that tends to produce 
   intermediate results is **average** linkage otherwise known as the **unweighted pair 
   group method with arithmetic mean** or **UPGMA**, where we take the average distance 
   between all observations in one cluster and all the observations in the other cluster as 
   the distance between groups. One drawback of this approach is that while 
   furthest-neighbor and nearest-neighbor methods only depend on the ordering of distances, 
   and are therefore invariant under monotonic transformations of the variables, the UPGMA 
-  method can give very different results after variable transformation.
+  method can give very different results after variable transformation. Other approaches 
+  try to remedy this weakness while maintaining less reliance on single pairs of 
+  observations for computing distances between clusters.
 
 The second approach to building a tree is called **divisive clustering**. Here we initially
   assign all observations to a single cluster. We then look for potential splits that result
   in two clusters with the largest distance between each other, placing the two resulting
   clusters at the two largest branches of the tree. Then we repeat the process, splitting
-  clusters until each branch terminates in a single observation. This process does not 
-  necessarily result in a dendrogram. This approach is much less used, much less studied,
-  and (depending on algorithm) potentially much more computationally intensive than 
-  agglomerative clustering.
+  clusters into successively smaller branches until each branch terminates in a single 
+  observation. This process does not necessarily result in a dendrogram. This approach is 
+  much less used, much less studied, and (depending on algorithm) potentially much more 
+  computationally intensive than agglomerative clustering.
 
 Every approach described thus far, with the exception of combinatorial clustering, is an 
   approximate non-exhaustive search method. For k-means and k-medioids, one should generally
@@ -287,7 +294,8 @@ Every approach described thus far, with the exception of combinatorial clusterin
   select the solution that most minimizes the within-cluster sum-of-distances. For hierarchical
   clustering, we can repeat the process with different bootstrap samples of the observations
   (sampling with replacement) and see how consistent the branching patterns are across 
-  bootstraps in order to examine how reliable the branching patterns are likely to be.
+  bootstrap replications in order to examine how reliable the branching patterns are likely 
+  to be.
 
 ```
 ## single linkage clustering based on manhattan distances:
@@ -319,7 +327,7 @@ plot(fit, cex=0.75, labels=substr(rownames(dat), 1, 3))
 
 ### Check your understanding 1
 
-1) question here
+1) question here (TO DO)
 
 [Return to index](#index)
 
@@ -332,8 +340,8 @@ Dimension reduction refers to a process in which we try to reproduce relationshi
   smaller number of features. This is similar to the process of lossy data compression, 
   where we try to reduce a size of a dataset in a way that retains as much of the salient
   information in the original represenation as possible. **Principal components analysis**, 
-  or **PCA** is probably the best known form of dimension reduction. PCA creates constructs
-  new features as linear combinations of the original features. For instance, if we start 
+  or **PCA** is probably the best known form of dimension reduction. PCA constructs new 
+  features as linear combinations of the original features. For instance, if we start 
   with three features `x.1`, `x.2` and `x.3`, PCA generates three new features (lets call 
   them `y.1`, `y.2` and `y.3`) that are linear combinations of the original features:
 
@@ -349,17 +357,17 @@ Here `b.ij` are constant coefficients. The coefficients `b.11`, `b.12` and `b.13
   a direction (ray from the origin) in the original feature space (`x.j` space). This is the 
   direction of maximum variance of the observations. So if your data cloud looks like an 
   American football, and is centered so the football center is at the origin, the first 
-  direction will lay along the long axis of the football. If we extend this ray in both directions
-  to form a line, the sum of squared distances from the observations to this line will be less than
-  for any other possible line. Thus, just like we can think of the mean as being the best point for 
-  fitting the data in the MSE sense, we can think of the first principal component as being the 
-  line that best fits the data in the MSE sense. This is a very similar concept to that employed 
-  when fitting linear models, except there is no designated response variable. For `y.2`, the 
-  `b.2j` are then selected so as to maximize the variance of `y.2` while ensuring that the 
-  correlation between `y.1` and `y.2` is zero. This is equivalent to repeating the earlier process, 
-  but using the residuals between the observations and the first PCA as input to this step. Finally, 
-  the `b.3j` are selected so as to maximize the variance of `y.3` while keeping its correlation 
-  with the previous `y.i` (`y.1` and `y.2`) zero.
+  direction will lay along the long axis of the football, whichever way the football is oriented. 
+  If we extend this ray in both directions to form a line, the sum of squared distances from the 
+  observations to this line will be less than for any other possible line. Thus, just like we can 
+  think of the mean as being the best point for fitting the data in the MSE sense, we can think 
+  of the first principal component as being the line that best fits the data in the MSE sense. 
+  This is a very similar concept to that employed when fitting linear models, except there is no 
+  designated response variable. For `y.2`, the `b.2j` are then selected so as to maximize the 
+  variance of `y.2` while ensuring that the correlation between `y.1` and `y.2` is zero. This is 
+  equivalent to repeating the earlier process, but using the residuals between the observations 
+  and the first PCA as input to this step. Finally, the `b.3j` are selected so as to maximize the 
+  variance of `y.3` while keeping its correlation with the previous `y.i` (`y.1` and `y.2`) zero.
 
 This process results in the same number of derived features `y.i` as there are original features 
   `x.j`. It also results in assignment of new coordinates in the derived feature space for each
@@ -376,7 +384,7 @@ This process results in the same number of derived features `y.i` as there are o
   along the second principal component `y.2` will decrease the sum of squared distances from 
   observations to their reconstructed positions in the original feature space more than any 
   other choice. Now the reconstructed observation positions represented in the original feature 
-  space will be points in the plane uniquely defined by (and containing) the two intersecting 
+  space will be points in the plane uniquely defined by (containing) the two intersecting 
   lines `y.1` and `y.2`. Adding the last feature, `y.3`, will allow the reconstructed 
   observation positions in the original feature space to exactly match their original positions. 
   That is, we can reconstruct the original feature space without any information loss when we 
@@ -397,8 +405,8 @@ Sometimes analysts might be tempted to use PCA to reduce dimensionality or multi
 
 A basic R installation provides two methods for computing principal components, `princomp()` and 
   `prcomp()`. Their algorithm, output and interpretation differ somewhat. Here, we demonstrate the 
-  use of `prcomp()` because the computations uses are more numerically stable. This function returns 
-  **eigenvalues** and **eigenvectors** that can be used to derive the principal components. The
+  use of `prcomp()` because the computations used are more numerically stable. This function returns 
+  **eigenvalues** and **eigenvectors** that can be used to calculate the principal components. The
   eigenvalues tell us how much of the variance in the original dataset is accounted for by each
   successive principal component, and the eigenvectors define the directions of each component. The
   PCA fitting process is reproducible, so seeding and repeated fitting is not required.
@@ -457,7 +465,7 @@ legend(
 
 ### Check your understanding 2
 
-1) question here
+1) question here (to do)
 
 [Return to index](#index)
 
@@ -468,26 +476,28 @@ legend(
 One problem with PCA is that because it attempts to preserve the variance in the original
   feature space (e.g. the first component is the direction of greatest variance in the 
   original space), and because variances are based on squared distances, large distances
-  play a larger role in determining the components than do small distances. As a result,
-  lower-dimensional representations using PCA tend to reconstruct long-distances between
-  observations (**global structure**) much better than short-distances (**local structure**). 
-  Another issue with PCA is that sometimes the relationships between what we might consider 
-  meaningful groupings of observations are better defined in terms of non-linear 
-  relationships and interactions between the original variables that tend to not be well 
-  preserved in lower dimensional PCA reconstructions. 
+  play a larger role in determining the principal components than do small distances. As 
+  a result, lower-dimensional representations using PCA tend to reconstruct long-distances 
+  between observations (**global structure**) better than short-distances (**local 
+  structure**). Another issue with PCA is that sometimes the relationships between what 
+  we might consider meaningful groupings of observations are better defined in terms of 
+  non-linear relationships and interactions between the original variables that tend to 
+  not be well preserved in lower dimensional PCA reconstructions. 
 
-A different approach is based on trying to find a non-linear lower-dimensional representation 
-  which best matches up probabilistically described neighborhoods between the original and 
+A different approach to dimensional reduction is based on trying to find a potentially 
+  non-linear mapping from the higher-dimensional space to the lower-dimensional 
+  representation. One way to do this is to find a lower-dimensional representation which 
+  best matches up probabilistically described neighborhoods between the original and 
   reduced feature spaces. For instance, we can probabilistically define the neighbors of
   an observation `x.i` by centering a Gaussian (normal) curve, or **kernel** (the shape of 
   the probability density of a normal distribution) on top of the observation. We then assign
   a probability of observation `x.j` (whose distance from `x.i` is `d.ij`) being a neighbor 
-  of `x.i` with a probability proportional to the height of the Gaussian curve at a distance 
-  `d.ij` from `x.i`. Another curve used to probabilistically describe neighborhoods around 
-  individual observations is a t-distribution with a single degree of freedom (equivalent to 
-  a Cauchy distribution), which has a much heavier tail, and therefore tends to include 
-  observations further from `x.i` in the neighborhood of `x.i` with a higher probability
-  than when using a Gaussian kernel. We draw both curves below for comparison:
+  of `x.i` proportional to the height of the Gaussian curve at a distance `d.ij` from `x.i`. 
+  Another curve used to probabilistically describe neighborhoods around individual 
+  observations is a t-distribution with a single degree of freedom (equivalent to a Cauchy 
+  distribution), which has a much heavier tail, and therefore tends to include observations 
+  further from `x.i` in the neighborhood of `x.i` with a higher probability than when using 
+  a Gaussian kernel. We draw both curves below for comparison:
 
 ```
 rm(list=ls())
@@ -519,7 +529,7 @@ We can use this approach to probabilistically define neighborhoods around each o
   coordinates in a lower-dimensional space such that the average probability of including 
   `x.j` within the neighborhood of `x.i` matches as closely as possible for all `i` and 
   `j` between the higher dimensional representation and the lower dimensional one. We can 
-  express the degree of divergence between these two probability distributions with the 
+  express the degree of similarity between these two probability distributions with the 
   **Kullback-Leibler divergence** or **KL-divergence**. This metric is based on the information 
   theory concept of **entropy**. Entropy describes the amount of information present in a data 
   representation. For a given dataset and probability distribution, the entropy is a function 
@@ -557,17 +567,17 @@ One problem that results when using a Gaussian kernel for generating neighborhoo
   larger perplexity. The t-sne algorithm tends to do a better job than PCA of preserving local
   structure.
 
-The plots generated by t-sne must be interpreted with caution, they do not attempt to preserve
-  pairwise distances between observations. As a result, the sizes of clusters and the relative 
-  spacing between clusters has very little meaning. Most implementations of the t-sne algorithm 
-  only provide two-dimensional representations, though the method could in principle be extended 
-  to three or more dimensions by increasing the degrees-of-freedom of the t-distribution used in 
-  the reduced feature space. The t-sne algorithm is also not immune to the curse of dimensionality. 
-  If you have more than 50 features, you may need to either do some feature selection or reduce 
-  the dimensionality using a method like PCA, before attempting t-sne. The t-sne algorithm tends
-  to be quite slow, which is made worse by the need to try multiple iterations in order to avoid 
-  shallow local minima in the loss, as well as the need to explore the effects of varying the 
-  perplexity.
+The plots generated by t-sne must be interpreted with caution, since the algorithm does not 
+  attempt to preserve pairwise distances between observations. As a result, the sizes of clusters 
+  and the relative spacing between clusters has very little meaning. Most implementations of the 
+  t-sne algorithm only provide two-dimensional representations, though the method could in 
+  principle be extended to three or more dimensions by increasing the degrees-of-freedom of the 
+  t-distribution used in the reduced feature space. The t-sne algorithm is also not immune to the 
+  curse of dimensionality. If you have more than 50 features, you may need to either do some 
+  feature selection or reduce the dimensionality using a method like PCA, before attempting t-sne. 
+  The t-sne algorithm tends to be quite slow, which is made worse by the need to try multiple 
+  iterations in order to avoid shallow local minima in the loss, as well as the need to explore 
+  the effects of varying the perplexity.
 
 ```
 library(tsne)
@@ -637,21 +647,19 @@ sapply(fits, f.plot)
 
 ```
 
-umap: https://pair-code.github.io/understanding-umap/
-
 The **Uniform Manifold Approximation and Projection** or **UMAP** method is conceptually 
-  similar to t-sne, but is intended to strike a better balance between preserving local
-  and global structure, so that global structure is better preserved than with t-sne. So
-  both methods may show similar clustering of observations (local structure), but UMAP 
-  is supposed to do a better job of reproducing the relationships between clusters (global
-  structure). Instead of using a Gaussian curve `exp(-(d.ij^2))`, where `d.ij` is the 
-  distance from observation `i` to observation `j`, for defining probabilistic 
+  similar to t-sne, but is intended to do a better job of preserving global structure than 
+  t-sne, while retaining most of t-sne's ability to preserve local structure. So both 
+  methods may show similar clustering of observations (local structure), but UMAP is 
+  supposed to do a better job of reproducing the relationships between clusters (global
+  structure). Instead of using a Gaussian curve `exp(-(d.ij^2))` (with `d.ij` the 
+  distance from observation `i` to observation `j`) for defining probabilistic 
   neighborhoods in the original feature space, UMAP uses the function `exp(-(d.ij * rho.i)`, 
   where `rho.i` is the distance from observation `i` to its nearest neighbor. This results 
-  in a curve with a tail intermediate between the Gaussian and Cauchy curves. So this
-  will tend to include more observations in the neighborhood of a given observation than
-  the Gaussian, but will tend to include less observations in the neighborhood than the
-  Cauchy curve.
+  in a curve with a tail intermediate between the Gaussian and Cauchy curves. The UMAP
+  kernel will tend to include more observations in the neighborhood of a given observation 
+  than the Gaussian kernel, but will tend to include less observations in the neighborhood 
+  than the Cauchy kernel.
 
 In addition to exploring the effects of the `n_neighbors` parameter (similar to perplexity),
   UMAP is also fairly strongly affected by a `min_dist`, which determines how closely points
@@ -749,7 +757,7 @@ sapply(fits, f.plot)
 
 ### Check your understanding 3
 
-1) question here
+1) question here (to do)
 
 [Return to index](#index)
 

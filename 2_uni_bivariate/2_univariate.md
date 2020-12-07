@@ -51,36 +51,37 @@
 ### The Central Limit Theorem
 
 In our previous lesson, we used the means of samples to estimate the mean
-  of a population (a simulated normal distribution or uniform distribution). 
+  of a population (in the example, a simulated normal distribution or uniform distribution). 
   We learned that the sample estimates are centered on the population 
-  mean, and are therefore unbiased estimators of the population mean. The
+  mean, and are therefore **unbiased** estimators of the population mean. The
   precision of the sample estimates was described in terms of the 
-  'standard error', which was directly proportional to the population 
-  variance and inversely proportional to the square-root of the sample
-  size:
+  **standard error**, which was directly proportional to the **population 
+  variance** and inversely proportional to the square-root of the **sample
+  size**:
 
 `standard_error_mean = population_variance / square_root(sample_size)`
 
 Furthermore, we learned that regardless of the distribution of the 
-  population (e.g. for a uniformly distributed population), if the 
+  population (e.g. even for a uniformly distributed population), if the 
   sample estimates were made over and over, the distribution of sample
   estimates would be bell-shaped. The Central Limit Theorem (CLT) tells 
   us that for populations that are very large compared to the sample 
-  size (whose composition would remain essentially unaffected by the 
+  size (so that composition would remain essentially unaffected by the 
   sampling process), as the sample sizes increases, this bell-shaped 
   distribution of sample estimates approaches a normal distribution with 
   a mean at the population mean and a standard deviation equal to the 
-  standard error of the mean. That is, the distribution of sample estimates 
-  of the population mean approaches the normal distribution:
+  standard error of the mean as specified above. That is, the distribution 
+  of sample estimates of the population mean approaches the normal 
+  distribution:
 
 `N(mean=population_mean, sd=standard_error_mean)`
 
-In this lesson, we will discuss statistical inference, which means
-  making inferences about population parameters based on measurements of 
-  samples in a way that explicitly describes the uncertainty involved in
-  extrapolating from samples to populations. If we use the CLT to justify 
-  assuming a particular distribution for the sample estimates, we can then
-  estimate how far from the population value any particular sample 
+In this lesson, we will discuss **statistical inference**, which means
+  making inferences about **population parameters** based on measurements of 
+  samples in a way that explicitly **describes the uncertainty involved in
+  extrapolating from samples to populations**. If we use the CLT to justify 
+  assuming a particular distribution for the sample estimates (e.g. normal), 
+  we can then estimate how far from the population value any particular sample 
   estimate is likely to be. For instance, if the population has a mean
   of `100` and a standard deviation of `10`, according to the CLT, the 
   means of samples of size 30 will have the distribution:
@@ -106,19 +107,21 @@ abline(h=0, lty=3)                                 ## h(orizontal) line at y==0
 
 ```
 
-Conversely, we can calculate a 'critical value' for any probability from this 
+Conversely, we can calculate a **critical value** for any probability from this 
   distribution using the R function `qnorm()`. The probability of any sample
-  mean having a value further from the population mean than the critical value
-  is no more than the specified probability. This idea leads to the calculation
-  of confidence intervals for the sample means. If we want to know where the 
-  the mean of a random sample will end up 95% of the time, we can split the 
-  remaining 5% (how often a sample mean is expected to fall outside the interval) 
-  between the two 'tails' (left rising tail and right falling tail) of 
-  the distribution. An approximation frequently employed is that about 95% of 
-  the time a normally distributed value will fall within two standard deviations 
-  of the mean. Therefore the sample mean should fall within two standard errors 
-  of the population mean about 95% of the time. We will calculate the 'critical 
-  values' more exactly here:
+  mean (assuming we are repeating the experiment many, many times, drawing an 
+  independent random sample from the population of interest with each iteration)
+  having a value further from the population mean than the critical value is no more 
+  than the specified probability. This idea leads to the calculation of intervals in 
+  which the sample means are likely to fall. If we want to know where the the mean 
+  of a random sample will end up in 95% of a very large number of repeated 
+  experiments, we can split the remaining 5% (how often a sample mean is expected 
+  to fall outside the interval) between the two **tails** (left rising tail and right 
+  falling tail) of the distribution. An approximation frequently employed is that 
+  about 95% of the time a normally distributed value will fall within two standard 
+  deviations of the mean. Therefore the sample mean should fall within two standard 
+  errors of the population mean about 95% of the time. We will calculate the critical 
+  values more exactly here:
 
 ```
 ## a quantile function like 'qnorm' takes a probability as first argument, and returns
@@ -147,30 +150,39 @@ pnorm(c(critical_99_left, critical_99_right), mean=100, sd=10)
 
 ```
 
-Invoking the CLT allows us to use a 'parametric' distribution (a distribution 
-  defined by defining the parameters of a family of distribution, like 
-  specifying the mean and standard deviation for a normal distribution family) to
-  make various 'parametric' estimates of uncertainty, like the parametric 
+Note that in the example above, we are using a population with a known mean of `100` 
+  and standard deviation (resulting in a simulated standard error of `10`) in order 
+  to describe the distribution of sample means. This is different than a conventional 
+  **confidence interval**, which estimates the range within which an unknown population 
+  mean is likely to be based on the mean, standard deviation and size of a sample from
+  that population. Conventional confidence intervals are described more fully in the
+  next section.
+
+Invoking the CLT allows us to use a **parametric** distribution (a distribution 
+  defined by specifying the parameters of a family of distribution, like 
+  specifying the mean and standard deviation for the family of normal distributions) 
+  to make various parametric estimates of uncertainty, like the parametric 
   confidence intervals for the mean above. Because such estimates of uncertainty 
   asymptotically approach the 'truth' as the sample size approaches infinity, 
-  these estimates are sometimes termed 'asymptotically correct'. 
+  these estimates are sometimes termed **asymptotically correct**. 
 
 How large a sample does one require in order to be able to invoke the CLT to 
   justify using parametric confidence intervals for a mean? The speed with 
   which the sample estimate distributions approach their theoretical parametric
   distribution as sample size increases depends on the population distribution, 
-  and therefore varies from case-to-case. If the sample size is too low, the 'coverage' 
-  of confidence intervals may well turn out to be lower than 'nominal'. That is, a 
-  parametric confidence interval that is supposed to be 95% (nominally 95%) 
-  may actually correspond to only a 91.3% interval. So the right answer depends 
-  both on the shape of the population (the closer to normal, the better the 
+  and therefore varies from case-to-case. If the sample size is too low, the **coverage** 
+  of confidence intervals may well turn out to be lower than **nominal** (what was
+  specified). That is, a parametric confidence interval for a population mean that is 
+  supposed to be 95% (nominally 95%) may actually contain the population mean only 
+  91.3% of the time (instead of 95% of the time). So the minimum sample size required 
+  depends both on the shape of the population (the closer to normal, the better the 
   parametric confidence intervals will tend to cover the nominal interval) and 
   how good you need the coverage to actually be. If the main focus of a study is
   a particular mean, you should make sure you have robust sample sizes to ensure your
   confidence intervals are very reliable, or avoid relying on the CLT by using
   non-parametric methods like the empirical bootstrap (covered later in this course)
   to estimate intervals. On the other hand, if you are using parametric estimates to 
-  filter very large numbers of partially redundant variables into a smaller set to 
+  filter very large numbers of partially redundant variables into a smaller set for 
   use in a machine learning procedure that can accommodate some extraneous variables 
   (a common scenario), the exact coverage of a confidence interval might be less 
   important than the computational efficiency of the filtering procedure. 
@@ -182,31 +194,31 @@ How large a sample does one require in order to be able to invoke the CLT to
 ### Estimating means with a t-test
 
 Above we learned that if our sample sizes are large enough to justify invoking 
-  the CLT, we can use the **population** mean, **population** standard deviation 
-  and **sample** size to calculate confidence intervals for the **sample** mean. 
+  the CLT, we can use the **population mean**, population standard deviation 
+  and sample size to calculate confidence intervals for the **sample mean**. 
 
 However, in statistical inference we are usually interested in moving in the 
-  opposite direction: we want to take a **sample** mean, **sample** standard deviation 
-  and **sample** size in order to calculate a confidence interval for the **population**
+  opposite direction: we want to take a **sample** mean, sample standard deviation 
+  and sample size in order to calculate a **confidence interval** for the **population**
   mean. To do so, we plug in values of the sample mean and sample standard 
   deviation in place of their population counterparts in the formulas we discussed
   in the previous section. Because these sample parameters are inexact estimators 
   of the corresponding population parameters, this introduces additional variability 
   in our estimates. In order to calculate the correct critical values for this 
   situation, we need to use a 'relaxed' version of the normal distribution, called 
-  the Student's t-distribution. The t-distribution describes the probability 
+  the **Student's t-distribution**. The t-distribution describes the probability 
   distribution of the statistic:
 
 `t = sample_mean / (sample_std_dev / sqrt(sample_size))`
 
 The `sample_std_dev` is calculated using the sample for data, but the formula
-  used continues to be the population version (without Bessel's correction of 
+  used continues to be the population version (**without Bessel's correction** of 
   the denominator). 
 
 The t-statistic has the virtue of having a distribution 
   that does not require knowledge of any population parameter (such as the 
-  mean or standard deviation). The t-distribution has a single parameter, 
-  called the degrees-of-freedom `df`. The degrees-of-freedom is the difference 
+  mean or standard deviation). The t-distribution has a **single parameter**, 
+  called the **degrees-of-freedom** `df`. The degrees-of-freedom is the difference 
   between the size of the sample `n` and the number of population parameters being 
   estimated. Here, we are estimating the mean of a single population, so one 
   population parameter is being estimated, therefore `df == n - 1`. Below we 
@@ -257,7 +269,7 @@ legend(
 
 ```
 
-The t-distribution is generally more 'dispersed' (more values tend to 
+The t-distribution is generally more **dispersed** (more values tend to 
   occur further from 0) than the standard normal distribution `N(0, 1)`. 
   As the degrees-of-freedom increases, the t-distribution becomes 
   less dispersed, asymptotically approaching the standard normal
@@ -323,8 +335,8 @@ The confidence interval constructed above was derived by considering the distrib
   interval has a similarly flavored interpretation: if many, many (approaching 
   infinity) samples of the given size (in the previous example, n=30 observations per 
   sample) were drawn at random from the population, and used to estimate the 
-  confidence interval for that population, 95% of the time, the confidence intervals 
-  would contain the true population mean. Conversely, 5% of the time the population 
+  confidence interval for that population, **95% of the time, the confidence intervals 
+  would contain the true population mean**. Conversely, 5% of the time the population 
   mean will fall outside of the 95% confidence interval calculated using a random 
   sample from that population.
 
@@ -374,20 +386,20 @@ Above we used the `t.test()` function to estimate a confidence interval for a po
   t-test before, and know that it is used for testing hypotheses about means. Above, 
   the default invocation of `t.test()`, in addition to producing a confidence interval 
   for the population mean, also tests the 'null hypothesis' that the population mean is not 
-  different from a default comparison value of zero. In general, a null hypothesis 'h0' 
-  usually corresponds to a negative result of some type: no difference, no association, 
-  etc. We 'test' a null hypothesis about a population by seeing if the null hypothesis is 
-  consistent with data collected from a random sample of that population. If our 
-  observed sample data would be very unlikely under the null hypothesis (signaled 
-  by the test returning a 'p-value' below some preselected cutoff, like 5%) we can 'reject' 
-  the null hypothesis. This would typically correspond to a positive or other interesting
-  result of some type. In some cases, rejecting the null hypothesis leaves us with only
-  one possible alternative hypothesis, but in other cases, rejecting the null hypothesis
-  leaves multiple remaining alternative hypotheses, which can complicate interpretation.
-  For instance, if the null hypothesis that the mean of a population is zero is rejected,
-  that does not tell us if the actual mean is above or below zero, let alone what value
-  the mean actually takes. In this sense, reporting confidence intervals is usually far 
-  more informative to your audience than reporting a p-value from a statistical test.
+  different from a default comparison value of zero. In general, a **null hypothesis** 
+  often denoted **h0**) usually corresponds to a negative result of some type: no difference, 
+  no association, etc. We 'test' a null hypothesis about a population by seeing if the null 
+  hypothesis is consistent with data collected from a random sample of that population. If our 
+  observed sample data would be very unlikely under the null hypothesis (signaled by the test 
+  returning a 'p-value' below some preselected cutoff, like 5%) we can **reject the null 
+  hypothesis**. The null hypothesis is ideally constructed so that rejection corresponds to a 
+  positive or other interesting result of some type. In some cases, rejecting the null 
+  hypothesis leaves us with only one possible **alternative hypothesis**, but in other cases, 
+  rejecting the null hypothesis leaves multiple remaining alternative hypotheses, which can 
+  complicate interpretation. For instance, if the null hypothesis that the mean of a population 
+  is zero is rejected, that does not tell us if the actual mean is above or below zero, let 
+  alone what value the mean actually takes. In this sense, reporting confidence intervals is 
+  usually far more informative to your audience than reporting a p-value from a statistical test.
 
 In the case above, if the null hypothesis were true (population mean really was `0`), 
   on average, only 5 out of 100 samples drawn from that population would result in 95% 
@@ -413,15 +425,15 @@ Although that is a legitimate way to view the t-test, the actual p-value is calc
   the two choices 'greater than or equal to a cutoff of 0.05' or 'less than a cutoff 
   of 0.05'.
 
-The interpretation of the p-value is similar to our earlier interpretation of the
+The **interpretation of the p-value** is similar to our earlier interpretation of the
   confidence interval. If the experiment were repeated many, many times, each time 
-  drawing a random sample of the given size from an infinite population with the 
+  drawing a random sample of the same size from an infinite population with the 
   hypothetical mean (here `0`), the sample mean would only be as far from the 
   hypothetical mean as was observed with our experimental sample `p-value * 100` 
   percent of the time. This way of deriving and interpreting p-values or confidence 
   intervals in terms of the theoretical frequency with which statistics calculated 
   on different random samples from a population would take on a particular range of 
-  values is called the 'frequentist' approach to statistics.
+  values is called the **frequentist** approach to statistics.
 
 The R `t.test()` function takes a parameter called `mu` (defaults to `0`), which can 
   be used to set the hypothetical value for the null hypothesis to whatever value you 
@@ -461,7 +473,7 @@ rslt$p.value
 ```
 
 When comparing a hypothetical value to a population mean with `t.test()`, we 
-  can also perform 'one-sided' tests, that only consider the possibility of 
+  can also perform **one-sided** tests, that only consider the possibility of 
   the population mean being smaller or larger than a hypothetical value.
   For instance, we may want to know if the average US adult would fit into
   a doorway 5'8" (68") tall. In order to answer this question, we could 
@@ -479,7 +491,7 @@ When comparing a hypothetical value to a population mean with `t.test()`, we
   report confidence intervals in addition to or in place of p-values!!!**
 
 The advantage of using a one-sided test instead of the default 
-  two-sided test is that the one-side test is more powerful: it can
+  two-sided test is that the **one-side test is more powerful**: it can
   detect smaller differences between the population mean and the 
   hypothetical comparison value than the two-sided test. Therefore,
   if your interest really only lies in a 'greater' or 'less than' 
@@ -533,7 +545,7 @@ The p-value tells us how often we expect the population mean to fall
 
 `is.logical(x) && length(x) == 1 && !is.na(x) && x`
 
-Here we write a function that conducts R (default=10,000) experiments. In each 
+Here we write a function that conducts `R` (default=`10000`) experiments. In each 
   experiment a random sample of size `n` is drawn from an infinite population,
   a confidence interval for the mean of the population is estimated from 
   the sample, and we determine whether the population mean (known, in 
@@ -612,17 +624,17 @@ x.r <- rnorm(50, mean=40, sd=5)
 ### Estimating proportions with a chi-square test
 
 In addition to making inferences about numeric data, we are often interested in 
-  making inferences about categorical data. In the simplest setup, every member
+  making inferences about **categorical data**. In the simplest setup, every member
   of a population is assigned to one category from a set of mutually exclusive 
-  categories and we are interested in a question such as the proportion of the 
-  population in each category. The most common and easily understood scenario
+  categories and we are interested in a question such as the **proportion of the 
+  population in each category**. The most common and easily understood scenario
   is when a population is split between two categories. For instance, we might 
   be interested in the proportion of the population that bears a particular 
-  genetic allele ('carrier' vs 'non-carrier') or is infected with a virus
-  ('infected' vs 'not infected'), or has a sufficient titer of neutralizing 
-  antibodies against a virus ('immune' vs 'not immune'). 
+  genetic allele (`carrier` vs `non-carrier`) or is infected with a virus
+  (`infected` vs `not infected`), or has a sufficient titer of neutralizing 
+  antibodies against a virus (`immune` vs `not-immune`). 
 
-A nice 'toy' example is determining if a coin is 'fair'. When flipping coins,
+A nice 'toy' example is determining if a coin is 'fair'. When **flipping coins**,
   each flip can be assigned to one of two mutually exclusive categories: 
   heads or tails (ignoring for the moment the possibility of a coin landing
   to rest on its edge). We expect a fair coin to have an equal probability 
@@ -671,7 +683,7 @@ attributes(rslt)             ## same setup as for t.test()
 ```
 
 As with the `t.test()`, function, the `prop.test()` function uses a parametric 
-  distribution (chi-square distribution in this case) to construct 
+  distribution (**chi-square distribution** in this case) to construct 
   confidence intervals for a population parameter and test null hypotheses 
   about the population parameter. In order to test whether the coin is fair,
   we can use a sample of flips to test the null hypothesis that the proportion
@@ -740,9 +752,9 @@ rslt$p.value
 
 ### Estimating proportions with exact tests
 
-The chi-square test in the previous example calculates p-values and confidence 
+The **chi-square test** in the previous example calculates p-values and confidence 
   intervals based on the parametric chi-square distribution. This calculation 
-  makes several assumptions, including that sample sizes are large enough to
+  makes several **assumptions**, including that sample sizes are large enough to
   invoke the CLT and that cell counts are large enough (a rough rule of thumb 
   is that your sample should be large enough to provide counts of at least five 
   for each category) for other distributional assumptions to hold. As was 
@@ -752,15 +764,15 @@ The chi-square test in the previous example calculates p-values and confidence
   non-parametric alternatives to the parametric chi-square test are frequently 
   employed when working with small sample sizes. 
 
-These non-parametric exact tests have the virtue of returning confidence intervals 
+These non-parametric **exact tests** have the virtue of returning confidence intervals 
   guaranteed to be correct regardless of sample size or cell counts. The 
   downside of using these tests is that when the assumptions behind the 
   chi-square test are met, the confidence intervals provided by the chi-square 
   test are often shorter than the corresponding intervals from the 
-  non-parametric tests. This means that when its assumptions hold, the chi-square 
-  test is more powerful than its non-parametric counterparts. Also, the time 
+  non-parametric tests. This means that **when its assumptions hold, the chi-square 
+  test is more powerful** than its non-parametric counterparts. Also, the time 
   required for calculations of the exact tests rises with the size of 
-  the sample, which can result in prohibitive computational costs for very 
+  the sample, which can result in prohibitive **computational costs** for very 
   large samples. Here we demonstrate the popular (and fairly easy to interpret)
   binomial exact test:
 

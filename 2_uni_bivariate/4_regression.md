@@ -22,130 +22,103 @@
 
 ### The linear model
 
-In the previous lesson we saw how when two variables are correlated,
-  if you know something about the values of one variable, it tells
-  you something about the values of the other variable. For instance,
-  if two variables `x` and `y` are positively correlated, if `x` goes
-  up, you know that chances of `y` going up are increased. But we 
-  don't yet know how to make a more precise prediction about 
-  the behavior of `y`. Previously we also learned that if we know 
-  the population mean for `y` and are asked to predict the `y` value 
-  of a single observation randomly drawn from that population, the 
-  population mean would be our best predictor, in the least-squares
-  sense. That is, the mean has a lower **average** squared deviation 
-  (difference) to to the `y` values of the population members than 
-  any other value. 
+In the previous lesson we saw how knowing something about one of two
+  correlated variables allows us to make better guesses about the value 
+  of the other variable. For instance, if the two variables `x` and `y` 
+  are positively correlated, if `x` is higher in observation `obs.i` than in
+  observation `obs.j`, it is more likely that `y` is also higher in `obs.i` 
+  than it is in `obs.j`. The strength of the association determines just 
+  how much more likely. Although we can make some predictions about the
+  direction of change in the value of `y` with changing `x`, we don't yet 
+  know how to more precisely predict the value of `y`, even when the association 
+  between `x` and `y` is very strong and `x` is known exactly. Previously we 
+  also learned that if we know the population mean for `y` and are asked to 
+  predict the `y` value of any single observation randomly drawn from that 
+  population (without consulting the value of `x` for that observation), the 
+  population **mean** would be our **best predictor**, in the least-squares sense. 
+  That is, the mean has a lower **average squared deviation** (difference) to to 
+  the `y` values of the population members than any other value. 
 
-Here we will put these two ideas together: we will model the mean value
-  of `y` as being conditional on `x`. That is, the mean of `y` values
-  sampled at one value of `x` is different than at another value of `x`. 
-  The 'conditional' mean of `y` in this case will be represented as a 
-  straight line on the plot of `x` vs. `y`. This is the model assumed
-  by Pearson's correlation. If `x` and `y` are positively
-  correlated, this line will rise from left to right. Conversely,
-  if they are negatively correlated, this line will decline from left
-  to right. If there is no correlation between the variables, the
-  line will be level (slope of zero) and pass through the mean of the
-  `y` values (since in this case, the mean is not 'conditional' on
-  `x`, so the global mean of `y` is the best 'fit' to the `y` values of
-  the data). 
+Here we will put these two ideas together: we will **model the mean** value of 
+  `y` as being conditional on `x`. That is, the mean of `y` values sampled at one 
+  value of `x` is different than at another value of `x`. The **conditional mean** 
+  of `y` in this case will be represented as a **straight line** on the plot of `x` 
+  vs. `y`. This linear relationship is also the concept behind the Pearson's 
+  correlation. If `x` and `y` are positively correlated, this line will rise from 
+  left to right (assuming `y` is plotted on the vertical axis and `x` on the 
+  horizontal). Conversely, if they are negatively correlated, this line will decline 
+  from left to right. If there is **no correlation** between the variables, the line 
+  will be **level** (slope of zero) and pass through the mean of the `y` values 
+  (since in this case, the mean is not conditional on `x`, so the global mean of `y` 
+  is the best predictor of the `y` values of the data). 
 
-In order to do so, we will need to estimate the two parameters of a 
-  straight line: the intercept (where the line crosses the `y` axis, 
-  which corresponds to the value of `y` at `x == 0`), and the slope 
-  (representing the rate at which `y` changes with changing `x`). We 
-  will estimate these parameters of our linear equation for the 
-  conditional mean in a way to minimize a sum-of-squared deviations 
-  penalty, just like we implicitly do when calculating a global mean. 
-  That is, the line we come up with will reduce the average squared 
-  vertical `y` distances from the observations to the line. Note that
-  these distances, or 'residuals', measure how far off observed `y` values are
-  from the corresponding `y` value of the fitted line. These distances are 
-  NOT necessarily perpendicular to the fitted line (as the shortest 
-  graph distance from the observation to the line would be), but 
-  perpendicular to the `x` horizontal/bottom axis, so there is no 
-  `x` component to the distance, only the `y` component. This 
-  minimization of the sum-of-squared deviations is conceptually very 
-  similar to working with the mean, except now the 'conditional 
-  mean' of `y` changes with changing `x` along the line we are 
-  estimating. Just as when working with the mean, or any other 
-  procedure minimizing a sum-of-squared deviations penalty function,
+In order to specify this line, we will need to estimate the two parameters of a line: 
+  the intercept (where the line crosses the `y` axis, which corresponds to the value of 
+  `y` at `x == 0`), and the slope (representing the rate at which `y` changes with 
+  changing `x`). We will estimate these parameters of our linear equation for the 
+  conditional mean of `y` in a way to minimize a sum-of-squared deviations penalty, 
+  just like we implicitly do when calculating a global mean. That is, the line we come 
+  up with will reduce the average squared vertical `y` distances from the observations 
+  to the line. Note that these distances, or **residuals**, measure how far off on 
+  average each observed `y` value is from the `y` value of the fitted line at the same 
+  value of `x` (the modeled conditional mean of `y`). These distances are NOT 
+  necessarily perpendicular to the fitted line (unless the slope is zero), but 
+  perpendicular to the `x` horizontal/bottom axis. This minimization of the 
+  sum-of-squared deviations is conceptually very similar to the one we saw when 
+  exploring the properties of the mean, except now the conditional mean of `y` changes 
+  with changing `x` along the line we are estimating. Just as when working with the 
+  mean, or any other procedure minimizing a sum-of-squared deviations penalty function,
   the fitting procedure can be relatively sensitive to outliers.
 
-You will often hear the terms 'independent variable' and 'dependent 
-  variable', especially in the context of regression. Often, we
-  try to use regression to model a causal mechanistic relationship, 
-  which means that changing the 'independent' variable `x` would cause 
-  the 'dependent' variable `y` to tend to change as well. However, we
-  typically do not expect changing `y` to necessarily have a 
-  corresponding effect on `x`. This asymmetry is reflected in labeling
-  the `y` variable as 'dependent' on the nominally 'indpendent' `x`. 
-  The choice of `x` in a 'mechanistic model' is ideally based on a 
-  theory about the mechanism by which changes of `x` tend to lead to
-  changes in `y`.
+You will often hear the terms **independent variable** and **dependent variable** in the 
+  context of regression. Often, we try to use regression to model a causal mechanistic 
+  relationship, which means that changing an independent variable `x` would cause 
+  a dependent variable `y` to tend to change as well. However, we typically do not expect 
+  changing `y` to necessarily have a corresponding effect on `x`. This asymmetry is 
+  reflected by labeling the `y` variable as 'dependent' on the nominally 'independent' 
+  `x`. In these cases, you may also see `x` referred to as an **explanatory variable**. 
+  The choice of `x` in such a **causal mechanistic model** normally reflects a 
+  theory about the mechanism by which changes of `x` tend to lead to changes in `y`.
 
-Sometimes we know very little about how the `x` are mechanistically 
-  related to our 'dependent' variable of interest `y`. Nevertheless, 
-  we may empirically discover an association between `x` and `y` based 
-  on measurements of both variables in a random sample. We could look 
-  into whether `x` causes `y` (either directly or indirectly -- in many
-  cases, like some genetic interactions, we won't necessarily know) by 
-  altering `x` and measuring the resulting effect on `y`. But in many 
-  cases, that experiment is not practical, either because of technological 
-  limits, cost or ethical restraints. We may nevertheless be interested in 
-  trying to 'predict' the value of `y` based on measurements of `x`. For 
-  example, in gene activity profiling experiment (e.g. RNA-seq) a lab may 
-  find an association between the transcriptional activity of a gene called 
-  'GeneA' and dementia risk. However, they may have no idea how the two are
-  related. In principle, one might try to experimentally alter 'GeneA' 
-  activity to see if it really changes dementia risk, but the lack of good
-  dementia animal models, ethical restraints on human experimentation, and
-  the long lag time between birth and dementia onset may make testing the
-  causal nature of the relationship impractical. In fact, the gene 
-  activity may not cause the risk: both may have a common antecedent, like a
-  transcription factor that regulates GeneA as well as GeneB, which is the 
-  true 'culprit'. Nevertheless, if the association between gene activity 
-  level and risk is reliable, a statistical model of the relationship may 
-  have substantial practical clinical utility. In this type of situation, 
-  you may well see the terms 'independent' and 'dependent' still being 
-  used, but only with the implication that the 'dependent' variable `y` 
-  is being predicted from the 'independent' variable. In these cases, it 
-  is often clearer if you refer to `x` the 'explanatory variable' or 
-  'predictor variable' (depending on context -- are you explaining, or 
-  predicting?) and `y` the 'response  variable'.
+Sometimes we know very little about how the `x` are mechanistically related to our 
+  'dependent' variable of interest `y`. Nevertheless, we may empirically discover an 
+  association between `x` and `y` based on measurements of both variables in a random 
+  sample. We could look into whether `x` causes `y` (either directly or indirectly -- in 
+  many cases, like some genetic interactions, we won't necessarily know) by altering `x` 
+  and measuring the resulting effect on `y`. But often, that experiment is not practical, 
+  either because of technological limits, cost or ethical restraints. We may nevertheless 
+  be interested in trying to 'predict' the value of `y` based on measurements of `x`. For 
+  example, in gene activity profiling experiment (e.g. RNA-seq) a lab may find an 
+  association between the transcriptional activity of a gene called *GeneA* and dementia 
+  risk. However, they may have no idea how the two are related. In principle, one might try 
+  to experimentally alter *GeneA* activity to see if it really changes dementia risk, but 
+  the lack of good dementia animal models, ethical restraints on human experimentation, and
+  the long lag time between birth and dementia onset may make testing the causal nature of 
+  the relationship impractical. In fact, the gene activity may not cause the risk: both may 
+  have a common antecedent, like a transcription factor that regulates *GeneA* as well as 
+  *GeneB*, which is the true 'culprit'. Nevertheless, if the association between gene 
+  activity level and risk is reliable, a statistical model of the relationship may have 
+  substantial practical clinical utility. In this type of situation, you may well see the 
+  terms 'independent' and 'dependent' still being used, but only with the implication that 
+  the 'dependent' variable `y` is being predicted from the 'independent' variable. In these 
+  cases, it is often clearer if you refer to `x` the **predictor variable** or **feature** 
+  and `y` as the **response  variable** or **outcome variable**. A more purely mathematical 
+  approach is to refer to `x` as **regressor** and to `y` as **regressand**.
 
-Now, we will build up to the linear model equation from the formula for a 
-  line that may be familiar from high-school. Initially, `m` is the slope of 
-  line, and `b` is the intercept. As we build up to a more general case 
-  where there may be more than one explanatory variable, it will be 
-  convenient to refer to all the constant variable coefficients using the 
-  series `b0, b1, b2, b3, ...` (instead of `b`, `m` and whatever you would
-  tend to use for the next coefficient), and the explanatory variables as 
-  `x1, x2, x3, ...` (instead of `x`, `z`, and whatever comes next). In this
-  scheme, the old intercept `b` becomes `b0`, and the old slope `m` 
-  becomes `b1`, which is the coefficient for the first variable `x1`. The 
-  formula for the line defines the variation in `y` that we can explain by 
-  a linear relationship with `x`. We also need an expression for the variation 
-  in `y` that is not captured by that linear relationship. This is the 
-  'random error' term in the model, which models the population from which
-  'residuals' we discussed above (differences between predicted and observed 
-  `y` values) are assumed to be drawn. For calculation of the customary 
-  parametric p-values, confidence intervals, and prediction intervals, we 
-  further assume that the residuals share a common `N(0, s)` distribution, 
-  where `s` is estimated from our sample of observations. When sample sizes 
-  are large (N >= 30 in the case of a single explanatory variable is typically 
-  considered adequate), we can invoke the CLT to justify use of the usual
-  parametric p-values and intervals while relaxing the requirement for 
-  normal distribution of residuals to a requirement that the residuals have 
-  a common distribution with a mean of zero and constant (does not depend on 
-  the `x` value) variance, which is finite (some distributions, e.g. Cauchy, 
-  have infinite variance and would not work here). Even when the CLT cannot be 
-  invoked, residual distributions are non-normal and heteroskedasticity 
-  (residual spread changes with `x`) is present, as long as the residual
-  distribution is not skewed and has a mean of zero, the coefficient estimates
-  will be unbiased (and therefore useful), but parametric p-values and parametric 
-  intervals (estimates of uncertainty in the coefficient estimates and predicted 
-  values) will not be reliable.
+Now, we will build up to the linear model equation from the formula for a line that may be 
+  familiar from high-school. Initially, we will use `m` to designate the slope of line, and 
+  `b` to designate the intercept. As we build up to a more general case where there may be 
+  more than one explanatory variable, it will be convenient to refer to all the constant 
+  variable coefficients using the series `b0, b1, b2, b3, ...` (instead of `b`, `m` and 
+  whatever you would tend to use for the next coefficient), and the explanatory variables 
+  as `x1, x2, x3, ...` (instead of `x`, `z`, and whatever comes next). In this scheme, the 
+  old intercept `b` becomes `b0`, and the old slope `m` becomes `b1`, which is the 
+  coefficient for the first variable `x1`. The formula for the line defines the variation 
+  in `y` that we can explain by a linear relationship with `x`. We also need an expression 
+  for the variation in `y` that is not captured by that linear relationship. This is the 
+  **random error** term in the model, which models the population from which residuals we 
+  discussed above (differences between modeled and observed `y` values) are assumed to be 
+  drawn. 
 
 ```
 y = m * x + b                     ## notation you may have seen in high school
@@ -161,44 +134,55 @@ e.i ~ N(0, s)                     ## errors: model for residuals is normal w/ me
 
 ```
 
-In general, hypothesis testing will be less powerful and intervals wider as 
-  the variance of the residual distribution rises. Another aspect of the residual
-  distribution that is important for linear modeling is that the residuals
-  be 'independent' of one another. This means that the direction (positive or 
-  negative) and magnitude of one residual have no effect on any other residuals.
-  This assumption is violated in many circumstances, particularly when working
-  with temporal (time-series) or spatial (2D or 3D coordinate) data. For 
-  instance, cloudy weather comes in clumps, as does sunny weather: if it rained
-  yesterday, chances are higher that it will rain today. If it was sunny yesterday
-  it is less likely to rain today. Similary, precipitation patterns follow 
-  seasonal patterns that makes similar weather tend to clump together. When
-  observations close together in time are correlated with one another, 
-  this implies correlation in their residuals, violating this independence assumption. 
-  Similarly, if we were to measure the basal circumference of trees in the forest, 
-  we would probably find that trees near each other tend to share a similar 
-  circumference distribution, different from trees further from each other: ground 
-  moisture will tend to accelerate the growth of trees near the moisture, and 
-  trees near each other will be more likely to be of the same species and 
-  share a similar genetic allele distribution. Therefore observations that are spatially 
-  closer together will tend to be more strongly correlated, introducing 
-  a corresponding correlation in their residuals. Both the temporal and spatial 
-  cases described exemplify 'auto-correlation', that is correlation between 
-  residuals that are 'close by' one another. There are special statistical models 
-  for autocorrelated data that are beyond the scope of this lesson.
+In general, hypothesis testing will become less powerful and intervals will become wider 
+  as the variance of the residual distribution rises. For calculation of the customary 
+  parametric p-values and intervals, we further assume that the residuals are independent 
+  from one another. That is, if one observation has a large residual, it should not affect 
+  the size of the residuals of neighboring observations. The assumption of independent 
+  residuals is violated in many practical circumstances, particularly when working with 
+  temporal (time-series) or spatial (2D or 3D coordinate) data. For instance, cloudy weather 
+  comes in clumps, as does sunny weather: if it rained yesterday, chances are higher that it 
+  will rain today. If it was sunny yesterday it is less likely to rain today. Similary, 
+  precipitation patterns follow seasonal patterns that makes similar weather tend to clump 
+  together. This means that the residuals (e.g. differences from the mean daily rainfall) for 
+  nearby observations will tend to be similar, rather than independent. Similarly, if we were 
+  to measure the basal circumference of trees in the forest, we would probably find that trees 
+  near each other tend to share a more similar circumference distribution, than trees further 
+  from each other: ground moisture will tend to accelerate the growth of trees near the moisture, 
+  and trees near each other will be more likely to be of the same species and share a similar 
+  genetic allele distribution. Therefore observations that are spatially closer together will 
+  tend to be more strongly correlated, introducing a corresponding correlation between their 
+  residuals. Both the temporal and spatial patterns described exemplify **auto-correlation**, 
+  that is correlation between residuals of 'nearby' observations. There are special statistical 
+  models for autocorrelated data that are beyond the scope of this lesson.   
 
-Another assumption is that all the explanatory variable values are known exactly
-  (without error). This is called a 'fixed effects' model. Strictly speaking, this
-  assumption is typically not true when `x` is measured (as opposed to being a fixed 
-  treatment of some type, where the value may be precisely known). Nevertheless, 
-  you will often see linear modeling being used even when `x` is an inexactly 
-  measured value. If the measurements are fairly tight, this may be an acceptable 
-  practice, but depending on how important the details of the model are, using an 
-  alternative formulation, called the 'random effects' model may be advisable, which 
-  can explicitly model the uncertainty in the explanatory variable values, leading
-  to more reliable p-values and interval estimates. Random
-  effects models, which have broader applicability than the case of imprecisely
-  measured `x`, are beyond the scope of this lesson, but this is a common issue you 
-  should be aware of.
+Parametric p-values and intervals also assume that the residuals share a common `N(0, s)` 
+  distribution, where `s` is estimated from our sample of observations. This condition is 
+  sometimes referred to as **i.n.d** or **independent and normally distributed**. When sample 
+  sizes are large (N >= 30 in the case of a single explanatory variable is typically considered 
+  adequate), we can invoke the CLT to justify use of the usual parametric p-values and intervals 
+  while relaxing the i.n.d. assumption to the assumption that the residuals have a common 
+  distribution with a mean of zero and constant (does not depend on the `x` value) variance, 
+  which is finite (some distributions, e.g. Cauchy, have infinite variance and would not work 
+  here). This condition is sometimes referred to as **i.i.d.** or **independent and identically 
+  distributed**. Even when the CLT cannot be invoked, residual distributions are non-normal, and 
+  heteroskedasticity (residual spread changes with `x`) is present, as long as the residual 
+  distribution is not skewed and has a mean of zero, the coefficient estimates will be unbiased 
+  (and therefore useful), but parametric p-values and parametric intervals (estimates of 
+  uncertainty in the coefficient estimates and predicted values) will not be reliable, and 
+  non-parametric alternatives (discussed in a later lesson) should be considered.
+
+Another assumption behind the parametric p-values and intervals is that all the explanatory 
+  variable values are known exactly (without error). This is called a **fixed effects** model. 
+  Strictly speaking, this assumption is typically not true when `x` is measured (as opposed to 
+  being a fixed treatment of some type, where the value may be precisely known). Nevertheless, 
+  you will often see linear modeling being used even when `x` is an inexactly measured value. 
+  If the measurements are fairly tight, this may be an acceptable practice, but depending on 
+  how important the details of the model are, using an alternative formulation, called the 
+  **random effects** model may be advisable, which can explicitly model the uncertainty in the 
+  explanatory variable values, leading to more reliable p-values and interval estimates. Random
+  effects models, which have broader applicability than the case of imprecisely measured `x`, 
+  are beyond the scope of this lesson, but this is a common issue you should be aware of.
 
 Here we will look at what data simulated to meet the model assumptions looks like 
   when we vary the the standard deviation of the error term:
@@ -248,11 +232,10 @@ par(mfrow=c(1, 1))
 ### Fitting a simple linear regression
 
 Simple linear regression refers to fitting a linear model with a single explanatory 
-  variable. As we mentioned, fitting a linear model requires calculating the 
-  coefficients (intercept and slope for simple regression) for the best fitting line. 
-  For the slope, this involves a straightforward algebraic calculation in the case 
-  of a single explanatory variable, which is closely related for the calculation of 
-  Pearson's correlation:
+  variable. As we mentioned, fitting a linear model requires calculating the coefficients 
+  (intercept and slope for simple regression) for the best fitting line. For the slope, 
+  this involves a straightforward algebraic calculation in the case of a single explanatory 
+  variable. This calculation is closely related to the calculation of Pearson's correlation:
 
 ```
 ## Returns intercept, slope and Pearson's correlation for y ~ x;
@@ -288,16 +271,16 @@ f.fit <- function(x, y) {
 ```
 
 The fit produced by the `lm()` (linear model) function will include, in addition
-  to the model coefficients, the 'fitted' `y` values (`y` values of the fitted
+  to the model coefficients, the **fitted** `y` values (`y` values of the fitted
   line representing the conditional mean at values of `x` corresponding to the
   `x` value of the corresponding observation) for the data used to train the 
-  model, the 'residuals' (vertical `y` distances between observed `y` values in 
-  the training set and the corresponding `y` values of the fitted line 
-  representing the conditional mean of `y`). The fit also includes a number of 
-  elements used by the `summary()` function to generate the p-values 
-  and confidence intervals we want. After fitting, for any particularly important 
-  fit, we will be interested in looking at the distribution of 'residuals' to 
-  identify outliers and ensure other assumptions associated with the fit are met. 
+  model, the **residuals** (vertical `y` distances between observed `y` values in 
+  the training set and the corresponding `y` values of the fitted line representing 
+  the conditional mean of `y`). The fit also includes a number of elements used by 
+  the `summary()` function to generate the p-values and confidence intervals we want. 
+  After fitting, for any particularly important fit, we will be interested in 
+  looking at the distribution of residuals to identify outliers and ensure other 
+  assumptions associated with the fit are met. 
 
 Here we will fit a simple linear regression model to the first simulated dataset
   from the last example:
@@ -424,23 +407,18 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ### Equivalence to t-test and ANOVA
 
-So far we have shown how to fit a linear model with a 
-  continuous explanatory variable. However, the explanatory
-  variable can also be categorical variable, like group 
-  membership. In this case, null hypothesis becomes that the 
-  means of the response `y` in each of the groups specified by
-  the explanatory variable `x` are all the same, just like 
-  the null hypotheses of the t-test and ANOVA. The coefficients 
-  returned will be the same as for ANOVA, and the group means 
-  will be encoded just like they were in the ANOVA analysis. 
-  In the two-group case, the equal-variances unpaired samples 
-  version of `t.test()`, `aov()` and `lm()` will produce identical 
-  estimates on differences in group means and p-values for the
-  null hypothesis. When more than two groups are analyzed, the
-  results of `aov()` and `lm()` will be entirely equivalent.
+So far we have shown how to fit a linear model with a continuous explanatory variable. 
+  However, the explanatory variable can also be categorical variable, like group membership. 
+  In this case, null hypothesis becomes that the means of the response `y` in each of the 
+  groups specified by the explanatory variable `x` are all the same, just like the null 
+  hypotheses of the t-test and ANOVA. The coefficients returned will be the same as for 
+  ANOVA, and the group means will be encoded just like they were in the ANOVA analysis. 
+  In the two-group case, the equal-variances unpaired samples version of `t.test()`, 
+  `aov()` and `lm()` will produce identical estimates on differences in group means and 
+  p-values for the null hypothesis. When more than two groups are analyzed, the results of 
+  `aov()` and `lm()` will be equivalent.
 
-Here we will look at the equivalency of all three procedures 
-  in the two-groups case:
+Here we will look at the equivalency of all three procedures in the two-groups case:
 
 ```
 rm(list=ls())
@@ -481,10 +459,9 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ```
 
-Here we will look at comparisons of more than two groups. We expect
-  the `aov()` and `lm()` functions to return the same coefficients 
-  (and therefore the same estimates of group means) and the same 
-  p-values:
+Here we will look at comparisons of more than two groups. We expect the `aov()` 
+  and `lm()` functions to return the same coefficients (and therefore the same 
+  estimates of group means) and the same p-values:
 
 ```
 rm(list=ls())
@@ -550,99 +527,91 @@ Using the `mtcars` dataset:
 
 ### Analysis of residuals
 
-When we examine the adequacy of a linear model fit to the data, we are
-  often most interested in looking at the residuals. This is because 
-  outliers are often relatively obvious in plots of residuals, as are 
-  deviations from the model assumptions of linearity, homoskedasticity
-  and (particularly important for smaller samples) normality of the residuals.
+When we examine the adequacy of a linear model fit to the data, we are typically most 
+  interested in looking at the residuals. This is because outliers are often relatively 
+  obvious in plots of residuals, as are deviations from the model assumptions of linearity, 
+  homoskedasticity and (particularly important for smaller samples) normality of the residuals.
 
-So, what is an 'outlier'? An outlier is simply something that does not seem to fit 
-  the current model well. That current model includes assumptions about the form 
-  of the conditional mean, as well as the distribution of the residuals (for 
-  small samples, independent and drawn from a normal distribution with constant 
-  dispersion; for larger samples, independent and drawn from the same distribution 
-  with constant dispersion). When looking at using a t-test to generate a confidence 
-  interval for a population mean based on a sample, we might identify outliers by
-  looking for observations whose response `y` values are more than 3 standard 
-  deviations from the mean. We can extend this idea to our linear models of a 
-  conditional mean, looking for residuals that are more than 3 standard deviations 
-  (of the residual distribution) from the prediction line. 
+So, what is an **outlier**? An outlier is simply something that does not seem to fit the 
+  current model well. That current model includes assumptions about the form of the conditional 
+  mean, as well as the distribution of the residuals (for small samples, i.n.d. with constant 
+  dispersion; for larger samples, i.i.d with constant dispersion). When looking at using a 
+  t-test to generate a confidence interval for a population mean based on a sample, we might 
+  identify outliers by looking for observations whose response `y` values are more than three 
+  standard deviations from the mean. We can extend this idea to our linear models of a 
+  conditional mean, looking for residuals that are more than three standard deviations 
+  (of the residual distribution) from the prediction line. In order to make this easier to
+  evaluate, before displaying residuals, we convert them into **standardized residuals** by 
+  subtracting their mean (which should be zero anyway) and dividing by their standard 
+  deviation. The standardized residuals have a standard deviation of one. So residuals with 
+  a magnitude greater than three are more then three standard deviations from the mean, 
+  which suggests a possible outlier.
 
-When a data point does not fit the model well, it may indicate that the data 
-  point represents an error of some sort: a measurement error perhaps, or maybe 
-  a sampling error (like you meant to sample maple tree circumference, but 
-  accidentally included an oak tree in your sample of measurements). In this 
-  case, it makes good sense to remove the offending observation from the sample 
-  and repeat the analysis. However, the fault may well lie in the model, rather 
-  than the observation. In particular, perhaps the model lacks an important 
-  explanatory term (like an additional explanatory variable or a non-linear 
-  relationship to the current explanatory variable) that would greatly improve 
-  the correspondence between the expanded model and the observation. When 
-  outliers are identified, these possibilities need to be carefully 
-  distinguished. Often this distinction is hard to make with certainty, in
-  which case we should act with care, only removing apparent outliers if they
-  have a significant impact on the estimates of the model coefficients. In any 
-  case, if any data are removed, it should be documented (specifying which data
-  were removed and why) in the methods section of subsequent scientific 
-  publications. It may also be useful to compare the fits with and without the
-  outliers in order to quantify the 'sensitivity' of the fit to the choice about
-  whether the outliers are included or not.
+When a data point does not fit the model well, it may indicate that the data point represents 
+  an error of some sort: a measurement error perhaps, or maybe a sampling error (like you 
+  meant to sample maple tree circumferences, but accidentally included an oak tree in your 
+  sample of measurements). In this case, it makes good sense to remove the offending 
+  observation from the sample and repeat the analysis. However, the fault may well lie in the 
+  model, rather than the observation. In particular, perhaps the model lacks an important 
+  explanatory term (like an additional explanatory variable or a non-linear relationship to 
+  the current explanatory variable) that would greatly improve the correspondence between the 
+  expanded model and the observation. When outliers are identified, these possibilities need 
+  to be carefully distinguished. Often this distinction is hard to make with certainty, in
+  which case we should act with care, only removing apparent outliers if they have a significant 
+  impact on the estimates of the model coefficients. In any case, if any data are removed, this 
+  should be documented (specifying which data were removed and why) in the methods section of 
+  subsequent scientific publications. It may also be useful to compare the fits with and without 
+  the outliers in order to quantify the **sensitivity** of the fit to the choice of including or
+  excluding outliers. If the outliers are not influential (see the discussion below), their 
+  removal should have little effect on the coefficient estimates (slope and intercept for a 
+  simple regression line).
 
-In addition to having `y` response variable values that do not fit the model 
-  developed from the rest of the data well, which is signalled by relatively 
-  large residuals, outliers can also have `x` explanatory variable values 
-  that are unusually far from the rest of the data. This can be an important 
-  consideration, because sometimes your model fits well within a range of `x`
-  values, but diverges (perhaps becomes non-linear) beyond that range. 
-  Apparent outliers at extreme values of `x` may be indicating this
-  situation. On the other hand, they may represent a mistake in the `x` 
-  value. In any case, outliers with extreme `x` values tend to have more 
-  influence on the fit than outliers near the mean value of `x`. Below are 
-  two terms that are often used when discussing the impact of outliers on 
-  model fitting:
+In addition to having `y` response variable values that do not fit the model well, which is 
+  signalled by relatively large residuals, outliers can also have `x` explanatory variable values 
+  that are unusually far from the rest of the data. This can be an important consideration, 
+  because sometimes your model fits well within a range of `x` values, but diverges (perhaps 
+  becomes non-linear) beyond that range. Apparent outliers at extreme values of `x` may be 
+  indicating this situation. On the other hand, they may represent a mistake in the `x` value. 
+  In any case, outliers with extreme `x` values tend to have more influence on the fit than 
+  outliers near the mean value of `x`. Below are two terms that are often used when discussing 
+  the impact of outliers on model fitting:
 
-**Leverage**: is based solely on the explanatory/independent variables (the single
-  variable `x` here). It is a measure of how far the `x` value for an 
-  observation is from the mean `x` value for the sample, normalized by the
-  variability of `x` in the sample. In general, leverage greater than twice 
-  the average leverage of `p / n` is considered 'high', where `p` is 
-  the number of coeffients in the model and `n` is sample size. The higher the 
-  leverage of an observation, the more a fixed size change in the `y` value 
-  of that observation will tend to affect the coefficient estimates. For balanced
-  ANOVA designs (all groups have equal sample size) the leverage of each 
-  observation is always the same.
+**Leverage**: is based solely on the explanatory/predictor variables (the single variable `x` 
+  here). It is a measure of how far the `x` value for an observation is from the mean `x` 
+  value for the sample, normalized by the variability of `x` in the sample. In general, 
+  leverage greater than twice the average leverage of `p / n` is considered 'high', where `p` 
+  is the number of coeffients in the model and `n` is sample size. The higher the leverage of 
+  an observation, the more a fixed size change in the `y` value of that observation will tend 
+  to affect the coefficient estimates. For balanced ANOVA designs (all groups have equal sample 
+  size) the leverage of each observation is always the same.
 
-**Influence**: influential observations are those which, if removed from the 
-  sample, would result in a large change in the fitted values for the remaining
-  observations. That means that if you dropped the influential observation, 
-  the coefficients of the fit would change to a relatively large degree. 
-  Influence reflects both leverage (how far explanatory variables are from 
-  their respective means) but also how far the `y` value for the observation is 
-  from the regression line you would get by dropping this observation. The 
-  further the `y` value of the omitted observation is from the regression line
-  (the larger the 'jackknife residual'), and the larger the influence of the 
-  observation, the higher the observations influence will be. **Cook's distance** 
-  is a measure of influence which reflects the average sum-of-squared changes 
-  in fitted values for the remaining observations after dropping the observation 
-  of interest, normalized by the variability of residuals from the original model. 
-  Cook's distance values greater than `0.5-1.0` are usually considered to suggest the 
-  corresponding observation has high influence on the fit, and observations with 
-  Cook's distances greater than `1.0` are considered to have very high influence. 
-  Some textbooks suggest cutoffs of `1.0` for high and `2.0` for very high. 
-  Other more detailed formulations of the cutoff include `4 / (n - p)`, where
-  `n` is sample size and `p` is the number of coefficients being estimated.
-  Another approach (used here) is to simply look for Cook's distances greater
+**Influence**: influential observations are those which, if removed from the sample, would 
+  result in a large change in the fitted values for the remaining observations. That means that 
+  if you dropped the influential observation, the coefficients of the fit would change to a 
+  relatively large degree. Influence reflects both leverage (how far explanatory variables are 
+  from their respective means) but also how far the `y` value for the observation is from the 
+  regression line you would get by dropping this observation. The further the `y` value of the 
+  omitted observation is from the regression line (called the **jackknife residual**), and 
+  the larger the leverage of the observation, the higher that observation's influence will be. 
+
+**Cook's distance** is a measure of influence which reflects the average sum-of-squared changes 
+  in fitted values for the remaining observations after dropping the observation of interest, 
+  normalized by the variability of residuals from the original model. Cook's distance values 
+  greater than `0.5-1.0` are usually considered to suggest the corresponding observation has 
+  high influence on the fit, and observations with Cook's distances greater than `1.0` are 
+  considered to have very high influence. Some textbooks suggest cutoffs of `1.0` for high and 
+  `2.0` for very high. Other suggested cutoffs more suitable for small sample sizes include 
+  `4 / (n - p)`, where `n` is sample size and `p` is the number of coefficients being estimated. 
+  A simple small-sample approach (used here) is to simply look for Cook's distances greater
   than three standard deviations from the mean Cook's distance for the sample.
 
-When `plot()` is called on the fit returned by `lm()` (which is an object of 
-  class `lm`), the call is redirected to the specialized function 
-  `plot.lm()`, that knows how to generate a variety of diagnostic plots
-  for a linear fit. This is just like calling `summary()` on an object of class
-  `lm` redirects the call to the specialized function `summary.lm()`
-  which knows how to calculate summary statistics for a linear fit. In 
-  general, code writers developing classes of their own can specify 
-  class-specific versions for a number of 'generic' functions, 
-  most notably 'plot()' and 'summary()'.
+When `plot()` is called on the fit returned by `lm()` (which is an object of class `lm`), the 
+  call is redirected to the specialized function `plot.lm()`, that knows how to generate a 
+  variety of diagnostic plots for a linear fit. This is just like calling `summary()` on an 
+  object of class `lm` redirects the call to the specialized function `summary.lm()` which knows 
+  how to calculate summary statistics for a linear fit. In general, code writers developing 
+  classes of their own can specify class-specific versions for a number of 'generic' functions, 
+  most notably `plot()` and `summary()`.
 
 ```
 rm(list=ls())
@@ -667,17 +636,18 @@ par(mfrow=c(1, 1))                ## reset figure area to 1x1
 
 Here is a list of the six residual plots and what they represent:
 
-**Residuals vs. fitted**: a trend in the residual mean suggests the relationship 
-  is not linear. Changing spread of the residuals suggests heteroskedasticity, though 
-  this may be easier to see on Scale-location plot. Outliers.
+**Residuals vs. fitted**: a trend in the residual mean suggests the relationship is 
+  not linear. Changing spread of the residuals about that mean suggests heteroskedasticity, 
+  though this may be easier to see on Scale-location plot. Outliers may be apparent.
 
-**Normal Q-Q**: are the residuals normally distributed, per error term assumption in 
-  the case of smaller sample sizes (if large sample, you may not care unless 
-  deviations are really large). Outliers.
+**Normal Q-Q**: are the residuals normally distributed, per the error term assumption in 
+  the case of smaller sample sizes? If you have a large sample, you may not care unless 
+  deviations are really severe. Outliers may be apparent.
 
-**Scale-location**: are residuals homoskedastic? or does residual magnitude change
-  w/ fitted value. Potential outliers. sqrt(abs(residuals)) less skewed than 
-  abs(residuals) for normally distributed. The scale values should bounce around 1.
+**Scale-location**: are residuals homoskedastic? Or does residual magnitude change
+  with fitted value? Outliers may be apparent. This plot shows the `sqrt(abs(residuals))` 
+  because this is less skewed than `abs(residuals)` for normally distributed. The scale 
+  values should bounce around 1.
 
 **Cook's distance**: identifies 'influential' outliers by jackknifing: measure
   how much fitted values for other points change when this point is dropped from 
@@ -685,18 +655,18 @@ Here is a list of the six residual plots and what they represent:
   by dividing by original residual standard deviation. Values greater than `1.0`, 
   or (better yet) more than three times the standard deviation, indicate high influence.
 
-**Residuals vs. leverage**: outliers with large leverage; disassembles Cook's distance
+**Residuals vs. leverage**: outliers with large leverage; decomposes the Cook's distance
   into residual (`y` component) and leverage (`x` component). Look for points outside
-  dashed line where Cook's distance > `1.0` (or better yet, larger than three times
-  the standard deviation of Cook's distances). Spread should not change with leverage: 
-  suggests heteroskedasticity. 
+  dashed line where `cook.dist > 1.0` (or better yet, larger than three times
+  the standard deviation of Cook's distances). Spread should not change with leverage,  
+  otherwise it suggests heteroskedasticity.
 
 **Cook's distance vs. leverage**: another way of projecting these properties. Now 
   we have Cook's distance on the vertical axis, leverage on the horizontal axis, 
   and standardized residuals as the contours on the plot.
 
-Now we will try the same thing with some categorical data. Since the design is 
-  exactly balanced (equal number of observations in each group) each data point has 
+Now we will try the same thing with some categorical data. Since the design is exactly 
+  balanced (there are equal number of observations in each group) each data point has 
   exactly the same leverage. Since there are three categories, so `p` (number of 
   returned coefficients) is three:
 
@@ -758,11 +728,11 @@ Mechanistic statistical models, which explicitly model the associations between
   (explanatory) variable `x` value for that observation. In the examples we've 
   discussed thus far, the predicted value for the new observation will be the 
   `y` value of the line from our fit at the observation's value of `x`. This 
-  `y` value is the 'fitted' or 'predicted' value for the new observation.
+  `y` value is the **fitted** or **predicted** value for the new observation.
 
 For any model, the model is initially developed based on a finite sample from a 
   presumably much larger population of interest. This sample, used to initially 
-  fit, or 'train' the model is often referred to as a 'training set'. The methods 
+  fit, or 'train' the model is often referred to as a **training set**. The methods 
   we've shown for scrutinizing linear models has focused on looking at the 
   residuals in the training set. Here we are looking for consistency with model 
   assumptions that are necessary for making parametric inferences (via p-values
@@ -772,12 +742,12 @@ For any model, the model is initially developed based on a finite sample from a
   from that population, we should expect that our training set will fit our
   linear model of the conditional mean better than another random sample from 
   the same population. Therefore, any evaluation of our model based on the 
-  training set is expected to be somewhat overly optimistic of the predictive
-  performance of the model to expect on random observations from the population
+  training set is usually paints an overly optimistic picture of the predictive
+  performance of the model on random observations from the population
   of interest. In order to get  a fairer evaluation of the model in this 
   context, it is best to use another independent random sample from that 
   population. You will often see this second sample referred to as a 
-  'test set'.
+  **test set**.
 
 When evaluating a model, it is worth carefully thinking about the relationship
   of the samples used for training and testing with the population we wish
@@ -786,8 +756,8 @@ When evaluating a model, it is worth carefully thinking about the relationship
   performance of our model. In particular, we often want to be able to make 
   inferences about what will happen if other labs try to repeat our experiment. 
   If our inferences would be borne out in replicate experiments conducted in 
-  other labs, it means that our results are 'repeatable'. In order to estimate
-  this repeatability, we could randomly select (or 'hold-out') some of the 
+  other labs, it means that our results are **repeatable**. In order to estimate
+  this repeatability, we could randomly select (or **hold-out**) some of the 
   observations from an experiment conducted in our lab to use as a test set, 
   then use the remaining observations as a training set. The test set will 
   give us a better estimate of model performance we should expect in someone 
@@ -803,13 +773,15 @@ When evaluating a model, it is worth carefully thinking about the relationship
   of model performance to be expected when other labs try to repeat the 
   experiment. However, even a repeat experiment in our lab will not capture 
   expected additional lab-to-lab variation due to differences in reagent 
-  lots, experimental material (their *C. elegans* 'N2' strain colony is likely 
+  lots, experimental material (their *C. elegans* N2 strain colony is likely 
   genetically different from yours, due to genetic drift; their rearing 
   conditions are likely somewhat different as well) equipment, protocols, 
   inter-operator variation, etc. These differences introduce more systematic 
   lab-specific effects that we expect will cause the model performance to be 
   worse than what would be estimated by repeating the experiment in our own 
-  lab. As a practical matter, we want to always hold out some randomly 
+  lab. 
+
+As a practical matter, we want to always hold out some randomly 
   selected observations for a test set which must not be used for any aspect 
   of training the model. The results from the evaluation using this test set 
   provide some very preliminary estimates of model performance. We can repeat 
@@ -837,14 +809,14 @@ A critically important feature of the evaluation results obtained using
   in the first place. Modern computational tools for resolving this tension 
   between allocating observations to training vs. test sets will be presented 
   when we discuss cross-validation in the next course in this series 
-  (Multivariate statistics). 
+  (Multivariate statistics).
 
 In the example below, we use the R `sample()` function to randomly sample
   our data in order to randomly partition observations into a training-set 
-  and test-set. The `sample()` function randomly samples a specified (with 
-  the parameter `size`) number of values from an input vector the user 
-  provides. The parameter `replace` specifies whether the same value can 
-  be sampled from the input vector more than once: this would mimic the 
+  and non-overlapping test-set. The `sample()` function randomly samples a 
+  specified (with the parameter `size`) number of values from an input vector 
+  the user provides. The parameter `replace` specifies whether the same value 
+  can be sampled from the input vector more than once: this would mimic the 
   behavior of sampling a population, where we assume the sampling does not 
   change the composition of the population. However, in the present case, 
   we want to assign individual observations exclusively to the training-set 
@@ -859,8 +831,8 @@ In the following example, we will generate a simple linear regression model
   We will split the original sample into a training-set (about 80% of the data) 
   and a test-set (the remaining 20% of the data). We will fit the model to the
   training-set, then evaluate it using the test-set. Our metric for model
-  predictive performance will be the mean-squared-error (MSE), which is the 
-  average squared size of the distances between the prediction line and the 
+  predictive performance will be the **mean-squared-error** (**MSE**), which is 
+  the average squared size of the distances between the prediction line and the 
   observed `y` values for the test-set observations. This metric is a 
   reasonable default choice for evaluating predictions made on a continuous 
   scale (our response variable `y` is continuous here).
@@ -1014,22 +986,22 @@ f.mse(y=dat.tst$dist, y.hat=y.hat.mu)
 
 ```
 
-Confidence intervals capture the uncertainty in the prediction line (the 
+**Confidence intervals** capture the uncertainty in the prediction line (the 
   conditional mean). In the case of simple linear regression, the confidence 
   interval captures how the uncertainty in the slope and in intercept estimates 
-  translates into uncertainty about the line representing the conditional mean. If 
+  translates into **uncertainty about the line representing the conditional mean**. If 
   you want to know how close the 'true' prediction line for the population (the
   line you would get if you fitted a line to the entire population) is likely to
   be to the prediction line calculated using your training-data sample, use the 
-  confidence interval. The interpretation is once again in terms of the frequency
+  confidence interval. The **interpretation** is once again in terms of the frequency
   of results one might obtain if one were to repeat the experiment: if you drew 
   an independent random sample of the current sample size from the population 
   many times, each time constructing a 95% confidence interval, then in 95% of 
   those experiments, the true population prediction line will be captured within 
   the interval.
 
-Prediction intervals capture the uncertainty in the predicted response variable
-  `y` values for new randomly sampled observations. They include the uncertainty 
+**Prediction intervals** capture the **uncertainty in the predicted response** variable
+  `y` values **for new randomly sampled observations**. They include the uncertainty 
   in the conditional mean (regression line) expressed by the confidence interval, 
   but add to it the uncertainty due to the variation represented by the error 
   term in the model. As a reminder: this error term captures the (assumed) random, 
@@ -1041,7 +1013,7 @@ Prediction intervals capture the uncertainty in the predicted response variable
   prediction intervals are always at least as large as confidence intervals. 
   If you want to know how close new observations are likely to fall to the 
   prediction line, use the prediction interval. The prediction interval
-  discussed here again has a 'frequentist' interpretation: if you repeated
+  discussed here again has a frequentist **interpretation**: if you repeated
   the experiment over-and-over, each time drawing the same-sized independent
   random sample from the same population, each time fitting a linear model,
   calculating 95% prediction intervals, and randomly selecting one more 

@@ -255,7 +255,7 @@ There are two types of means that must be distinguished during
   the mean height of everyone in the US, the US population would be the 
   population you are studying. The most direct way to get the mean height for
   the US population is to measure the height of everyone in the US
-  and average the measurements; then the mean would be known exactly. However, 
+  and average the measurements, then the mean would be known exactly. However, 
   in many cases, it is not practical to measure every member of a population,
   so instead we work with more tractably sized sub-samples from the population. 
   A similar issue arises if we wish to understand a recurring event (something 

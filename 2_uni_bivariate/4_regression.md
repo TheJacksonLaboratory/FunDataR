@@ -1,5 +1,5 @@
-# Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: linear regression
+# Fundamentals of Computational Data Analysis Using R
+## Univariate and Bivariate Statistics: Linear Regression
 #### Contact: mitch.kostich@jax.org
 
 ---
@@ -36,7 +36,7 @@ In the previous lesson we saw how knowing something about one of two
   predict the `y` value of any single observation randomly drawn from that 
   population (without consulting the value of `x` for that observation), the 
   population **mean** would be our **best predictor**, in the least-squares sense. 
-  That is, the mean has a lower **average squared deviation** (difference) to to 
+  That is, the mean has a lower **average squared deviation** (difference) to 
   the `y` values of the population members than any other value. 
 
 Here we will put these two ideas together: we will **model the mean** value of 
@@ -185,7 +185,7 @@ Another assumption behind the parametric p-values and intervals is that all the 
   are beyond the scope of this lesson, but this is a common issue you should be aware of.
 
 Here we will look at what data simulated to meet the model assumptions looks like 
-  when we vary the the standard deviation of the error term:
+  when we vary the standard deviation of the error term:
 
 ```
 rm(list=ls())
@@ -407,7 +407,7 @@ pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
 
 ### Equivalence to t-test and ANOVA
 
-So far we have shown how to fit a linear model with a continuous explanatory variable. 
+So far, we have shown how to fit a linear model with a continuous explanatory variable. 
   However, the explanatory variable can also be categorical variable, like group membership. 
   In this case, null hypothesis becomes that the means of the response `y` in each of the 
   groups specified by the explanatory variable `x` are all the same, just like the null 
@@ -543,8 +543,8 @@ So, what is an **outlier**? An outlier is simply something that does not seem to
   (of the residual distribution) from the prediction line. In order to make this easier to
   evaluate, before displaying residuals, we convert them into **standardized residuals** by 
   subtracting their mean (which should be zero anyway) and dividing by their standard 
-  deviation. The standardized residuals have a standard deviation of one. So residuals with 
-  a magnitude greater than three are more then three standard deviations from the mean, 
+  deviation. The standardized residuals have a standard deviation of one. So, residuals with 
+  a magnitude greater than three are more than three standard deviations from the mean, 
   which suggests a possible outlier.
 
 When a data point does not fit the model well, it may indicate that the data point represents 
@@ -552,7 +552,7 @@ When a data point does not fit the model well, it may indicate that the data poi
   meant to sample maple tree circumferences, but accidentally included an oak tree in your 
   sample of measurements). In this case, it makes good sense to remove the offending 
   observation from the sample and repeat the analysis. However, the fault may well lie in the 
-  model, rather than the observation. In particular, perhaps the model lacks an important 
+  model, rather than the observation. Perhaps the model lacks an important 
   explanatory term (like an additional explanatory variable or a non-linear relationship to 
   the current explanatory variable) that would greatly improve the correspondence between the 
   expanded model and the observation. When outliers are identified, these possibilities need 
@@ -567,9 +567,9 @@ When a data point does not fit the model well, it may indicate that the data poi
   simple regression line).
 
 In addition to having `y` response variable values that do not fit the model well, which is 
-  signalled by relatively large residuals, outliers can also have `x` explanatory variable values 
+  signaled by relatively large residuals, outliers can also have `x` explanatory variable values 
   that are unusually far from the rest of the data. This can be an important consideration, 
-  because sometimes your model fits well within a range of `x` values, but diverges (perhaps 
+  because sometimes your model fits well within a range of `x` values but diverges (perhaps 
   becomes non-linear) beyond that range. Apparent outliers at extreme values of `x` may be 
   indicating this situation. On the other hand, they may represent a mistake in the `x` value. 
   In any case, outliers with extreme `x` values tend to have more influence on the fit than 
@@ -580,7 +580,7 @@ In addition to having `y` response variable values that do not fit the model wel
   here). It is a measure of how far the `x` value for an observation is from the mean `x` 
   value for the sample, normalized by the variability of `x` in the sample. In general, 
   leverage greater than twice the average leverage of `p / n` is considered 'high', where `p` 
-  is the number of coeffients in the model and `n` is sample size. The higher the leverage of 
+  is the number of coefficients in the model and `n` is sample size. The higher the leverage of 
   an observation, the more a fixed size change in the `y` value of that observation will tend 
   to affect the coefficient estimates. For balanced ANOVA designs (all groups have equal sample 
   size) the leverage of each observation is always the same.
@@ -644,7 +644,7 @@ Here is a list of the six residual plots and what they represent:
   the case of smaller sample sizes? If you have a large sample, you may not care unless 
   deviations are really severe. Outliers may be apparent.
 
-**Scale-location**: are residuals homoskedastic? Or does residual magnitude change
+**Scale-location**: are residuals homoscedastic? Or does residual magnitude change
   with fitted value? Outliers may be apparent. This plot shows the `sqrt(abs(residuals))` 
   because this is less skewed than `abs(residuals)` for normally distributed. The scale 
   values should bounce around 1.
@@ -667,7 +667,7 @@ Here is a list of the six residual plots and what they represent:
 
 Now we will try the same thing with some categorical data. Since the design is exactly 
   balanced (there are equal number of observations in each group) each data point has 
-  exactly the same leverage. Since there are three categories, so `p` (number of 
+  the same leverage. Since there are three categories, so `p` (number of 
   returned coefficients) is three:
 
 ```
@@ -724,7 +724,7 @@ Mechanistic statistical models, which explicitly model the associations between
   about the components of the system being studied. In addition, both mechanistic 
   and empirical (where we may be ignorant of the mechanisms behind associations
   between variables) models can have value for making predictions about the value
-  of the response `y` variable of a new observation based on the the 'predictor' 
+  of the response `y` variable of a new observation based on the 'predictor' 
   (explanatory) variable `x` value for that observation. In the examples we've 
   discussed thus far, the predicted value for the new observation will be the 
   `y` value of the line from our fit at the observation's value of `x`. This 
@@ -751,7 +751,7 @@ For any model, the model is initially developed based on a finite sample from a
 
 When evaluating a model, it is worth carefully thinking about the relationship
   of the samples used for training and testing with the population we wish
-  to make inferences about. We may find that it is actually quite difficult 
+  to make inferences about. We may find that it is quite difficult 
   to get random samples from that population and get unbiased estimates of the
   performance of our model. In particular, we often want to be able to make 
   inferences about what will happen if other labs try to repeat our experiment. 
@@ -768,7 +768,7 @@ When evaluating a model, it is worth carefully thinking about the relationship
   the same experiment in our lab again, we would expect some variation in 
   experimental parameters, which would cause the observed variable values to 
   be systematically slightly different from those in the original experiment. 
-  So using observations from the new experiment to evaluate the original model 
+  So, using observations from the new experiment to evaluate the original model 
   should provide somewhat more pessimistic, but also more realistic estimates 
   of model performance to be expected when other labs try to repeat the 
   experiment. However, even a repeat experiment in our lab will not capture 
@@ -800,7 +800,7 @@ A critically important feature of the evaluation results obtained using
   an 'independent' (or nearly so) test-set is that the validity of those 
   results does not depend on any of the usual parametric assumptions. The 
   only assumption is that both the training and test sets are randomly and
-  indendently drawn from the same population of interest. That is, the
+  independently drawn from the same population of interest. That is, the
   results will be valid despite many types of ugliness you might encounter
   in residual plots. However, the precision of the estimates will depend on 
   how large the test-sets are. We want as large a test-set as possible in 
@@ -1002,7 +1002,7 @@ f.mse(y=dat.tst$dist, y.hat=y.hat.mu)
 
 **Prediction intervals** capture the **uncertainty in the predicted response** variable
   `y` values **for new randomly sampled observations**. They include the uncertainty 
-  in the conditional mean (regression line) expressed by the confidence interval, 
+  in the conditional mean (regression line) expressed by the confidence interval 
   but add to it the uncertainty due to the variation represented by the error 
   term in the model. As a reminder: this error term captures the (assumed) random, 
   independent, normally distributed 'noise' (the residuals) in the response 

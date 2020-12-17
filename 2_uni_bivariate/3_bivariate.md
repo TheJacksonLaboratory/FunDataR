@@ -1,5 +1,5 @@
-# Fundamentals of computational data analysis using R
-## Univariate and bivariate statistics: bivariate statistics
+# Fundamentals of Computational Data Analysis Using R
+## Univariate and Bivariate Statistics: Bivariate Statistics
 #### Contact: mitch.kostich@jax.org
 
 ---
@@ -129,7 +129,7 @@ In the single sample case, we saw that we could use the binomial exact test when
   However, the binomial test is not suitable for use with more than one sample.
   Instead, you can consider using **Fisher's Exact Test**, which is implemented by
   the `fisher.test()` function in R. The **null hypothesis** is once again that all
-  group proportions are the same, but is expressed in terms of **odds ratios**. The
+  group proportions are the same but is expressed in terms of **odds ratios**. The
   **odds** of an event is the probability that the event will occur divided by
   the probability it will not occur: `odds <- p / (1 - p)`. In the case of 
   group proportions, the odds are the odds that a random observation drawn from
@@ -198,7 +198,7 @@ As for the one-sample t-test, we assume both samples were randomly drawn from
   population** can be different, so estimates a separate variance for each. 
   This implies that under the null group membership may have an effect on the 
   variance of the variable of interest, without affecting the mean. In that
-  case a non-signifant p-value should be expected. We can also assume that 
+  case a non-significant p-value should be expected. We can also assume that 
   under the null hypothesis, group membership has no effect whatsoever on the 
   variable of interest, in which case we can instruct `t.test()` to use a 
   single **pooled estimate** of the variances of both populations. If the 
@@ -354,15 +354,15 @@ cbind(ci1=rslt1$conf.int, ci2=rslt2$conf.int, ci3=rslt3$conf.int)
 
 ### Comparing three or more means
 
-Often we are interested in comparing a **continuous variable** across **more than 
-  two populations**. For instance in a single experiment, we may wish to 
+Often, we are interested in comparing a **continuous variable** across **more than 
+  two populations**. For instance, in a single experiment, we may wish to 
   compare untreated individuals with those treated with drug 1 and those 
   treated with drug 2. To do so, we can do an **analysis of variance** (**ANOVA**) 
   test. The null hypothesis for this test is that all the group means are
   equal. If the null hypothesis is rejected, a follow-on **post-hoc test** 
   is needed in order to determine which population means are different.
 
-The **assumptions** of this test includes that each sample is randomly drawn
+The **assumptions** of this test include that each sample is randomly drawn
   from its respective population. In addition, it is assumed that under the 
   null hypothesis, each population has the **same variance** (like 
   `t.test(x, y, var.equal=T)`). The parametric **F-distribution** is used to 
@@ -504,11 +504,11 @@ Other assumptions can also be checked by looking at the distribution of residual
   function.
 
 If there appear to be worrisome departures from assumptions, one can opt to use the R 
-  function `kruskall.test()` to perform a **rank test**  rank transform the data and do 
+  function `kruskal.test()` to perform a **rank test**  rank transform the data and do 
   a regular `aov()`) instead of ANOVA. Another alternative is to **rank-transform** the 
   data (replace the values by their ranks) and then perform a regular `aov()` analysis 
   on the ranks, but both of these approaches are also plagued by assumptions that can be 
-  hard to strictly meet. Furthermore, the Kruskall test null hypothesis is about medians, 
+  hard to strictly meet. Furthermore, the Kruskal test null hypothesis is about medians, 
   not means, so is not strictly comparable with ANOVA. Fortunately, as was mentioned earlier, 
   as long as sample sizes are large and nearly equal, the ANOVA is fairly robust to 
   violations of assumptions. 
@@ -579,10 +579,10 @@ If an ANOVA **omnibus F-test** returns a significant p-value, it suggests that a
   HSD are essentially the same as those for the ANOVA itself.
 
 It is important to note that a significant ANOVA omnibus F-test does not guarantee that a post-hoc
-  test will return a signficant pairwise difference. This means that you may be able to assert
+  test will return a significant pairwise difference. This means that you may be able to assert
   that at least one group mean is different, but not be able to assert which one. Similarly, a 
-  dataset for which the ANOVA omnibus test is not significant may still yield signficant post-hoc 
-  tests. Therefore, if a particular comparison is a priori interesting, you may wish to bypass 
+  dataset for which the ANOVA omnibus test is not significant may still yield significant post-hoc 
+  tests. Therefore, if a comparison is a priori interesting, you may wish to bypass 
   the ANOVA F-test and use the post-hoc test directly. In other circumstances (for instance when 
   filtering variables for inclusion in a machine learning model) the individual pairwise 
   differences may not be important, and you may want to only do the ANOVA omnibus test.
@@ -692,7 +692,7 @@ The two-sample `prop.test()` we introduced tests for associations between
   observation. We may think that there may be a relationship between height and 
   weight (e.g. that the taller someone is, perhaps the heavier they tend to be), 
   and wish to test this idea. To do so, we could look for a **correlation** 
-  between our variables. The best known measure of correlation is **Pearson's 
+  between our variables. The best-known measure of correlation is **Pearson's 
   correlation**. The value of Pearson's correlation can range between `1` 
   (signaling a perfect positive correlation: whenever `ht` goes up, `wt` is 
   guaranteed to go up as well) and `-1` (signaling perfect negative correlation: 
@@ -710,8 +710,8 @@ The Pearson's correlation approach **assumes a linear relationship** between the
   variables that can be explained by a linear relationship with the other variables. 
   The test assumes the individuals on whom both variables are being measured are 
   randomly drawn from the population for which you want to make inferences. The 
-  test also assumes that observations are are **either normally distributed** (for 
-  smaller samples) which is relaxed to the assumption that the the observed values 
+  test also assumes that observations are **either normally distributed** (for 
+  smaller samples) which is relaxed to the assumption that the observed values 
   of each variable are identically distributed when sample sizes are large enough 
   to **invoke the CLT**. As usual, how large is large enough depends on how far 
   from normal the variable distributions in the original population are, but 

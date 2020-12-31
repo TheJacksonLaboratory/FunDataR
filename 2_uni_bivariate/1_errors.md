@@ -23,17 +23,17 @@
 1) Learn how to calculate the **mean**, **variance** and **standard deviation** of a sample using R.
 
 2) Acquire a feel for the shape of the **normal** (aka **Gaussian**) distribution and the
-   **uniform distribution**. Know how to **draw random samples** from each.
+   **uniform distribution**. Learn how to draw **random samples** from each.
 
 3) Learn how to do basic **histograms** and **2D plots***; get a feel for how changing
    the number of **histogram breaks** affects the output.
 
-3) Understand the difference between a **population statistic** (e.g. mean or 
+4) Understand the difference between a **population statistic** (e.g. mean or 
    standard deviation) and the corresponding **sample statistic**.
 
-4) Understand the two components of estimate **accuracy**: **standard error** and **bias**.
+5) Understand the two components of estimate **accuracy**: **standard error** and **bias**.
 
-5) Get a feel for how increasing **sample sizes changes the accuracy** of 
+6) Get a feel for how increasing **sample sizes changes the accuracy** of 
    population parameter estimates.
 
 [Return to index](#index)
@@ -45,10 +45,10 @@
 
 You are probably familiar with the notion of the **mean** or **average** of a 
   series of numbers as a type of central value (or **central tendency**) for 
-  the numbers in the series. But you've probably also heard of the **median** 
-  and may know that it too, is a type of central tendency. You may know the 
+  the numbers in the series. But you've probably also heard of the **median**, 
+  and may know that it is also a type of central tendency. You may know the 
   difference between the two in terms of the procedures for calculating their 
-  values. The median of the series `x` would be found by sorting `x` then 
+  values. The median of the series `x` would be found by sorting `x`, then 
   taking the middle value (or the mean of the two central values, if `x` has 
   even length). By contrast, means are calculated using the formula 
   (expressed in R): 
@@ -60,7 +60,7 @@ R also provides the predefined function `mean(x)` for this purpose. Unlike
   execution of which can often result in faster execution than using an R 
   expression like the one above.
 
-Let's take 1000 random numbers from a **normal distribution** ( bell-shaped
+Let's take 1000 random numbers from a **normal distribution** (bell-shaped
   distribution also known as a **Gaussian distribution**, which is widely used
   in statistics, as you shall see), calculate their mean and plot the results. 
   In this case (plotting a single variable `z`), the horizontal/bottom axis 
@@ -87,14 +87,14 @@ mean(z)
 hist(z)                                ## peaked toward center, many fewer values in 'tails'
 
 ## let's make a 2D plot (values on vertical axis, order on horizontal):
-plot(z, cex=0.5)                       ## 2D-plot; values cluster towards mean
+plot(z, cex=0.5)                       ## 2D plot; values cluster towards mean
 abline(h=mean(z), col='cyan', lty=2)   ## add a h(orizontal) line at mean(z)
 
 ## let's put them both together:
 (x <- matrix(c(rep(1, 4), 2), nrow=1, ncol=5))
 layout(x) 
 par(mar=c(5, 4, 1, 0))
-plot(z, ylim=range(z), cex=0.75)       ## 2D-plot; values cluster towards mean
+plot(z, ylim=range(z), cex=0.75)       ## 2D plot; values cluster towards mean
 abline(h=mean(z), col='cyan', lty=2)   ## add a h(orizontal) line at mean(z)
 z.hist <- hist(z, plot=F)              ## cannot flip plot with hist(); so get values and plot manually
 par(mar=c(5, 0, 1, 1))
@@ -102,7 +102,7 @@ barplot(z.hist$counts, axes=T, space=0, horiz=T)
 
 ```
 
-Now let's repeat the same, but drawing from a uniform distribution in the 
+Now let's repeat the above, but draw from a uniform distribution in the 
   numeric (includes fractional numbers) closed (includes endpoints) 
   interval [90, 110]. We'll often sample from a uniform distribution, so 
   it is good to get a feel for it:
@@ -118,14 +118,14 @@ mean(z)
 hist(z)                                ## histogram
 
 ## let's make a 2D plot (values on vertical axis, order on horizontal):
-plot(z, cex=0.5)                       ## 2D-plot
+plot(z, cex=0.5)                       ## 2D plot
 abline(h=mean(z), col='cyan')          ## add a h(orizontal) line at mean(z)
 
 ## let's put them both together:
 (x <- matrix(c(rep(1, 4), 2), nrow=1, ncol=5))
 layout(x) 
 par(mar=c(5, 4, 1, 0))
-plot(z, ylim=range(z), cex=0.75)      ## 2D-plot; values cluster towards mean
+plot(z, ylim=range(z), cex=0.75)      ## 2D plot; values cluster towards mean
 abline(h=mean(z), col='cyan', lty=2)  ## add a h(orizontal) line at mean(z)
 z.hist <- hist(z, plot=F)             ## cannot flip plot with hist(); so get values and plot manually
 par(mar=c(5, 0, 1, 1))
@@ -147,7 +147,7 @@ rm(list=ls())
 
 ## f.ss() returns sum of squared distances of points in v from m.
 ##   v should be a numeric vector; assumes no NaN or NA values
-##   m should be a numeric vector of length 1 or of length length(v)
+##   m should be a numeric vector of length 1 or with length(m) == length(v)
 ##   return value is numeric of length 1, or NA on error
 ##
 ##   Could just: 'return(sum((v - m) ^ 2))', but we'll break it
@@ -212,7 +212,7 @@ f.ss(z, 200)                       ## seems like it in this direction?
 
 ## we can get a more comprehensive view graphically:
 
-f <- function(a, b) f.ss(b, a)     ## flip the order of args so works with 'sapply()'
+f <- function(a, b) f.ss(b, a)     ## flip the order of args so it works with 'sapply()'
 m <- seq(from=1, to=200, by=0.01)  ## values to try for 'm'; will be 'x' axis
 str(m)
 penalty <- sapply(m, f, z)         ## calculate the penalty at each value of 'm'; 'y' axis
@@ -249,33 +249,33 @@ Implications of the mean of a numeric set mimimizing the sum-of-squared distance
 ### Populations and samples
 
 There are two types of means that must be distinguished during 
-  statistical inference about means: the first is the **population mean** and 
+  statistical inference about means: the first is the **population mean**, and 
   the second is the **sample mean**. In this context, 'population' refers to 
   the population you are interested in understanding. If you wanted to know
-  the mean height of everyone in the US, the US population would be the 
+  the mean height of everyone in the US, the US population is the 
   population you are studying. The most direct way to get the mean height for
   the US population would be to measure the height of everyone in the US
-  and average the measurements. Then the mean would be known exactly. However, 
+  and average the measurements. However, 
   in many cases, it is not practical to measure every member of a population,
   so instead we work with more tractably sized sub-samples from the population. 
   A similar issue arises if we wish to understand a recurring event (something 
-  that's happened before and is expected to continue to happen in the future). 
+  that has happened before and is expected to continue to happen in the future). 
   In this case, the population might be the entire series of events, including 
-  future events (if we are interested in prediction). However, future events 
+  future events (if we are interested in predictions). However, future events 
   are not currently available for measurement. So instead we work with samples 
   from the past in order to make our estimates (predictions) of what will happen 
   in the future.
 
 The **most important** thing about using samples to make estimates about populations
   is that the **samples be randomly drawn from the population of interest**. 
-  Your study would be flawed (even if it happened to yield the correct answer)
+  Your study would be flawed (even if it happened to yield the correct result)
   if you tried to estimate the US mean height by only sampling women or only 
-  sampling in the city of Baltimore. The issues with non-random sampling are well 
+  sampling the city of Baltimore. The issues with non-random sampling are well 
   recognized in the field of medical predictive models: these models tend to predict 
   outcomes better in males of European descent better than other members of the US 
-  or world populations. This is because 'in the old days' many medical studies 
+  or world population. This is because 'in the old days' many medical studies 
   conducted in the US and Europe used exclusively white male subjects. When 
-  predicting future events, we cannot really randomly sample the entire population 
+  predicting future events, we cannot randomly sample the entire population 
   (since some events in the population haven't happened yet), so we rely on a 
   usually implicit assumption that the processes and trends of the past will 
   continue in the future without change. In many fields (such as economics and 
@@ -290,7 +290,7 @@ The **most important** thing about using samples to make estimates about populat
   related occurrence, such as a trade war or pandemic, can drastically affect the 
   predictive accuracy of even near-term economic models.
 
-As was mentioned earlier, if you could measure e.g. the height of every individual 
+As was mentioned earlier, if you could measure the height of every individual 
   in a population of interest, then you could calculate the mean height of the 
   population exactly. If instead you measure the height of everyone in a
   random sample from the population, you can calculate the mean height of 
@@ -310,8 +310,8 @@ As was mentioned earlier, if you could measure e.g. the height of every individu
 2) Draw 1000 samples from a normal distribution with mean `0` and standard deviation `2` 
      and store the samples in the variable `y`. Make a histogram of `y`. Try to fiddle 
      with the number of histograms 'bins' (`breaks` parameter to `hist()`). Trying values 
-     in `c(3, 10, 30, 100, 300)` should provide a 'feel' for what happens when too
-     many or too few.
+     in `c(3, 10, 30, 100, 300)` should provide a 'feel' for what happens when there are 
+	 too many or too few.
 
 3) Concatenate `x` and `y` into a single vector of length 2000. Generate
      a 2D plot of the result. From the plot, can you tell where one distribution 
@@ -338,7 +338,7 @@ As we've discussed, the mean is an optimal summary of the **central tendency** o
   aspect of a distribution which we'd often like to quantify is how spread out the
   values in the set are. The 'sum-of-squares' we've been discussing captures how
   far away values are from the mean, so it might be a reasonable measure of spread
-  around the mean. However, since it is a sum, it will grow with the number of values
+  around the mean. However, since it is a sum, this value will grow with the number of values
   in the set, rather than converge to a single value. Instead, what we want is an 
   **average of the squared differences** of the values in the set **from the mean**. This 
   average squared-distance from values to the mean is called the **variance** of the 
@@ -372,7 +372,7 @@ The variance calculation involves squaring values, which results in the units of
   a variance being the square of whatever unit was being used to measure the
   mean. For instance, if the set of values were heights measured in inches of a 
   sample of US residents, the variance would have units of inches-squared. This 
-  is an issue for when combining the mean and variance in your calculations. 
+  is an issue when combining the mean and variance in your calculations. 
   For instance, if you wanted to know how large the spread was relative to the
   mean you want a unitless number for the ratio, but dividing the variance in
   inches-squared by the mean height in inches would yield a ratio in inches,
@@ -542,7 +542,7 @@ Take home messages: In general, the **standard error** of a sample estimate of a
   parameter (such as the mean or standard deviation) decreases with increasing sample 
   size, but with diminishing returns. In fact, the standard error of the mean is 
   directly proportional to the variance of the population parameter being measured and
-  **inversely proportional to square-root of the sample size**:
+  **inversely proportional to the square-root of the sample size**:
 
 `standard_error_mean = population_variance / square_root(sample_size)`
 
@@ -555,15 +555,15 @@ We also saw that the naive formula (same one you would use for a population) for
 As an aside: the reason applying the population formula to a sample in order to estimate 
   the population variance results in downwardly biased estimates can be understood in terms 
   of our previous discussion about the mean minimizing the sum of squared distances to the 
-  values and the fact that the variance is calculated from the squared distances
-  from the sample mean, not the population mean (since the latter is typically unknown). 
-  But the sample mean is always a bit off from the population mean, because it is calculated 
+  values. In practice, the variance is normally calculated using the squared distances
+  from the sample mean, not the population mean, since the population mean is typically unknown. 
+  However, the sample mean will always a bit off from the population mean, because it is calculated 
   from the sample instead of the whole population. We also know the sample mean will always 
   have a lower sum of squared distances (and therefore average square distance) to the 
   sample values than any other number, including the population mean. Therefore, the 
-  variance calculated by using the population formula plugging and the sample mean
-  will always be a bit smaller than if the variane was calculated using the same formula 
-  and the population mean. Theoretical analysis of this problem has resulted in proofs that 
+  variance calculated by using the population formula with the sample mean
+  will always be a bit smaller than if the variance was calculated using the same formula 
+  and the population mean. Theoretical analysis of this problem has proven that 
   using the sample formula for variance (using a denominator of `n - 1` instead of `n`) 
   results in an unbiased sample-based estimate of the population standard deviation, as we 
   observed in our experiments.
@@ -579,8 +579,8 @@ So we have now seen that if we repeatedly sample a very large (or infinite, in o
   centered around the population mean. This means that the sample mean is an **unbiased 
   estimator** of the population mean. We have also seen that the spread of these sample 
   means around the population mean decreases with inceasing sample size. The spread of 
-  sample means reflects an important aspect of the population: the more dispersed the 
-  population values, the more dispersed is the distribution of the sample means. However, 
+  sample means reflects an important aspect of the population: more dispersed  
+  population values result in a more dispersed the distribution of the sample means. However, 
   the shape of the distribution of sample means does not necessarily reflect the distribution
   of underlying population values:
 
@@ -614,7 +614,7 @@ par(mfrow=c(1, 1))        ## reset plotting area to 1 row, 1 column
 
 Here we can see that even though the shape of the population being sampled is uniform (should look
   more or less like a rectangle with uniform height between 0 and 10), the shape of the 
-  distribution of sample means is bell shaped. In fact, the **distribution of sample means** of any
+  distribution of sample means is bell-shaped. In fact, the **distribution of sample means** of any
   continuous distribution will have the familiar **bell-shaped normal** distribution, with the mean of
   that normal distribution of sample means falling around the population mean (unbiased) and with the 
   standard deviation of that normal distribution of sample means (the other parameter of a normal 
